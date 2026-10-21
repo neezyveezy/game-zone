@@ -1,0 +1,1148 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Don't Touch the Button</title>
+<style>
+:root{--bg:#14121f;--panel:#1f1b33;--line:#2e2850;--text:#f3f0ff;--muted:#a59fc6;--accent:#ffd84a;--hard:#ff9b3d;--insane:#ff4d6d}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;user-select:none;-webkit-user-select:none}
+#hud{position:fixed;top:0;left:0;right:0;min-height:64px;display:flex;flex-wrap:wrap;align-items:center;gap:6px 16px;padding:10px 20px;background:var(--panel);border-bottom:2px solid var(--line);z-index:20}
+#lvl{font-weight:800;color:var(--accent);white-space:nowrap}
+#lvl .badge{margin-left:8px}
+#instr{flex:1;min-width:200px;font-size:17px;font-weight:600;text-align:center}
+#prog{font-variant-numeric:tabular-nums;font-weight:800;min-width:60px;text-align:right;font-size:22px;white-space:nowrap}
+#fails{color:var(--muted);white-space:nowrap;font-size:14px}
+@media (max-width:640px){#instr{order:5;flex-basis:100%;font-size:15px}}
+.badge{display:inline-block;font-size:12px;font-weight:900;padding:3px 8px;border-radius:999px;letter-spacing:1px;vertical-align:middle}
+.badge.hard{background:var(--hard);color:#2a1400}
+.badge.insane{background:var(--insane);color:#fff}
+#arena{position:fixed;top:64px;left:0;right:0;bottom:0;overflow:hidden;touch-action:none}
+#arena.nocursor{cursor:none}
+.bigbtn,.cardbtn{border-radius:50%;background:radial-gradient(circle at 35% 30%,#ff8a8f,#ff3b47 40%,#b3121d 80%);box-shadow:0 10px 0 #7a0910,0 18px 30px rgba(0,0,0,.5),inset 0 -6px 12px rgba(0,0,0,.25);display:flex;align-items:center;justify-content:center;font-weight:900;color:#fff;text-shadow:0 2px 0 #7a0910;letter-spacing:1px;text-align:center;line-height:1.05;font-family:inherit}
+.bigbtn{position:absolute;left:0;top:0;pointer-events:none;z-index:5}
+.bigbtn.hover{filter:brightness(1.18)}
+.bigbtn.focus{outline:4px dashed var(--accent);outline-offset:12px}
+.bigbtn.green{background:radial-gradient(circle at 35% 30%,#a8ffcb,#3ddc84 45%,#14824a 85%);box-shadow:0 10px 0 #0c5a33,0 18px 30px rgba(0,0,0,.5);text-shadow:0 2px 0 #0c5a33}
+.cardbtn{position:relative;width:140px;height:140px;margin:18px auto 6px;border:0;font-size:18px;cursor:pointer}
+.cardbtn:active{transform:translateY(6px);box-shadow:0 4px 0 #7a0910}
+.target{position:absolute;left:0;top:0;border-radius:50%;background:radial-gradient(circle at 35% 30%,#a8ffcb,#3ddc84 50%,#1a9b55);box-shadow:0 4px 0 #0f6b39;pointer-events:none;z-index:3;animation:pop .25s ease-out;display:flex;align-items:center;justify-content:center;font-weight:900;color:#0b3d22;font-size:20px}
+.target.red{background:radial-gradient(circle at 35% 30%,#ff9da2,#ff3b47 50%,#b3121d);box-shadow:0 4px 0 #7a0910;color:#fff;font-size:10px}
+.target.liar{animation:liar 1.1s ease-in-out infinite}
+@keyframes pop{from{scale:0}to{scale:1}}
+@keyframes liar{0%,100%{scale:1;filter:none}50%{scale:1.08;filter:hue-rotate(-30deg)}}
+.player{position:absolute;left:0;top:0;border-radius:8px;background:var(--accent);box-shadow:0 4px 0 #a88a00;z-index:6;pointer-events:none;display:flex;align-items:center;justify-content:center;font-size:11px;color:#1a1400;font-weight:900}
+#fake{position:absolute;left:0;top:0;pointer-events:none;z-index:30}
+.dark{position:absolute;inset:0;pointer-events:none;z-index:25}
+#typed{position:absolute;left:16px;right:16px;bottom:12%;text-align:center;font-weight:900;pointer-events:none;font-size:clamp(18px,4vw,34px);letter-spacing:3px;color:var(--muted)}
+#typed .ok{color:var(--accent)}
+#typed .sp{display:inline-block;width:.6em}
+.toast{position:absolute;left:50%;top:18px;transform:translateX(-50%);background:var(--accent);color:#1a1400;font-weight:800;padding:8px 16px;border-radius:10px;z-index:40;pointer-events:none;white-space:nowrap;animation:toast 1.8s forwards}
+@keyframes toast{0%{opacity:0}10%{opacity:1}80%{opacity:1}100%{opacity:0}}
+.popup{position:absolute;background:#fff;color:#222;padding:14px 18px;border-radius:12px;font-weight:700;box-shadow:0 12px 40px rgba(0,0,0,.6);pointer-events:none;z-index:8;max-width:260px;animation:pop .2s ease-out}
+#overlay{position:fixed;inset:0;background:rgba(10,8,20,.84);display:flex;align-items:center;justify-content:center;z-index:50;padding:16px}
+#overlay.hidden{display:none}
+.card{background:var(--panel);border:2px solid var(--line);border-radius:20px;padding:30px;max-width:560px;width:100%;text-align:center;max-height:100%;overflow:auto}
+.card h1{font-size:34px;line-height:1.1;margin-bottom:10px}
+.card h2{font-size:22px;margin:4px 0}
+.card p{color:var(--muted);margin:8px 0 14px;font-size:17px;line-height:1.45}
+.card hr{border:0;border-top:1px solid var(--line);margin:16px 0}
+.card .next{color:var(--accent);font-weight:700;font-size:14px;text-transform:uppercase;letter-spacing:1px}
+.card .stat{font-size:20px;color:var(--text);margin:6px 0}
+.acts{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:10px}
+.go{background:var(--accent);color:#1a1400;border:0;border-radius:12px;padding:14px 28px;font-size:18px;font-weight:800;cursor:pointer;font-family:inherit}
+.go.ghost{background:transparent;color:var(--muted);border:2px solid var(--line)}
+.go:hover{filter:brightness(1.1)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(46px,1fr));gap:6px;margin:14px 0}
+.lvbtn{padding:9px 0;border-radius:10px;border:2px solid var(--line);background:#2a2547;color:var(--text);font-weight:800;cursor:pointer;font-size:14px;font-family:inherit}
+.lvbtn.hard{border-color:var(--hard)}
+.lvbtn.insane{border-color:var(--insane);background:#3a1424}
+.lvbtn:hover:not(:disabled){filter:brightness(1.3)}
+.lvbtn:disabled{opacity:.3;cursor:default}
+.legend{font-size:13px;color:var(--muted)}
+.dialog{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(420px,calc(100% - 32px));background:#fff;color:#222;border-radius:14px;padding:24px;box-shadow:0 20px 60px rgba(0,0,0,.6);z-index:10;text-align:center;font-size:15px}
+.dialog .dh{font-weight:800;font-size:20px;margin-bottom:8px}
+.dialog p{margin-bottom:18px;color:#555;line-height:1.4}
+.dialog.bottom{top:auto;bottom:16px;transform:translateX(-50%)}
+.dialog.ad{transform:none;width:240px;padding:16px;text-align:left;font-size:14px}
+.dialog.ad .dh{font-size:16px;padding-right:24px}
+.dialog.ad p{margin-bottom:12px}
+.dialog.fakecard{background:var(--panel);color:var(--text);border:2px solid var(--line);border-radius:20px}
+.dialog.fakecard h1{font-size:30px;margin-bottom:8px}
+.dialog.fakecard p{color:var(--muted)}
+.dialog.bsod{background:#1747c8;color:#fff;text-align:left}
+.dialog.bsod p{color:#dbe4ff}
+.d-red{background:radial-gradient(circle at 35% 30%,#ff8a8f,#ff3b47 40%,#b3121d 85%);color:#fff;border:0;border-radius:999px;padding:14px 34px;font-weight:900;font-size:17px;cursor:pointer;box-shadow:0 5px 0 #7a0910;display:inline-flex;flex-direction:column;align-items:center;font-family:inherit;margin:4px}
+.d-red small{font-size:9px;font-weight:600;opacity:.85;margin-top:3px}
+.d-link{display:block;margin:14px auto 0;color:#999;font-size:12px;text-decoration:underline;cursor:pointer;background:none;border:0;font-family:inherit}
+.bsod .d-link{color:#b8c8ff}
+.d-grey{background:#eee;color:#222;border:0;border-radius:10px;padding:12px 18px;font-size:18px;font-weight:800;margin:4px;cursor:pointer;font-family:inherit;min-width:64px}
+.d-grey:hover{background:#ddd}
+.ad-x{position:absolute;top:8px;right:10px;background:none;border:0;font-size:18px;color:#888;cursor:pointer;line-height:1;font-family:inherit}
+.ad-x.redx{background:radial-gradient(circle at 35% 30%,#ff8a8f,#ff3b47 40%,#b3121d 85%);color:#fff;border-radius:50%;width:26px;height:26px;font-size:13px;top:6px;right:6px}
+.stopbtn{position:absolute;left:0;top:0;width:100px;height:60px;border-radius:12px;border:0;background:#d8d4ea;color:#1f1b33;font-size:20px;font-weight:900;cursor:pointer;box-shadow:0 5px 0 #8f89ad;z-index:6;font-family:inherit}
+.doors{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:flex;gap:18px;z-index:6}
+.dcol{display:flex;flex-direction:column;align-items:center}
+.sign{background:#fff7d6;color:#3a2a00;padding:8px;border-radius:8px;font-size:13px;font-weight:700;margin-bottom:10px;width:130px;min-height:62px;display:flex;align-items:center;justify-content:center;text-align:center}
+.door{width:110px;height:180px;background:#7a4a24;border:4px solid #4a2b12;border-radius:10px 10px 0 0;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:40px;font-weight:900;color:#ffd9a8;font-family:inherit}
+.door:hover{filter:brightness(1.15)}
+.door.open{background:#1f6b44;border-color:#124a2e;cursor:default}
+.loadbar{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(420px,80%);pointer-events:none;text-align:center;font-weight:800}
+.loadbar .bar{height:26px;border:3px solid var(--line);border-radius:14px;overflow:hidden;margin-top:8px;background:#0e0c18}
+.loadbar .fill{height:100%;width:0;background:var(--accent)}
+</style>
+</head>
+<body>
+<div id="hud"><span id="lvl">DON'T TOUCH THE BUTTON</span><span id="instr"></span><span id="prog"></span><span id="fails">Touches: 0</span></div>
+<div id="arena"></div>
+<div id="overlay" class="hidden"></div>
+<script>
+const $ = s => document.querySelector(s);
+const arena = $('#arena'), ov = $('#overlay'), hud = $('#hud');
+let W = 0, H = 0;
+function measure(){ arena.style.top = hud.offsetHeight + 'px'; const r = arena.getBoundingClientRect(); W = r.width; H = r.height; }
+addEventListener('resize', measure); measure();
+
+let mx = -999, my = -999;
+function setMouse(e){ const r = arena.getBoundingClientRect(); mx = e.clientX - r.left; my = e.clientY - r.top; }
+addEventListener('pointermove', setMouse);
+addEventListener('pointerdown', setMouse, true);
+addEventListener('pointerup', () => { if(L) L.holding = false; });
+
+const keys = new Set();
+addEventListener('keyup', e => keys.delete(e.key.toLowerCase()));
+addEventListener('blur', () => keys.clear());
+
+const rand = (a, b) => a + Math.random() * (b - a);
+const pick = a => a[Math.floor(Math.random() * a.length)];
+const randv = s => pick([-1, 1]) * s * rand(.85, 1.15);
+const dist = (ax, ay, bx, by) => Math.hypot(ax - bx, ay - by);
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const shuffle = a => { for(let i = a.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+
+const TAUNTS = ["do it", "just once", "press me", "nobody's watching", "c'mon", "you know you want to", "I'm so squishy", "boop?"];
+const FAIL_LINES = ["It was right there. You couldn't resist.", "The button thanks you for your service.", "Your finger has betrayed you.", "That's not what \"don't\" means.", "The button wins this round.", "Self-control: 0. Button: 1."];
+const WIN_LINES = ["Nice.", "Clean. Not a single touch.", "The button is getting nervous.", "Smooth moves.", "Your mouse hand is legendary.", "Too easy? Don't answer that.", "The button files a complaint.", "Somewhere, a button weeps.", "Flawless.", "You're getting scary good at this."];
+
+let actx;
+function beep(freq, dur, type = 'sine', vol = .15){
+  try{
+    actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+    const o = actx.createOscillator(), g = actx.createGain();
+    o.type = type; o.frequency.value = freq;
+    g.gain.setValueAtTime(vol, actx.currentTime);
+    g.gain.exponentialRampToValueAtTime(.001, actx.currentTime + dur);
+    o.connect(g).connect(actx.destination); o.start(); o.stop(actx.currentTime + dur);
+  }catch(e){}
+}
+function shake(el){ el.animate([{translate:'0 0'},{translate:'-12px 4px'},{translate:'10px -6px'},{translate:'-6px 2px'},{translate:'0 0'}], {duration:300}); }
+function toast(msg){ const d = document.createElement('div'); d.className = 'toast'; d.textContent = msg; arena.appendChild(d); setTimeout(() => d.remove(), 1800); }
+const badge = d => d === 3 ? '<span class="badge insane">💀 INSANE</span>' : d === 2 ? '<span class="badge hard">🔥 HARD</span>' : '';
+
+// ---------- level state ----------
+let fails = 0, levelIdx = 0, L = null, runStart = 0;
+
+function newLevel(){
+  arena.innerHTML = ''; arena.className = ''; keys.clear();
+  return {buttons:[], targets:[], updates:[], sched:[], state:'play', t:0, need:0, got:0, mode:null,
+    timeLeft:null, timeoutFail:null, xf:null, lag:false, lx:mx, ly:my, fake:null, onKey:null,
+    anyClickFails:null, off:{x:0, y:0}, quake:0, player:null, onTargetDown:null, onGot:null, onSpawn:null,
+    holding:false, hudText:null, dark:null, darkR:85, spotOpts:null, tprops:null, revkeys:false, touchy:false};
+}
+function at(t, fn){ L.sched.push({t, fn}); }
+function draw(o){
+  o.el.style.width = o.el.style.height = (o.r * 2) + 'px';
+  o.el.style.left = (o.x - o.r + L.off.x) + 'px';
+  o.el.style.top = (o.y - o.r + L.off.y) + 'px';
+  if(o.span) o.el.style.fontSize = Math.max(10, o.r * .28) + 'px';
+  o.el.style.opacity = o.opacity;
+}
+function addButton(o = {}){
+  const el = document.createElement('div'); el.className = 'bigbtn' + (o.cls ? ' ' + o.cls : '');
+  const span = document.createElement('span'); span.textContent = o.label ?? "DON'T"; el.appendChild(span);
+  arena.appendChild(el);
+  const b = Object.assign({x:W/2, y:H/2, r:70, vx:0, vy:0, move:'static', speed:120, opacity:1, hovering:false, taunt:0}, o, {el, span});
+  L.buttons.push(b); draw(b); return b;
+}
+function btnFar(r, o = {}){ return addButton(Object.assign({r}, farCorner(r), o)); }
+function addLiar(x, y){
+  const el = document.createElement('div'); el.className = 'target liar'; arena.appendChild(el);
+  const b = {x, y, r:26, el, liar:true, move:'static', opacity:1, failMsg:"It was pulsing. Suspiciously. Like a button would."};
+  L.buttons.push(b); draw(b); return b;
+}
+function addTarget(x, y, o = {}){
+  const el = document.createElement('div'); el.className = 'target' + (o.cls || (L.tprops && L.tprops.cls) ? ' ' + (o.cls || L.tprops.cls) : ''); arena.appendChild(el);
+  const t = Object.assign({x, y, r:26, move:'static', opacity:1}, L.tprops || {}, o, {el});
+  if(t.label != null) el.textContent = t.label;
+  L.targets.push(t); draw(t); return t;
+}
+function addPlayer(x, y){
+  const el = document.createElement('div'); el.className = 'player'; el.textContent = '• •'; arena.appendChild(el);
+  L.player = {x, y, r:15, speed:280, el, opacity:1}; draw(L.player);
+}
+function randomSpot(r, o = {}){
+  const m = o.margin ?? r + 16, gap = o.gap ?? 40, tgap = o.tgap ?? 14;
+  const ymin = o.ymin ?? m, ymax = o.ymax ?? H - m;
+  let best = {x:W/2, y:H/2}, bs = -Infinity;
+  for(let i = 0; i < 150; i++){
+    const x = rand(m, Math.max(m, W - m)), y = rand(ymin, Math.max(ymin, ymax));
+    let s = Infinity;
+    for(const b of L.buttons){ if(b !== o.exclude) s = Math.min(s, dist(x, y, b.x, b.y) - b.r - r - gap); }
+    for(const t of L.targets) s = Math.min(s, dist(x, y, t.x, t.y) - t.r - r - tgap);
+    if(o.avoidPointer){ const p = pointer(); s = Math.min(s, dist(x, y, p.x, p.y) - r - 80); }
+    if(L.player) s = Math.min(s, dist(x, y, L.player.x, L.player.y) - r - 70);
+    if(s > bs){ bs = s; best = {x, y}; }
+    if(s >= 0) break;
+  }
+  return best;
+}
+function corners(r){
+  const p = r + 20, q = L && L.player ? L.player : {x:mx, y:my};
+  return [[p,p],[W-p,p],[p,H-p],[W-p,H-p]].sort((a, b) => dist(b[0], b[1], q.x, q.y) - dist(a[0], a[1], q.x, q.y)).map(c => ({x:c[0], y:c[1]}));
+}
+function farCorner(r){ return corners(r)[0]; }
+function spawnTarget(o){ const s = randomSpot((L.tprops && L.tprops.r) || 26, L.spotOpts || {}); const t = addTarget(s.x, s.y, o); if(L.onSpawn) L.onSpawn(t); return t; }
+function collect(n, mode){ L.need = n; L.got = 0; L.mode = mode; if(mode === 'all'){ for(let i = 0; i < n; i++) spawnTarget(); } else if(mode === 'one') spawnTarget(); }
+function survive(sec){ L.timeLeft = sec; }
+function removeTarget(t){ t.el.remove(); const i = L.targets.indexOf(t); if(i >= 0) L.targets.splice(i, 1); }
+function hitTarget(t){
+  removeTarget(t); L.got++;
+  beep(660 + Math.min(L.got, 20) * 40, .09, 'triangle');
+  if(L.onGot) L.onGot(L.got);
+  if(L.state !== 'play') return;
+  if(L.got >= L.need) win();
+  else if(L.mode === 'one') spawnTarget();
+}
+function rawPointer(){ return L && L.lag ? {x:L.lx, y:L.ly} : {x:mx, y:my}; }
+function screenPointer(){ let p = rawPointer(); if(L && L.xf) p = L.xf(p.x, p.y); return p; }
+function pointer(){ const p = screenPointer(); return {x:p.x - L.off.x, y:p.y - L.off.y}; }
+function useFake(){
+  arena.classList.add('nocursor');
+  const fc = document.createElement('div'); fc.id = 'fake';
+  fc.innerHTML = '<svg width="22" height="30" viewBox="0 0 22 30"><path d="M1 1 L1 24 L7 18 L11 28 L15 26 L11 17 L19 17 Z" fill="#fff" stroke="#000" stroke-width="1.5"/></svg>';
+  arena.appendChild(fc); L.fake = fc;
+}
+function addDark(){ const d = document.createElement('div'); d.className = 'dark'; arena.appendChild(d); return d; }
+function dialog(html, cls = ''){ const d = document.createElement('div'); d.className = 'dialog ui ' + cls; d.innerHTML = html; arena.appendChild(d); return d; }
+
+arena.addEventListener('pointerdown', e => {
+  if(!L || L.state !== 'play' || e.target.closest('.ui')) return;
+  const p = pointer();
+  for(const b of L.buttons) if(dist(p.x, p.y, b.x, b.y) <= b.r){ if(b.winOnPress) return win(); return fail(b.failMsg || null); }
+  for(const t of L.targets) if(dist(p.x, p.y, t.x, t.y) <= t.r + 8){ if(L.onTargetDown) return L.onTargetDown(t); return hitTarget(t); }
+  if(L.anyClickFails) return fail(L.anyClickFails);
+});
+
+// ---------- movement ----------
+function toward(o, x, y, step){ const dx = x - o.x, dy = y - o.y, d = Math.hypot(dx, dy); if(d > 1){ const s = Math.min(d, step); o.x += dx / d * s; o.y += dy / d * s; } }
+function move(o, dt){
+  switch(o.move){
+    case 'follow': { if(mx < -900 && !L.player) break; const q = L.player || pointer(); toward(o, q.x, q.y, o.speed * dt); break; }
+    case 'mimic': { const q = L.player || pointer(); toward(o, W - q.x, H - q.y, o.speed * dt); break; }
+    case 'chain': { const d = dist(o.x, o.y, o.lead.x, o.lead.y), gap = (o.r + o.lead.r) * .85; if(d > gap) toward(o, o.lead.x, o.lead.y, d - gap); break; }
+    case 'bounce': case 'gravity': {
+      if(o.move === 'gravity') o.vy += 900 * dt;
+      const hb = o.maxY ?? H;
+      o.x += o.vx * dt; o.y += o.vy * dt;
+      if(o.x < o.r){ o.x = o.r; o.vx = Math.abs(o.vx); }
+      if(o.x > W - o.r){ o.x = W - o.r; o.vx = -Math.abs(o.vx); }
+      if(o.y < o.r){ o.y = o.r; o.vy = Math.abs(o.vy); }
+      if(o.y > hb - o.r){ o.y = hb - o.r; o.vy = -Math.abs(o.vy); }
+      break;
+    }
+    case 'fly': o.x += o.vx * dt; o.y += o.vy * dt; if(o.x < -120 || o.x > W + 120 || o.y < -120 || o.y > H + 120) o.dead = true; break;
+    case 'orbit': o.ang += o.w * dt; o.x = o.cx + Math.cos(o.ang) * o.rad; o.y = o.cy + Math.sin(o.ang) * o.rad; break;
+    case 'teleport': o.tt -= dt; if(o.tt <= 0){ o.tt = o.period; const s = randomSpot(o.r, {exclude:o, avoidPointer:true, gap:10}); o.x = s.x; o.y = s.y; o.el.animate([{scale:.2},{scale:1}], {duration:180}); } break;
+    case 'sine': o.x = o.cx + (o.ax || 0) * Math.sin(L.t * o.w + (o.ph || 0)); o.y = o.cy + (o.ay || 0) * Math.sin(L.t * (o.w2 || o.w) + (o.ph2 || o.ph || 0)); break;
+    case 'pop': o.age += dt; o.r = o.max * Math.sin(Math.PI * Math.min(1, o.age / o.life)); if(o.age >= o.life) o.dead = true; break;
+    case 'drift': if(o.to) toward(o, o.to.x, o.to.y, o.speed * dt); break;
+    case 'flee': {
+      const p = L.player || pointer(), d = dist(o.x, o.y, p.x, p.y);
+      if(d < 170 && d > 0){ o.x += (o.x - p.x) / d * o.speed * dt; o.y += (o.y - p.y) / d * o.speed * dt; }
+      o.x = clamp(o.x, o.r, W - o.r); o.y = clamp(o.y, o.r, H - o.r);
+      for(const b of L.buttons){ const bd = dist(o.x, o.y, b.x, b.y), min = b.r + o.r + 4; if(bd < min && bd > 0){ o.x = b.x + (o.x - b.x) / bd * min; o.y = b.y + (o.y - b.y) / bd * min; } }
+      break;
+    }
+  }
+}
+
+// ---------- reusable goals ----------
+function goalType(word, strict){
+  const b = addButton({r:90, y:H * .38}); b.el.classList.add('focus');
+  const letters = word.replace(/ /g, '');
+  let idx = 0;
+  const out = document.createElement('div'); out.id = 'typed'; arena.appendChild(out);
+  const render = () => { let n = 0; out.innerHTML = [...word].map(ch => ch === ' ' ? '<span class="sp"></span>' : `<span class="${n++ < idx ? 'ok' : ''}">${ch}</span>`).join(''); };
+  render();
+  L.onKey = e => {
+    if(e.key === ' ' || e.key === 'Enter'){ e.preventDefault(); fail("The button was selected. Space and Enter press selected buttons. Everybody knows that."); return; }
+    if(!/^[a-z]$/i.test(e.key)) return;
+    if(e.key.toUpperCase() === letters[idx]){ idx++; render(); beep(500 + idx * 10, .04, 'square', .05); if(idx >= letters.length) win(); }
+    else { if(strict){ idx = 0; render(); toast("Typo! Start over."); } beep(160, .08, 'square', .05); shake(out); }
+  };
+}
+function goalQuiz(q, answers){
+  const d = dialog(`<div class="dh">Quick quiz! 🧮</div><p>${q}</p><div>${shuffle(answers.slice()).map(([a, k]) => `<button class="${k === 'red' ? 'd-red' : 'd-grey'}" data-k="${k}">${a}</button>`).join(' ')}</div>`);
+  d.querySelectorAll('button').forEach(b => b.onclick = () => {
+    const k = b.dataset.k;
+    if(k === 'red') fail(pick(["Right answer. Wrong button. That red one was THE button.", "Correct… but you pressed the button.", "The answer was right. The button was wrong."]));
+    else if(k === 'ok') win();
+    else { toast("Nope. Try again."); shake(d); beep(200, .1, 'square', .06); }
+  });
+}
+function goalDoors(){
+  const letters = ['A', 'B', 'C'], X = Math.floor(Math.random() * 3), others = shuffle([0, 1, 2].filter(i => i !== X)), Y = others[0], Z = others[1];
+  const signs = []; signs[X] = "The button is NOT behind this door."; signs[Y] = "The button is behind this door."; signs[Z] = `The button is not behind door ${letters[Y]}.`;
+  const wrap = document.createElement('div'); wrap.className = 'doors ui'; arena.appendChild(wrap);
+  let opened = 0;
+  letters.forEach((l, i) => {
+    const col = document.createElement('div'); col.className = 'dcol';
+    col.innerHTML = `<div class="sign">${signs[i]}</div><button class="door">${l}</button>`;
+    wrap.appendChild(col);
+    const door = col.querySelector('.door');
+    door.onclick = () => {
+      if(door.classList.contains('open') || L.state !== 'play') return;
+      if(i === X) return fail(`Door ${l} had the button. Only door ${letters[Z]}'s sign was true.`);
+      door.classList.add('open'); door.textContent = '✅'; opened++; beep(700 + opened * 100, .1, 'triangle');
+      if(opened >= 2) win();
+    };
+  });
+}
+function goalStopwatch(target, tol, every){
+  const A = {x:W/2 - 120, y:H/2}, B = {x:W/2 + 120, y:H/2};
+  const red = addButton({r:60, x:A.x, y:A.y});
+  const stop = document.createElement('button'); stop.className = 'stopbtn ui'; stop.textContent = 'STOP'; arena.appendChild(stop);
+  let redAt = A, stopAt = B, sw = 0, k = -1;
+  L.t0 = 0;
+  L.hudText = () => (L.t - L.t0).toFixed(2) + 's';
+  L.updates.push(dt => {
+    sw += dt; if(k < 0 && sw > every){ k = 0; sw = 0; }
+    let e = 0; if(k >= 0){ k += dt / Math.min(.5, every * .6); e = Math.min(1, k); }
+    const ee = (1 - Math.cos(Math.PI * e)) / 2, arc = Math.sin(Math.PI * e) * 95;
+    const rTo = redAt === A ? B : A, sTo = stopAt === A ? B : A;
+    red.x = redAt.x + (rTo.x - redAt.x) * ee; red.y = redAt.y - arc;
+    stop.style.left = (stopAt.x + (sTo.x - stopAt.x) * ee - 50) + 'px'; stop.style.top = (stopAt.y + arc - 30) + 'px';
+    if(k >= 1){ k = -1; sw = 0; redAt = rTo; stopAt = sTo; }
+  });
+  stop.addEventListener('pointerdown', e => {
+    e.stopPropagation(); if(L.state !== 'play') return;
+    const el = L.t - L.t0;
+    if(Math.abs(el - target) <= tol) win();
+    else { toast(`${el.toFixed(2)}s, ${el < target ? 'too early' : 'too late'}! Again.`); beep(200, .1, 'square', .06); L.t0 = L.t; }
+  });
+}
+function goalCount(min, max, moving){
+  const n = min + Math.floor(Math.random() * (max - min + 1)), r = n > 12 ? 20 : 28;
+  for(let i = 0; i < n; i++){
+    const s = randomSpot(r, {gap:8, ymax:H - 220});
+    addButton(Object.assign({x:s.x, y:s.y, r, label:n > 12 ? '' : undefined}, moving ? {move:'bounce', vx:randv(90), vy:randv(80), maxY:H - 190} : {}));
+  }
+  const opts = shuffle([n - 2, n - 1, n, n + 1, n + 2]);
+  const d = dialog(`<div class="dh">How many red buttons are on the screen?</div><div>${opts.map(o => `<button class="d-grey" data-n="${o}">${o}</button>`).join('')}</div>`, 'bottom');
+  d.querySelectorAll('button').forEach(b => b.onclick = () => { if(+b.dataset.n === n) win(); else { toast("Count again!"); shake(d); beep(200, .1, 'square', .06); } });
+}
+function goalHold(secs, w){
+  const t = addTarget(W / 2, H / 2, {r:40});
+  addButton({r:55, move:'sine', cx:W/2, cy:H/2, ax:Math.min(W / 2 - 70, 380), w, ay:0, ph:Math.PI / 2});
+  L.hold = 0;
+  L.onTargetDown = () => { L.holding = true; };
+  L.hudText = () => L.hold.toFixed(1) + ' / ' + secs.toFixed(1) + 's';
+  L.updates.push(dt => {
+    if(!L.holding) return;
+    const p = pointer();
+    if(dist(p.x, p.y, t.x, t.y) > t.r + 8){ L.holding = false; return; }
+    for(const b of L.buttons) if(dist(p.x, p.y, b.x, b.y) < b.r) return fail("It slid right under your finger. Should've let go!");
+    L.hold += dt;
+    if(L.hold >= secs) win();
+  });
+}
+function goalRapid(clicks, secs, w){
+  L.need = clicks; L.got = 0; L.mode = 'manual';
+  const t = addTarget(W / 2, H / 2, {r:36});
+  addButton({r:50, move:'sine', cx:W/2, cy:H/2, ax:Math.min(W / 2 - 60, 350), w, ay:0, ph:Math.PI / 2});
+  survive(secs); L.timeoutFail = `Too slow! You need ${clicks} clicks before time runs out.`;
+  L.onTargetDown = () => { L.got++; t.el.animate([{scale:.85},{scale:1}], {duration:120}); beep(500 + Math.min(L.got, 30) * 20, .05, 'triangle'); if(L.got >= L.need) win(); };
+}
+function goalMemory(n, show){
+  collect(n, 'all');
+  L.targets.forEach((t, i) => { t.num = i + 1; t.el.textContent = i + 1; });
+  L.next = 1;
+  const hide = () => L.targets.forEach(t => t.el.textContent = '?');
+  const showAll = () => L.targets.forEach(t => t.el.textContent = t.num);
+  at(show, hide);
+  L.onTargetDown = t => {
+    if(t.num === L.next){ L.next++; hitTarget(t); }
+    else { toast(`Nope, find ${L.next} first!`); beep(200, .1, 'square', .06); showAll(); at(L.t + 1.2, hide); }
+  };
+}
+const AD_POOL = [
+  ["🎰 YOU WON!", "You are visitor #1,000,000! Claim your prize now!", "CLAIM PRIZE"],
+  ["🔥 HOT BUTTONS", "Single buttons in your area want to be pressed.", "PRESS NOW"],
+  ["💾 Free RAM", "Download 16GB of RAM with one easy click.", "DOWNLOAD"],
+  ["⚡ Speed Up", "Your PC is slow! Click to make it fast.", "FIX NOW"],
+  ["🎮 Play Now", "This game is boring. Try a different game.", "PLAY"],
+  ["🍕 Free Pizza", "Click to get free pizza. Totally real.", "GET PIZZA"],
+  ["📱 New Phone", "Congratulations, you've been selected!", "CLAIM"],
+  ["🐱 Cute Cats", "You won't BELIEVE what this cat did.", "WATCH"]
+];
+function goalAds(n){
+  const ads = shuffle(Array.from({length:n}, (_, i) => AD_POOL[i % AD_POOL.length]));
+  const sneaky = new Set(shuffle([...Array(n).keys()]).slice(0, Math.max(1, Math.round(n / 5))));
+  L.need = n; L.got = 0; L.mode = 'manual';
+  ads.forEach((a, i) => {
+    const sn = sneaky.has(i);
+    const d = dialog(`<button class="ad-x ${sn ? 'redx' : ''}">×</button><div class="dh">${a[0]}</div><p>${a[1]}</p><button class="d-red">${a[2]}</button>${sn ? '<button class="d-link">close ad</button>' : ''}`, 'ad');
+    d.style.left = rand(8, Math.max(8, W - 250)) + 'px'; d.style.top = rand(8, Math.max(8, H - 210)) + 'px';
+    const close = () => { d.remove(); L.got++; beep(700 + L.got * 30, .08, 'triangle'); if(L.got >= L.need) win(); };
+    d.querySelector('.d-red').onclick = () => fail("Never click the big red button on an ad. Life lesson.");
+    d.querySelector('.ad-x').onclick = sn ? () => fail("That × was the button. Sneaky, huh? That ad had a 'close ad' link.") : close;
+    if(sn) d.querySelector('.d-link').onclick = close;
+  });
+}
+function fakeVictory(){
+  const d = dialog(`<h1>✅ Cleared!</h1><p>Amazing work! Click below to go to the next level.</p><button class="go" id="fk">Next level →</button>`, 'fakecard');
+  d.querySelector('#fk').onclick = () => fail(`That wasn't the real menu. Your counter said ${L.got}/${L.need}. The button learned to dress up.`);
+  setTimeout(() => { if(d.isConnected){ d.remove(); if(L.state === 'play') toast("Phew. It was fake."); } }, 4500);
+}
+function crashDialog(){
+  if(L.state !== 'play') return;
+  const d = dialog(`<div class="dh">😵 Don't Touch the Button has stopped responding</div><p>An unexpected error occurred. Press RESTART to keep playing.</p><button class="d-red">RESTART GAME</button><button class="d-link">wait for the program to respond</button>`, 'bsod');
+  d.querySelector('.d-red').onclick = () => fail("Restarting meant pressing the button. Classic trick.");
+  d.querySelector('.d-link').onclick = () => { d.remove(); toast("It's responding now. Funny how that works."); };
+}
+
+// ---------- level builder (for the remix levels) ----------
+// Hazards are written as "type:count:radius:speed[:extra]"
+function hazard(str){
+  const [t, a, b, c, d] = str.split(':'), n = +a, r = +b, s = +c, e = d != null ? +d : null;
+  const cx = W / 2, cy = H / 2;
+  const away = () => randomSpot(r, {avoidPointer:true, gap:10});
+  for(let k = 0; k < (['rain', 'bullets', 'pop', 'sweep', 'ring', 'wall', 'vwall', 'snake'].includes(t) ? 1 : n); k++){
+    switch(t){
+      case 'center': addButton({r}); break;
+      case 'static': { const p = randomSpot(r, {gap:40}); addButton({x:p.x, y:p.y, r}); break; }
+      case 'mine': { const p = randomSpot(r, {gap:8}); addButton({x:p.x, y:p.y, r}); break; }
+      case 'bounce': addButton(Object.assign({r, move:'bounce', vx:randv(s), vy:randv(s * .85)}, away())); break;
+      case 'follow': case 'hunter': addButton(Object.assign({r, move:'follow', speed:s * rand(.9, 1.1), hunt:t === 'hunter'}, corners(r)[k % 4])); break;
+      case 'mimic': addButton({r, move:'mimic', speed:s, x:cx + k * 40, y:cy}); break;
+      case 'teleport': addButton(Object.assign({r, move:'teleport', period:s / 1000, tt:s / 1000 * (1 + k * .37)}, away())); break;
+      case 'orbit': addButton({r, move:'orbit', cx, cy, rad:Math.min(W, H) * (e || .3), ang:k * Math.PI * 2 / n, w:s / 100}); break;
+      case 'gravity': addButton({x:rand(60, W - 60), y:rand(50, H * .4), r, move:'gravity', vx:randv(s), vy:0}); break;
+      case 'sine': addButton({r, move:'sine', cx, cy:H * (k + 1) / (n + 1), ax:W / 2 - r - 10, ay:0, w:s / 100 * rand(.8, 1.2), ph:rand(0, 6.28)}); break;
+      case 'sweep': { const ang = L.player ? -Math.PI / 2 : rand(0, 6.28); for(let i = 0; i < n; i++) addButton({r, label:'', noTaunt:true, move:'orbit', cx, cy, rad:(i + 1) * (2 * r + 6), ang, w:s / 100}); break; }
+      case 'ring': { const rad = Math.min(W, H) * (e || .32), slots = n + 3, a0 = rand(0, 6.28); for(let i = 3; i < slots; i++) addButton({r, label:'', noTaunt:true, move:'orbit', cx, cy, rad, ang:a0 + i * Math.PI * 2 / slots, w:s / 100}); break; }
+      case 'wall': { const gx = rand(100, W - 100), ph = -Math.PI / 2; for(let x = r; x < W; x += 2 * r + 4) if(Math.abs(x - gx) > 70) addButton({r, label:'', noTaunt:true, move:'sine', cx:x, cy, ax:0, ay:H / 2 - r - 4, w:s / 100, ph}); break; }
+      case 'vwall': { const gy = rand(100, H - 100), ph = -Math.PI / 2; for(let y = r; y < H; y += 2 * r + 4) if(Math.abs(y - gy) > 70) addButton({r, label:'', noTaunt:true, move:'sine', cx, cy:y, ax:W / 2 - r - 4, ay:0, w:s / 100, ph}); break; }
+      case 'snake': { let prev = btnFar(r, {move:'follow', speed:s}); for(let i = 0; i < n; i++) prev = addButton({x:prev.x, y:prev.y, r:Math.max(10, r - 2 - i * 1.2), label:'', noTaunt:true, move:'chain', lead:prev}); break; }
+      case 'rain': { let acc = 0; L.updates.push(dt => { acc += dt * 1000; if(acc > n){ acc = 0; addButton({x:rand(30, W - 30), y:-40, r:rand(r * .55, r), move:'fly', vx:0, vy:rand(s * .7, s * 1.1)}); } }); break; }
+      case 'pop': { let acc = 0; L.updates.push(dt => { acc += dt * 1000; if(acc > n){ acc = 0; const p = randomSpot(r, {avoidPointer:true, gap:0, tgap:-200}); addButton({x:p.x, y:p.y, r:0, max:rand(r * .6, r), age:0, life:1.6, move:'pop', label:'', noTaunt:true}); } }); break; }
+      case 'bullets': {
+        let acc = -1000;
+        L.updates.push(dt => {
+          acc += dt * 1000; if(acc < n) return; acc = 0;
+          const side = Math.floor(Math.random() * 4), rr = rand(r * .7, r);
+          const x = side === 0 ? -rr : side === 1 ? W + rr : rand(0, W), y = side === 2 ? -rr : side === 3 ? H + rr : rand(0, H);
+          const q = L.player || pointer(), ang = Math.atan2(q.y - y, q.x - x) + rand(-.35, .35), sp = rand(s * .75, s * 1.1);
+          addButton({x, y, r:rr, label:'', noTaunt:true, move:'fly', vx:Math.cos(ang) * sp, vy:Math.sin(ang) * sp});
+        });
+        break;
+      }
+    }
+  }
+}
+function autoInstr(s, tip){
+  const a = [];
+  if(s.p) a.push('ARROW KEYS / WASD.');
+  if(s.c || s.ca) a.push(`Collect ${s.c || s.ca} circles.`);
+  if(s.sv) a.push(`Survive ${s.sv} seconds.`);
+  if(s.type) a.push(`Type: ${s.type}${s.strict ? ' (no typos!)' : ''}`);
+  if(s.quiz) a.push("Answer the question. Don't touch the button.");
+  if(s.doors) a.push("Only ONE sign is true. Open both doors that DON'T hide the button.");
+  if(s.sw) a.push(`Press STOP at exactly ${s.sw[0].toFixed(2)}s (±${s.sw[1]}).`);
+  if(s.count) a.push("Count the buttons. Don't touch any.");
+  if(s.hold) a.push(`Hold down on the green circle for ${s.hold[0]}s total.`);
+  if(s.rapid) a.push(`Click the green circle ${s.rapid[0]} times in ${s.rapid[1]}s.`);
+  if(s.mem) a.push(`Memorize ${s.mem[0]} numbers, then click them in order.`);
+  if(s.ads) a.push(`Close all ${s.ads} ads.`);
+  if(s.lim) a.push(`Time limit: ${s.lim}s!`);
+  const mods = {mirror:'Mouse mirrored ↔.', flipY:'Mouse flipped ↕.', flip:'Mouse flipped both ways.', lag:'Laggy mouse.', dark:'Lights out.', blink:'Flickering lights.', quake:'Earthquake!', nocur:'Invisible mouse!', revkeys:'Controls REVERSED!', touchy:'Hovering counts as touching!', tr:'Tiny circles.', mult:'Each circle makes a new button!', accel:'Everything speeds up!', liar:'Some circles are liars.', guards:'Circles have bodyguards.'};
+  for(const k in mods) if(s[k]) a.push(mods[k]);
+  if(s.flicker != null) a.push('Ghost buttons.');
+  const tms = {shrink:'Circles shrink away!', flee:'Circles run from you!', bounce:'Circles move!', drift:'Buttons eat circles!'};
+  if(s.tm) a.push(tms[s.tm]);
+  if(tip) a.push(tip);
+  return a.join(' ');
+}
+function build(s){
+  if(s.mirror) L.xf = (x, y) => ({x:W - x, y});
+  if(s.flipY) L.xf = (x, y) => ({x, y:H - y});
+  if(s.flip) L.xf = (x, y) => ({x:W - x, y:H - y});
+  if(s.lag) L.lag = true;
+  if(L.xf || L.lag) useFake();
+  if(s.nocur) arena.classList.add('nocursor');
+  if(s.quake) L.quake = s.quake;
+  if(s.revkeys) L.revkeys = true;
+  if(s.touchy) L.touchy = true;
+  if(s.p) addPlayer(W / 2, H - 40);
+  (s.hz || []).forEach(hazard);
+  if(s.dark){ L.dark = addDark(); L.darkR = s.dark; }
+  if(s.blink){ const d = addDark(), [per, por] = s.blink; d.style.background = '#000'; L.updates.push((dt, t) => { d.style.opacity = (t % per) > per * (1 - por) ? 1 : 0; }); }
+  if(s.flicker != null) L.updates.push((dt, t) => L.buttons.forEach((b, i) => { b.opacity = s.flicker + (1 - s.flicker) * Math.abs(Math.sin(t * 1.5 + i * .7)); }));
+  if(s.accel) L.updates.push((dt, t) => { if(t > 14) return; const f = 1 + s.accel * dt; for(const b of L.buttons){ b.vx *= f; b.vy *= f; b.speed *= f; if(b.w) b.w *= f; } });
+  if(s.tr) L.tprops = {r:s.tr};
+  if(s.tm === 'flee') L.tprops = Object.assign({}, L.tprops, {move:'flee', speed:250});
+  if(s.tm === 'bounce') L.onSpawn = t => { t.move = 'bounce'; t.vx = randv(130); t.vy = randv(110); };
+  if(s.tm === 'shrink'){
+    L.onSpawn = t => { t.r0 = t.r = s.tr || 32; t.age = 0; };
+    L.updates.push(dt => { for(const t of [...L.targets]){ t.age += dt; t.r = Math.max(2, t.r0 * (1 - t.age / 4.5)); if(t.age >= 4.5){ removeTarget(t); spawnTarget(); } } });
+  }
+  if(s.tm === 'drift'){
+    const nearest = t => L.buttons.reduce((m, b) => !m || dist(t.x, t.y, b.x, b.y) < dist(t.x, t.y, m.x, m.y) ? b : m, null);
+    L.onSpawn = t => { t.move = 'drift'; t.speed = 45; t.to = nearest(t); };
+    L.updates.push(() => { for(const t of [...L.targets]) for(const b of L.buttons) if(dist(t.x, t.y, b.x, b.y) < b.r){ removeTarget(t); spawnTarget(); toast("Nom. 😋"); beep(150, .1, 'sine', .1); break; } });
+  }
+  if(s.guards) L.spotOpts = {margin:95, tgap:130};
+  if(s.c) collect(s.c, 'one');
+  if(s.ca) collect(s.ca, 'all');
+  if(s.liar) for(let i = 0; i < s.liar; i++){ const p = randomSpot(26); addLiar(p.x, p.y); }
+  if(s.guards) for(const t of L.targets) addButton({r:22, label:'', noTaunt:true, move:'orbit', cx:t.x, cy:t.y, rad:58, ang:rand(0, 6.28), w:pick([-1, 1]) * rand(2.2, 3)});
+  if(s.mult || s.fake) L.onGot = n => {
+    if(s.mult) addButton(Object.assign({r:40, move:'bounce', vx:randv(200), vy:randv(170)}, farCorner(40)));
+    if(s.fake && s.fake.includes(n)) fakeVictory();
+  };
+  if(s.crash) s.crash.forEach(t => at(t, crashDialog));
+  if(s.sv) survive(s.sv);
+  if(s.lim){ survive(s.lim); L.timeoutFail = "Out of time! Too slow."; }
+  if(s.type) goalType(s.type, s.strict);
+  if(s.quiz) goalQuiz(s.quiz[0], s.quiz[1]);
+  if(s.doors) goalDoors();
+  if(s.sw) goalStopwatch(s.sw[0], s.sw[1], s.sw[2]);
+  if(s.count) goalCount(s.count[0], s.count[1], s.count[2]);
+  if(s.hold) goalHold(s.hold[0], s.hold[1]);
+  if(s.rapid) goalRapid(s.rapid[0], s.rapid[1], s.rapid[2] || 1.4);
+  if(s.mem) goalMemory(s.mem[0], s.mem[1]);
+  if(s.ads) goalAds(s.ads);
+}
+const R = (name, s, tip, win) => ({name, instr:autoInstr(s, tip), d:s.d, win, setup(){ build(s); }});
+
+// ---------- levels ----------
+const LEVELS = [
+  {name:"The Easy One", instr:"Don't touch the button. That's it. Survive 5 seconds.",
+   setup(){ addButton({r:90}); survive(5); },
+   win:"See? Easy. It won't stay like this."},
+
+  {name:"Picking Flowers", instr:"Click all 5 green circles. Don't touch the button.",
+   setup(){ addButton({r:80}); collect(5, 'all'); },
+   win:"Gold star. ⭐"},
+
+  {name:"Special Offer", instr:"PRESS THE BUTTON to skip this level! ⏩ Offer ends soon!",
+   setup(){ addButton({r:110, label:'PRESS ME'}); survive(8); },
+   failMsg:"It was a trick. The game is literally called Don't Touch the Button.",
+   win:"Wow, you actually didn't. Trust nobody."},
+
+  {name:"Clingy", instr:"Collect 6 circles. The button wants to be close to you.",
+   setup(){ btnFar(60, {move:'follow', speed:110}); collect(6, 'one'); },
+   win:"It just wanted a hug. Oh well."},
+
+  {name:"Sugar Rush", instr:"Collect 6 circles. The button has had way too much sugar.",
+   setup(){ btnFar(65, {move:'bounce', vx:randv(260), vy:randv(210)}); collect(6, 'one'); },
+   win:"Boing boing boing. You survived."},
+
+  {name:"Teleporter", instr:"Collect 6 circles. The button has learned to teleport.",
+   setup(){ addButton({r:70, move:'teleport', period:1.1, tt:1.1}); collect(6, 'one'); },
+   win:"Beam me up. Without touching anything."},
+
+  {name:"Growth Spurt", instr:"Grab all 8 circles before the button gets too big!",
+   setup(){ const b = addButton({r:30}); L.updates.push(dt => { b.r = Math.min(Math.hypot(W, H) * .6, b.r + 34 * dt); }); collect(8, 'all'); },
+   win:"It's going to need bigger pants."},
+
+  {name:"Hands Off", instr:"Don't click ANYTHING for 10 seconds. Not even once.",
+   setup(){
+     addButton({r:80}); survive(10);
+     L.anyClickFails = "We said ANYTHING. That includes the background.";
+     const msgs = ["🎁 CLICK HERE to claim your free prize!", "Are you still there? Click anywhere to confirm.", "⚠ Click quickly to stop the button from exploding!", "Psst. One tiny click. Nobody will know."];
+     msgs.forEach((m, i) => at(1.8 + i * 2.1, () => {
+       const p = document.createElement('div'); p.className = 'popup'; p.textContent = m;
+       p.style.left = rand(10, Math.max(10, W - 270)) + 'px'; p.style.top = rand(10, Math.max(10, H - 90)) + 'px';
+       arena.appendChild(p); beep(990, .06, 'square', .05);
+     }));
+   },
+   win:"Your mouse thanks you for the rest."},
+
+  {name:"We Value Your Privacy", instr:"Make the popup go away.",
+   setup(){ cookieLevel(); },
+   win:"Cookies rejected. The button is crying somewhere."},
+
+  {name:"Opposite Day", instr:"It's Opposite Day! TOUCH the button to win. (For real this time.)",
+   setup(){ addButton({r:100, label:'TOUCH ME', winOnPress:true}); survive(7); L.timeoutFail = "It really was Opposite Day. You had permission and you blew it."; },
+   win:"The one time it was allowed. Weird feeling, right?"},
+
+  {name:"One of These Is Lying", instr:"Click all the green circles. One of them is the button in disguise.",
+   setup(){
+     L.need = 7; L.got = 0; L.mode = 'manual';
+     const liarAt = Math.floor(Math.random() * 8);
+     for(let i = 0; i < 8; i++){ const s = randomSpot(26); if(i === liarAt) addLiar(s.x, s.y); else addTarget(s.x, s.y); }
+   },
+   win:"Sharp eyes. The impostor has been ejected."},
+
+  {name:"Bodyguards", instr:"Collect 5 circles. Each one has a bodyguard.",
+   setup(){ build({ca:5, guards:1}); },
+   win:"Security has been bypassed."},
+
+  {name:"Now You See Me", instr:"Collect 6 circles. The button is shy… but it's still there.",
+   setup(){
+     const b = btnFar(70, {move:'bounce', vx:randv(180), vy:randv(150)});
+     L.updates.push((dt, t) => { b.opacity = .05 + .95 * Math.max(0, Math.sin(t * 1.7)) ** 2; });
+     collect(6, 'one');
+   },
+   win:"Peekaboo, I don't see you."},
+
+  {name:"Lights Out", instr:"Collect 5 circles in the dark. The button is out there somewhere.",
+   setup(){ L.dark = addDark(); btnFar(55, {move:'bounce', vx:randv(120), vy:randv(100)}); addButton({r:60}); collect(5, 'one'); },
+   win:"Who turned the lights back on? Oh, you did."},
+
+  {name:"Keyboard Warrior", instr:"Type the word SAFE on your keyboard. (The button is selected.)",
+   setup(){ goalType('SAFE'); },
+   win:"S-A-F-E. Look at you, using a keyboard responsibly."},
+
+  {name:"Pop Quiz", instr:"Answer the question. Don't touch the button.",
+   setup(){ goalQuiz("What is 2 + 2?", [['3', 'no'], ['4', 'red'], ['22', 'no'], ['four', 'ok'], ['fish', 'no']]); },
+   win:"Math AND self-control. Impressive."},
+
+  {name:"Mirror World", instr:"Collect 5 circles. Your mouse has been mirrored. 🪞",
+   setup(){ L.xf = (x, y) => ({x:W - x, y}); useFake(); addButton({r:75}); collect(5, 'one'); },
+   win:"Your brain hurts, but you did it."},
+
+  {name:"Upside Down", instr:"Collect 5 circles. Up is down now. Sorry.",
+   setup(){ L.xf = (x, y) => ({x, y:H - y}); useFake(); btnFar(55, {move:'bounce', vx:randv(150), vy:randv(120)}); collect(5, 'one'); },
+   win:"Australia mode: complete. 🇦🇺"},
+
+  {name:"Laggy", instr:"Collect 5 circles. Your mouse is running a little… slow… today.",
+   setup(){ L.lag = true; useFake(); addButton({r:70}); btnFar(45, {move:'bounce', vx:randv(150), vy:randv(130)}); collect(5, 'one'); },
+   win:"Have you tried turning it off and on again?"},
+
+  {name:"Multiplication", instr:"Collect 6 circles. The button brought friends.",
+   setup(){
+     const p = 70;
+     [[p,p],[W-p,p],[p,H-p],[W-p,H-p]].forEach(c => addButton({x:c[0], y:c[1], r:42, move:'bounce', vx:randv(190), vy:randv(170)}));
+     collect(6, 'one');
+   },
+   win:"Four buttons, zero touches. Respect."},
+
+  {name:"Button Rain", instr:"Collect 6 circles. It's raining buttons! ☔",
+   setup(){ build({c:6, hz:['rain:450:40:220']}); },
+   win:"Forecast: 100% chance of you winning."},
+
+  {name:"Fake Victory", instr:"Collect 6 circles. Don't touch the button.",
+   setup(){ build({c:6, fake:[3], hz:['bounce:1:55:150']}); },
+   win:"This one's real. Probably."},
+
+  {name:"Walkies", instr:"Move the yellow square with ARROW KEYS or WASD. Collect 5 circles. Don't bump the button.",
+   setup(){ addPlayer(W / 2, H - 40); for(let i = 0; i < 3; i++){ const s = randomSpot(55, {gap:60}); addButton({x:s.x, y:s.y, r:55}); } collect(5, 'one'); },
+   win:"Good little square."},
+
+  {name:"Spin Cycle", instr:"Collect 6 circles. The buttons are doing laps.",
+   setup(){ addButton({r:40}); build({c:6, hz:['orbit:2:50:160']}); },
+   win:"Round and round. Dizzy yet?"},
+
+  {name:"Earthquake", instr:"Collect 6 circles. Hold on to something! (Not the button.)",
+   setup(){ L.quake = 14; addButton({r:80}); btnFar(40, {move:'follow', speed:70}); collect(6, 'one'); },
+   win:"Magnitude 9 self-control."},
+
+  {name:"Ad Blocker", instr:"Close all 5 ads. Don't click the big red buttons.",
+   setup(){ goalAds(5); },
+   win:"Your browser is now 40% cleaner."},
+
+  {name:"Opposite Colors", instr:"Collect the 5 RED circles. The big green thing is the button.",
+   setup(){ btnFar(70, {cls:'green', label:'CLICK ME', move:'bounce', vx:randv(170), vy:randv(140)}); L.tprops = {cls:'red', label:"DON'T"}; collect(5, 'one'); },
+   win:"Colors are just a suggestion."},
+
+  {name:"Gravity", instr:"Collect 6 circles. The buttons discovered gravity.",
+   setup(){ build({c:6, hz:['gravity:3:40:150']}); },
+   win:"Newton would be proud."},
+
+  {name:"Counting", instr:"Count the buttons. Don't touch any of them.",
+   setup(){ goalCount(5, 9, false); },
+   win:"You can count AND not touch things."},
+
+  {name:"Shy Circles", instr:"Collect 4 circles. They're scared of you. Corner them!",
+   setup(){ addButton({r:85}); L.tprops = {move:'flee', speed:250}; collect(4, 'all'); },
+   win:"Gotcha. Every single one."},
+
+  {name:"Walkies 2", instr:"ARROW KEYS / WASD. Collect 6 circles. The buttons are bouncing now.",
+   setup(){ addPlayer(W / 2, H - 40); addButton({r:55, y:H * .4}); for(let i = 0; i < 2; i++) addButton({x:rand(80, W - 80), y:80, r:45, move:'bounce', vx:randv(200), vy:randv(170)}); collect(6, 'one'); },
+   win:"A square with moves."},
+
+  {name:"Blackout", instr:"Collect 5 circles. The lights keep cutting out.",
+   setup(){ build({c:5, blink:[2.2, .4], hz:['bounce:2:55:160']}); },
+   win:"Remember to pay the electricity bill."},
+
+  {name:"Lines", instr:"Type: I WILL NOT TOUCH THE BUTTON",
+   setup(){ goalType('I WILL NOT TOUCH THE BUTTON'); },
+   win:"Detention is over. You may go."},
+
+  {name:"Teeny Tiny", instr:"Collect 8 circles. There's a teeny tiny button zooming around.",
+   setup(){ addButton({r:9, label:'', noTaunt:true, move:'bounce', vx:randv(300), vy:randv(260)}); collect(8, 'one'); },
+   win:"Small but mighty. You, not the button."},
+
+  {name:"Snake", instr:"Collect 6 circles. The button grew a tail. 🐍",
+   setup(){ build({c:6, hz:['snake:8:34:130']}); },
+   win:"Sssssuccess."},
+
+  {name:"Stopwatch", instr:"Press STOP at exactly 5.00 seconds (±0.25). Careful, things keep swapping.",
+   setup(){ goalStopwatch(5, .25, 1.5); },
+   win:"Precision timing. Very professional."},
+
+  {name:"The Maze", instr:"ARROW KEYS / WASD. Grab all 4 circles. The walls are made of buttons.",
+   setup(){
+     L.need = 4; L.got = 0; L.mode = 'manual';
+     for(let i = 0; i < 4; i++){
+       const y = H * (i + 1) / 5, gx = rand(90, W - 90), ph = rand(0, 6.28), w = rand(.7, 1.2);
+       for(let x = -40; x < W + 40; x += 44){ if(Math.abs(x - gx) < 62) continue; addButton({r:20, label:'', noTaunt:true, move:'sine', cx:x, cy:y, ax:50, w, ph}); }
+       addTarget(rand(40, W - 40), H * (i + .5) / 5);
+     }
+     addPlayer(W / 2, H * .9);
+   },
+   win:"A-maze-ing. Sorry."},
+
+  {name:"Popcorn", instr:"Collect 8 circles. Buttons keep popping up out of nowhere!",
+   setup(){ build({ca:8, hz:['pop:350:50']}); },
+   win:"🍿 Pop pop pop. Not you though."},
+
+  {name:"Three Doors", instr:"Only ONE sign is telling the truth. Open both doors that DON'T hide the button.",
+   setup(){ goalDoors(); },
+   win:"Sherlock Holmes would be proud."},
+
+  {name:"Hold Still", instr:"HOLD DOWN on the green circle for 3 seconds total. Let go when the button passes!",
+   setup(){ goalHold(3, 1.1); },
+   win:"Steady hands."},
+
+  {name:"Double Trouble", instr:"Collect 6 circles. Two clingy buttons this time.",
+   setup(){ build({c:6, hz:['follow:2:45:115']}); },
+   win:"Two's a crowd."},
+
+  {name:"Topsy-Turvy", instr:"Collect 5 circles. Left is right AND up is down.",
+   setup(){ build({c:5, flip:1, hz:['center:1:65', 'bounce:1:45:140']}); },
+   win:"Your brain is now officially pretzel-shaped. 🥨"},
+
+  {name:"Memory", instr:"Memorize the numbers! They hide in 3 seconds. Click 1 → 6 in order.",
+   setup(){ btnFar(45, {move:'bounce', vx:randv(110), vy:randv(90)}); goalMemory(6, 3); },
+   win:"Elephant-level memory. 🐘"},
+
+  {name:"Game Crashed", instr:"Collect 6 circles. Don't touch the button.",
+   setup(){ build({c:6, crash:[2.5, 9], hz:['bounce:1:55:160']}); },
+   win:"Error 404: Touches not found."},
+
+  {name:"Walkies 3: The Chase", instr:"ARROW KEYS / WASD. Collect 6 circles. The button is chasing YOU.",
+   setup(){ build({p:1, c:6, hz:['follow:1:45:150', 'bounce:1:40:160']}); },
+   win:"Run, square, run!"},
+
+  {name:"Hungry Button", instr:"Collect 6 circles before the button eats them.",
+   setup(){ build({ca:6, tm:'drift', hz:['bounce:1:70:100']}); },
+   win:"The button is still hungry. Not your problem."},
+
+  {name:"The Wall", instr:"Collect 6 circles. The button is VERY big today.",
+   setup(){
+     const base = Math.min(W, H) * .42, b = addButton({r:base});
+     L.updates.push((dt, t) => { b.r = base * (1 + .08 * Math.sin(t * 2)); });
+     L.spotOpts = {gap:base * .1 + 8};
+     collect(6, 'one');
+   },
+   win:"You squeezed past a giant."},
+
+  {name:"Rapid Fire", instr:"Click the green circle 15 times in 10 seconds. The button keeps passing by.",
+   setup(){ goalRapid(15, 10, 1.4); },
+   win:"Click click click click click. Nice."},
+
+  {name:"Loading…", instr:"Please wait while the next level loads…",
+   setup(){
+     const lb = document.createElement('div'); lb.className = 'loadbar'; lb.innerHTML = '<div id="lbt">Loading… 0%</div><div class="bar"><div class="fill"></div></div>'; arena.appendChild(lb);
+     const fill = lb.querySelector('.fill'), txt = lb.querySelector('#lbt');
+     btnFar(45, {label:'SKIP ▶▶', move:'follow', speed:60});
+     survive(10);
+     L.updates.push((dt, t) => { const pct = t >= 10 ? 100 : Math.min(99, Math.floor(t / 7 * 99)); fill.style.width = pct + '%'; txt.textContent = `Loading… ${pct}%`; });
+     at(3, () => toast("Click SKIP to load faster!")); at(7.2, () => toast("Stuck at 99%… press SKIP?")); at(8.8, () => toast("Seriously, just press it."));
+   },
+   win:"Loaded! Patience is a virtue."},
+
+  {name:"Minefield", instr:"Collect 6 circles. Watch your step.",
+   setup(){ build({ca:6, hz:['mine:28:28']}); },
+   win:"Not a single boom. 💣"},
+
+  {name:"Bullet Hell", d:2, instr:"ARROW KEYS / WASD. Survive 15 seconds. Buttons are being thrown at you!",
+   setup(){ build({p:1, sv:15, hz:['bullets:320:26:260']}); },
+   win:"Dodged like a pro."},
+
+  {name:"The Button Fights Back", d:2, instr:"Survive 12 seconds. The button can touch YOU now. Keep moving!",
+   setup(){
+     const b = btnFar(55, {move:'follow', speed:170, hunt:true});
+     L.updates.push((dt, t) => { b.speed = 170 + t * 16; });
+     survive(12);
+   },
+   win:"You outran a button. Incredible."},
+
+  {name:"Midterm Exam", d:2, instr:"MIDTERM: Collect 8 circles. Everything at once. (Only 150 levels to go…)",
+   setup(){ build({c:8, quake:5, flicker:.3, hz:['bounce:2:48:190', 'follow:1:40:85']}); },
+   win:"Passed the midterm. 🎓 The real test begins now."},
+
+  // ===== Part 2: the remix levels =====
+  R("Welcome Back", {c:6, hz:['bounce:2:50:180']}, "Warm-up time."),
+  R("Spinning Top", {c:6, hz:['sweep:5:24:120']}, "A spinning arm of buttons."),
+  R("Hula Hoop", {c:6, hz:['ring:16:24:60']}, "A ring of buttons is spinning."),
+  R("Copycat", {c:6, hz:['mimic:1:60:400']}, "The button copies you… backwards."),
+  R("Rush Hour", {c:6, hz:['sine:4:40:150']}, "Traffic is heavy today."),
+  R("Pop Quiz 2", {quiz:["What is 10 − 3?", [['7', 'red'], ['seven', 'ok'], ['6', 'no'], ['13', 'no']]]}),
+  R("Bouncy Castle", {c:8, hz:['bounce:3:45:220']}),
+  R("Shrinkflation", {c:6, tm:'shrink', hz:['bounce:1:60:160']}),
+  R("Speedy Circles", {c:6, tm:'bounce', hz:['center:1:80']}),
+  R("Spelling Bee", {type:'BUTTON'}, "(The button is selected.)"),
+  R("Teleport Party", {c:6, hz:['teleport:2:55:900']}),
+  R("Hot Pursuit", {c:7, hz:['follow:2:45:120']}),
+  R("Leftovers", {c:6, mult:1, hz:['bounce:1:45:180']}),
+  R("Dodgeball", {p:1, sv:12, hz:['bounce:4:35:220']}),
+  R("Stopwatch 2", {sw:[3, .2, 1.2]}),
+  R("The Wave", {p:1, c:5, hz:['wall:1:24:90']}, "A wall sweeps up and down. Use the gap."),
+  R("Shooting Gallery", {c:8, lim:20, tm:'bounce', tr:20, hz:['bounce:2:45:240'], d:2}),
+  R("Quiz: Colors", {quiz:["What color is the button?", [['RED', 'red'], ['red', 'ok'], ['blue', 'no'], ['green', 'no']]]}),
+  R("Laggy 2", {c:6, lag:1, hz:['bounce:2:50:170']}),
+  R("Memory 2", {mem:[7, 3], hz:['bounce:1:45:120']}),
+  R("Popcorn 2", {ca:8, hz:['pop:250:55']}),
+  R("Twin Snakes", {c:6, hz:['snake:8:30:120', 'snake:8:30:100']}),
+  R("Doors 2", {doors:1, lim:15}),
+  R("Night Shift", {c:7, dark:110, hz:['bounce:3:45:200'], d:2}),
+  R("Rain Dance", {c:7, hz:['rain:350:40:260']}),
+  R("Gravity Well", {c:7, hz:['gravity:4:38:160']}),
+  R("Mirror Maze", {c:6, mirror:1, hz:['sweep:5:24:110', 'center:1:40'], d:2}),
+  R("Count 2", {count:[8, 14, 0]}),
+  R("Hold Tight", {hold:[4, 1.4]}, "Let go when the button passes!"),
+  R("Tap Tap Tap", {rapid:[20, 10]}),
+  R("Ad Storm", {ads:7}, "Watch out for sneaky × buttons."),
+  R("Walkies: Rain", {p:1, sv:15, hz:['rain:300:35:280'], d:2}),
+  R("Minefield 2", {ca:7, hz:['mine:40:26']}),
+  R("Bodyguards 2", {ca:6, guards:1, hz:['bounce:1:40:150']}),
+  R("Hungry Hungry", {ca:7, tm:'drift', hz:['bounce:2:60:120']}),
+  R("Upside Down 2", {c:6, flipY:1, hz:['bounce:2:45:180']}),
+  R("Stopwatch 3", {sw:[7.77, .15, .9], d:2}),
+  R("Earthquake 2", {c:7, quake:18, hz:['bounce:2:50:170']}),
+  R("Quiz: Shapes", {quiz:["How many sides does a triangle have?", [['3', 'red'], ['three', 'ok'], ['4', 'no'], ['a lot', 'no']]]}),
+  R("Blackout 2", {c:6, blink:[1.8, .5], hz:['bounce:3:45:180']}),
+  R("Copycats", {c:7, hz:['mimic:1:55:500', 'bounce:2:45:200'], d:2}),
+  R("Type Fast", {type:'DO NOT PRESS', lim:12}),
+  R("Swarm", {c:7, hz:['follow:4:30:90']}),
+  R("Ghosts", {c:7, flicker:.04, hz:['bounce:4:45:200'], d:2}),
+  R("Tiny Targets", {c:8, tr:15, hz:['bounce:2:45:180']}),
+  R("Bullet Storm", {p:1, sv:20, hz:['bullets:220:20:300'], d:3}),
+  R("Level 100!", {c:10, hz:['bounce:3:50:200', 'center:1:70']}, "🎉 Celebrate by not touching anything."),
+  R("Spin Doctor", {c:6, hz:['orbit:4:45:150']}),
+  R("The Gauntlet", {p:1, c:5, hz:['sine:6:30:200'], d:2}),
+  R("Quiz: Trick Question", {quiz:["Which one should you press?", [['THE BUTTON', 'red'], ['the correct answer', 'red'], ['this grey one', 'ok'], ['none, run away', 'no']]]}),
+  R("Flea Market", {ca:5, tm:'flee', hz:['bounce:2:45:150']}),
+  R("Laser Clock", {c:7, hz:['sweep:7:22:90', 'sweep:7:22:-90']}),
+  R("Rush Hour 2", {c:7, hz:['sine:6:38:200']}),
+  R("Walkies: Hunted", {p:1, c:6, hz:['follow:2:40:150', 'bounce:2:35:180'], d:2}),
+  R("Popcorn Panic", {c:8, lim:25, hz:['pop:180:50']}),
+  R("Doors 3", {doors:1, lim:8}),
+  R("Memory 3", {mem:[9, 3], hz:['bounce:2:45:160'], d:2}),
+  R("Teleport Swarm", {c:8, hz:['teleport:4:40:1100']}),
+  R("Gravity Rain", {c:7, hz:['gravity:3:40:200', 'rain:600:30:200']}),
+  R("Lights Out: Hunted", {c:6, dark:95, hz:['follow:2:45:110', 'bounce:2:45:200'], d:3}),
+  R("Quiz: Animals", {quiz:["Which animal says 'moo'?", [['COW', 'red'], ['cow', 'ok'], ['cat', 'no'], ['button', 'no']]]}),
+  R("Shrinkflation 2", {c:8, tm:'shrink', hz:['bounce:2:50:200']}),
+  R("Upside-Down Dark", {c:6, flipY:1, dark:140, hz:['bounce:2:45:160'], d:2}),
+  R("Hula Hoops", {c:6, hz:['ring:18:22:70', 'ring:10:22:-90:.17']}),
+  R("Spelling Bee 2", {type:'ABSOLUTELY NOT', strict:1}),
+  R("Accelerate", {c:8, accel:.08, hz:['bounce:3:45:150'], d:2}),
+  R("Walkies: Clock", {p:1, c:6, hz:['sweep:8:22:80']}),
+  R("Count 3", {count:[6, 11, 1]}, "They're moving, too."),
+  R("Hold Steady", {hold:[5, 1.9], hz:['bounce:1:35:160'], d:2}),
+  R("Snake Pit", {c:7, hz:['snake:12:28:130']}),
+  R("Rapid Fire 2", {rapid:[30, 12, 1.8], d:2}),
+  R("Invisible Mouse", {c:7, nocur:1, hz:['bounce:3:50:200'], d:3}),
+  R("Ad Storm 2", {ads:10}),
+  R("Mimic Mirror", {c:6, mirror:1, hz:['mimic:1:55:400']}),
+  R("Fake Out", {c:8, fake:[4], crash:[3, 10], hz:['bounce:2:45:200'], d:2}),
+  R("Gravity Party", {c:8, hz:['gravity:6:32:180']}),
+  R("The Wave 2", {p:1, c:6, hz:['wall:1:22:120', 'vwall:1:22:90'], d:2}),
+  R("Quiz: Math", {quiz:["What's 5 × 5?", [['25', 'red'], ['twenty-five', 'ok'], ['55', 'no'], ['10', 'no']]]}),
+  R("Teleporter Hunt", {c:6, hz:['teleport:1:70:600']}),
+  R("Bullet Rain", {p:1, sv:20, hz:['bullets:260:22:320', 'rain:450:30:260'], d:3}),
+  R("Lag in the Dark", {c:6, lag:1, dark:150, hz:['bounce:2:45:150']}),
+  R("Stopwatch 4", {sw:[10, .15, .8], d:2}),
+  R("Popcorn Party", {ca:10, hz:['pop:200:50']}),
+  R("Tiny & Fast", {c:8, tr:14, tm:'bounce', lim:30, hz:['bounce:2:45:220'], d:2}),
+  R("Ring of Fire", {p:1, c:5, hz:['ring:20:22:60']}),
+  R("Topsy-Turvy Dark", {c:6, flip:1, dark:120, hz:['bounce:3:45:180'], d:3}),
+  R("Quiz: Geography", {quiz:["What is the capital of France?", [['PARIS', 'red'], ['paris', 'ok'], ['London', 'no'], ['Buttonville', 'no']]]}),
+  R("Swarm 2", {c:8, hz:['follow:6:28:110'], d:2}),
+  R("Memory 4", {mem:[8, 2.5]}),
+  R("Ghost Snakes", {c:7, flicker:.1, hz:['snake:10:28:130', 'snake:10:28:110'], d:2}),
+  R("Earthquake Hunt", {c:7, quake:20, hz:['follow:1:45:110']}),
+  R("Reverse Bullet Hell", {p:1, sv:15, revkeys:1, hz:['bullets:300:22:260'], d:3}),
+  R("Hold On", {hold:[4, 1.2], hz:['sine:2:35:150']}),
+  R("Doors in the Dark", {doors:1, dark:120, d:2}, "Use the flashlight to read the signs."),
+  R("Lines 2", {type:'THE BUTTON IS NOT MY FRIEND'}),
+  R("Clock Tower", {c:8, hz:['sweep:8:22:110', 'sweep:8:22:-70', 'center:1:40'], d:2}),
+  R("Quake Mirror", {c:7, mirror:1, quake:16, hz:['bounce:3:45:200'], d:3}),
+  R("Count 4", {count:[12, 20, 1], d:2}),
+  R("Hunted", {sv:15, hz:['hunter:2:40:170'], d:2}, "Two buttons can touch YOU. Keep moving!"),
+  R("Leftovers 2", {c:8, mult:1, hz:['bounce:1:40:200']}),
+  R("Walkies: Dark Rain", {p:1, sv:15, dark:130, hz:['rain:350:32:260'], d:2}),
+  R("Strict Spelling", {type:'I WILL NEVER EVER TOUCH THE BUTTON', strict:1, lim:25, d:3}),
+  R("Bouncy Flee", {ca:5, tm:'flee', hz:['bounce:3:40:200']}),
+  R("Lag Swarm", {c:7, lag:1, hz:['follow:3:35:100'], d:2}),
+  R("Quiz: Time", {quiz:["How many minutes are in an hour?", [['60', 'red'], ['sixty', 'ok'], ['100', 'no'], ['12', 'no']]]}),
+  R("Stopwatch Pro", {sw:[4.2, .08, .6], d:3}),
+  R("Ad Apocalypse", {ads:14, lim:30, d:2}),
+  R("Popcorn Hunt", {c:7, hz:['pop:300:50', 'follow:1:40:90']}),
+  R("The Shredder", {p:1, c:6, hz:['sweep:9:22:140', 'sweep:9:22:-110'], d:3}),
+  R("Memory 5", {mem:[10, 2.5], hz:['bounce:2:40:180'], d:2}),
+  R("Gravity Hunt", {c:7, hz:['gravity:4:38:180', 'follow:1:40:90']}),
+  R("Ghost Town", {c:8, flicker:.02, dark:160, hz:['bounce:4:45:200'], d:3}),
+  R("Double Wave", {p:1, c:5, hz:['wall:1:22:80', 'wall:1:22:110']}),
+  R("Rapid Fire 3", {rapid:[35, 12, 2.2], d:2}),
+  R("Quiz: Opposites", {quiz:["What is the opposite of 'touch'?", [["DON'T TOUCH", 'red'], ["don't touch", 'ok'], ['grab', 'no'], ['poke', 'no']]]}),
+  R("Don't Even Hover", {sv:12, touchy:1, hz:['bounce:4:45:200'], d:2}, "Keep your mouse away from every button!"),
+  R("Teleport Storm", {c:8, lim:30, hz:['teleport:5:40:700'], d:2}),
+  R("Snake in the Dark", {c:6, dark:150, hz:['snake:10:28:110']}),
+  R("Hold On 2", {hold:[6, 1.6], hz:['sine:2:35:150'], d:2}),
+  R("Reverse Gauntlet", {p:1, c:6, revkeys:1, hz:['sine:7:30:220'], d:3}),
+  R("Count 5", {count:[15, 25, 1], d:2}),
+  R("Mimic Swarm", {c:7, hz:['mimic:2:45:450', 'follow:2:35:90'], d:2}),
+  R("Blink & Die", {c:8, blink:[1.4, .6], hz:['bounce:5:40:240'], d:3}),
+  R("Quiz: Final Answer", {quiz:["Is this the right button?", [['YES', 'red'], ['no', 'ok'], ['maybe', 'no'], ['press it and find out', 'red']]]}),
+  R("Walkies: Rings", {p:1, c:6, hz:['ring:22:22:80', 'ring:14:22:-110:.18'], d:2}),
+  R("Lag Mirror", {c:6, lag:1, mirror:1, hz:['bounce:3:45:200'], d:3}),
+  R("Breather", {sv:5, hz:['center:1:100']}, "Take a break. Just don't touch it."),
+  R("Bullet Hell X", {p:1, sv:25, hz:['bullets:170:20:320'], d:3}),
+  R("Stopwatch Swap", {sw:[6, .12, .5], d:2}),
+  R("Invisible Hunter", {sv:12, nocur:1, hz:['hunter:1:45:150'], d:3}, "It can touch you, and you can't see your mouse."),
+  R("Popcorn Storm", {ca:10, lim:25, hz:['pop:130:55'], d:2}),
+  R("Memory Master", {mem:[12, 2], hz:['bounce:2:45:200'], d:3}),
+  R("Gravity Storm", {c:8, hz:['gravity:8:30:220'], d:2}),
+  R("Hunter Pack", {sv:15, hz:['hunter:3:35:160'], d:3}, "Three buttons can touch YOU!"),
+  R("Flee in the Dark", {ca:5, tm:'flee', dark:150, hz:['bounce:2:45:160'], d:2}),
+  R("Clockwork", {c:8, lim:30, hz:['sweep:9:22:130', 'sweep:9:22:-100', 'ring:20:22:60'], d:3}),
+  R("Quake Snakes", {c:7, quake:18, hz:['snake:12:28:140'], d:2}),
+  R("Typing Under Pressure", {type:'BUTTONS ARE BAD', strict:1, lim:8, d:3}),
+  R("Fake Fake Fake", {c:10, fake:[3, 6, 9], crash:[4, 9, 14], hz:['bounce:3:45:200'], d:2}),
+  R("Mirror Swarm", {c:7, mirror:1, hz:['follow:4:32:110'], d:3}),
+  R("Upside Ghosts", {c:7, flipY:1, flicker:.05, hz:['bounce:4:45:220'], d:3}),
+  R("Rapid Fire X", {rapid:[45, 14, 2.6], d:3}),
+  R("Reverse Rain", {p:1, sv:18, revkeys:1, hz:['rain:260:32:300'], d:3}),
+  R("Hold Forever", {hold:[8, 2], hz:['sine:2:35:180'], d:3}),
+  R("Dark Rings", {p:1, c:6, dark:90, hz:['ring:22:22:80', 'ring:14:22:-110:.18', 'sweep:4:22:90'], d:3}),
+  R("Hover Hell", {sv:15, touchy:1, hz:['bounce:5:45:240', 'follow:1:40:120'], d:3}, "Keep your mouse away from EVERYTHING."),
+  R("Total Chaos", {c:8, quake:10, flicker:.15, hz:['bounce:3:45:220', 'follow:2:40:110', 'teleport:2:40:900'], d:3}),
+  R("Level 200", {c:10, lim:40, lag:1, hz:['bounce:4:45:220', 'sweep:6:22:100'], d:3}, "🎉 Level 200! It's not getting easier."),
+  R("Bullet Hell in the Dark", {p:1, sv:20, dark:150, hz:['bullets:220:20:300'], d:3}),
+  R("The Penultimate", {c:8, flip:1, dark:140, hz:['follow:2:40:100', 'bounce:3:45:200'], d:3}),
+  R("The Last Button", {sv:25, touchy:1, hz:['hunter:1:50:190', 'bounce:4:40:240', 'rain:550:30:240'], d:3}, "THE FINAL LEVEL. Everything can touch you. Good luck.", "You did it. The button bows to you. 👑")
+];
+
+function cookieLevel(){
+  const d = dialog('');
+  const step1 = () => {
+    d.innerHTML = `<div class="dh">🍪 We value your privacy</div>
+      <p>This game uses cookies to remember how many times you touched the button. Please accept to continue.</p>
+      <button class="d-red" id="acc">ACCEPT ALL<small>definitely not the button</small></button>
+      <button class="d-link" id="rej">reject</button>`;
+    d.querySelector('#acc').onclick = () => fail("That was the button wearing a trench coat.");
+    d.querySelector('#rej').onclick = () => { beep(500, .06, 'triangle'); step2(); };
+  };
+  const step2 = () => {
+    d.innerHTML = `<div class="dh">Are you sure? 🥺</div>
+      <p>Rejecting cookies makes the button really, really sad.</p>
+      <button class="d-red" id="happy">MAKE IT HAPPY<small>it's a normal button, promise</small></button>
+      <button class="d-link" id="sure">yes, I'm sure</button>`;
+    d.querySelector('#happy').onclick = () => fail("The button doesn't have feelings. It was manipulating you.");
+    d.querySelector('#sure').onclick = () => { d.remove(); win(); };
+  };
+  step1();
+}
+
+// ---------- progress ----------
+function getUnlocked(){ try{ return Math.min(LEVELS.length - 1, +localStorage.getItem('dttb-unlocked') || 0); }catch(e){ return 0; } }
+function setUnlocked(i){ try{ if(i > getUnlocked()) localStorage.setItem('dttb-unlocked', i); }catch(e){} }
+
+// ---------- flow ----------
+function updateHud(){
+  const parts = [];
+  if(L){
+    if(L.hudText) parts.push(L.hudText());
+    else { if(L.need) parts.push(L.got + '/' + L.need); if(L.timeLeft != null) parts.push(Math.ceil(L.timeLeft) + 's'); }
+  }
+  $('#prog').textContent = parts.join(' · ');
+  $('#fails').textContent = 'Touches: ' + fails;
+}
+function card(inner, actions){
+  ov.innerHTML = `<div class="card">${inner}<div class="acts"></div></div>`;
+  const a = ov.querySelector('.acts');
+  actions.forEach((x, k) => { const b = document.createElement('button'); b.className = k === 0 ? 'go' : 'go ghost'; b.textContent = x[0]; b.onclick = x[1]; a.appendChild(b); });
+  ov.classList.remove('hidden');
+}
+function nextInfo(i){ const lv = LEVELS[i]; return `<div class="next">Level ${i + 1} of ${LEVELS.length}</div><h2>${lv.name} ${badge(lv.d)}</h2><p>${lv.instr}</p>`; }
+
+function startLevel(i){
+  levelIdx = i; ov.classList.add('hidden'); setUnlocked(i);
+  $('#lvl').innerHTML = `LEVEL ${i + 1}/${LEVELS.length}${badge(LEVELS[i].d)}`;
+  $('#instr').textContent = LEVELS[i].instr;
+  measure(); L = newLevel();
+  LEVELS[i].setup();
+  updateHud();
+}
+function newRun(i){ fails = 0; runStart = performance.now(); startLevel(i); }
+function fail(msg){
+  if(!L || L.state !== 'play') return;
+  L.state = 'fail'; fails++; L.holding = false;
+  beep(110, .5, 'sawtooth', .2); shake(arena); updateHud();
+  const lv = LEVELS[levelIdx];
+  setTimeout(() => card(`<h1>💥 You touched the button.</h1><p>${msg || lv.failMsg || pick(FAIL_LINES)}</p><p class="stat">Touches so far: ${fails}</p>`,
+    [["Try again", () => startLevel(levelIdx)], ["Menu", title]]), 350);
+}
+function win(){
+  if(!L || L.state !== 'play') return;
+  L.state = 'won'; L.holding = false;
+  beep(880, .12, 'triangle'); setTimeout(() => beep(1320, .2, 'triangle'), 110);
+  updateHud();
+  const lv = LEVELS[levelIdx], n = levelIdx + 1;
+  if(n < LEVELS.length) setUnlocked(n);
+  setTimeout(() => {
+    if(n >= LEVELS.length) return finale();
+    card(`<h1>✅ Cleared!</h1><p>${lv.win || pick(WIN_LINES)}</p><hr>${nextInfo(n)}`, [["Start", () => startLevel(n)], ["Menu", title]]);
+  }, 300);
+}
+
+function rank(f){
+  if(f === 0) return "🏆 Untouchable";
+  if(f <= 10) return "🛡️ Iron Will";
+  if(f <= 50) return "😅 Mostly Restrained";
+  if(f <= 150) return "🤔 Button Curious";
+  return "🔴 Button Enthusiast";
+}
+function finale(){
+  const secs = Math.round((performance.now() - runStart) / 1000);
+  const time = Math.floor(secs / 3600) + 'h ' + Math.floor(secs / 60) % 60 + 'm ' + secs % 60 + 's';
+  let best = null;
+  try{ best = JSON.parse(localStorage.getItem('dttb-best')); if(!best || fails < best.fails){ best = {fails, time}; localStorage.setItem('dttb-best', JSON.stringify(best)); } }catch(e){}
+  $('#lvl').textContent = 'YOU WIN'; $('#instr').textContent = ''; $('#prog').textContent = '';
+  card(`<h1>🎉 You beat all ${LEVELS.length} levels of Don't Touch the Button!</h1>
+    <p class="stat">Touches: <b>${fails}</b> · Time: <b>${time}</b></p>
+    <p class="stat">${rank(fails)}</p>
+    ${best ? `<p>Best run: ${best.fails} touches</p>` : ''}
+    <button class="cardbtn" id="celebrate">PRESS TO<br>CELEBRATE</button>
+    <p id="celemsg"></p>`,
+    [["Play again", () => newRun(0)], ["Menu", title]]);
+  const quips = ["…You just couldn't help yourself, could you?", "The game is OVER and you're still pressing it.", "This is why we can't have nice things.", "Okay, at this point you're just doing it for fun.", "The button is honored. Truly."];
+  let k = 0;
+  $('#celebrate').onclick = () => {
+    fails++; beep(110, .3, 'sawtooth', .15); shake(ov.querySelector('.card'));
+    $('#celemsg').textContent = quips[Math.min(k++, quips.length - 1)] + ` (Touches: ${fails})`;
+    $('#fails').textContent = 'Touches: ' + fails;
+  };
+}
+function levelSelect(){
+  const un = getUnlocked();
+  card(`<h1>Level select</h1><p>Beat a level to unlock the next one.</p><div class="legend">${badge(2)} orange border · ${badge(3)} red border</div>
+    <div class="grid">${LEVELS.map((lv, i) => `<button class="lvbtn ${lv.d === 3 ? 'insane' : lv.d === 2 ? 'hard' : ''}" data-i="${i}" ${i > un ? 'disabled' : ''} title="${lv.name.replace(/"/g, '')}">${i + 1}</button>`).join('')}</div>`,
+    [["Back", title]]);
+  ov.querySelectorAll('.lvbtn').forEach(b => b.onclick = () => newRun(+b.dataset.i));
+}
+function title(){
+  L = null; arena.innerHTML = '';
+  $('#lvl').textContent = "DON'T TOUCH THE BUTTON"; $('#instr').textContent = ''; $('#prog').textContent = '';
+  const un = getUnlocked();
+  const acts = un > 0
+    ? [[`Continue (Level ${un + 1})`, () => newRun(un)], ["New game", () => newRun(0)], ["Level select", levelSelect]]
+    : [["Start", () => newRun(0)], ["Level select", levelSelect]];
+  const hard = LEVELS.filter(l => l.d === 2).length, insane = LEVELS.filter(l => l.d === 3).length;
+  card(`<h1>Don't Touch<br>the Button</h1><p>${LEVELS.length} levels. One rule.<br>Click with your mouse. Don't click the red thing.</p>
+    <p class="legend">${hard} ${badge(2)} levels · ${insane} ${badge(3)} levels</p>
+    <button class="cardbtn" id="tbtn">DON'T</button><p id="tmsg"></p>`, acts);
+  const lines = ["You haven't even started yet.", "Seriously? On the title screen?", "We're not counting these. Yet.", "Press Start. The YELLOW one."];
+  let k = 0;
+  $('#tbtn').onclick = () => { beep(110, .3, 'sawtooth', .15); shake(ov.querySelector('.card')); $('#tmsg').textContent = lines[Math.min(k++, lines.length - 1)]; };
+}
+
+addEventListener('keydown', e => {
+  const k = e.key.toLowerCase();
+  if(!ov.classList.contains('hidden')){
+    if(e.key === 'Enter' && !e.repeat){ const g = ov.querySelector('.acts .go'); if(g){ e.preventDefault(); g.click(); } }
+    return;
+  }
+  keys.add(k);
+  if(L && L.state === 'play'){
+    if(L.player && ['arrowup', 'arrowdown', 'arrowleft', 'arrowright'].includes(k)) e.preventDefault();
+    if(L.onKey) L.onKey(e);
+  }
+  if(e.key === ' ') e.preventDefault();
+});
+
+// ---------- main loop ----------
+let last = performance.now();
+function tick(){
+  const now = performance.now();
+  let total = Math.min(1, Math.max(0, (now - last) / 1000)); last = now;
+  // Catch up in small steps so timers stay accurate even when ticks arrive late
+  while(total > 0 && L && L.state === 'play'){
+    const dt = Math.min(.05, total); total -= dt;
+    try{ update(dt); }catch(e){ console.error(e); }
+  }
+}
+function update(dt){
+  L.t += dt;
+  for(const s of [...L.sched]) if(L.t >= s.t){ L.sched.splice(L.sched.indexOf(s), 1); s.fn(); }
+  if(L.lag){ const f = Math.min(1, dt * 3.5); L.lx += (mx - L.lx) * f; L.ly += (my - L.ly) * f; }
+  L.off = L.quake ? {x:rand(-L.quake, L.quake), y:rand(-L.quake, L.quake)} : {x:0, y:0};
+  const p = pointer();
+  for(const b of L.buttons){
+    move(b, dt);
+    if(b.span && !b.noTaunt && !L.player){
+      const h = dist(p.x, p.y, b.x, b.y) < b.r;
+      b.el.classList.toggle('hover', h);
+      if(h){ b.taunt -= dt; if(b.taunt <= 0){ b.span.textContent = pick(TAUNTS); b.taunt = 1.2; } b.hovering = true; }
+      else if(b.hovering){ b.span.textContent = b.label ?? "DON'T"; b.taunt = 0; b.hovering = false; }
+    }
+  }
+  for(const t of L.targets) move(t, dt);
+  // One second of grace at the start so nothing can hit you before you can react
+  const grace = L.t < 1;
+  if(!L.player && mx > -900 && !grace){
+    for(const b of L.buttons) if((L.touchy || b.hunt) && b.r > 4 && dist(p.x, p.y, b.x, b.y) < b.r * .8){
+      fail(b.hunt ? "It touched you. That counts. Those are the rules now." : "Hovering counts as touching on this level!"); break;
+    }
+  }
+  if(L.state === 'play' && L.player){
+    const P = L.player; let dx = 0, dy = 0;
+    if(keys.has('arrowleft') || keys.has('a')) dx--;
+    if(keys.has('arrowright') || keys.has('d')) dx++;
+    if(keys.has('arrowup') || keys.has('w')) dy--;
+    if(keys.has('arrowdown') || keys.has('s')) dy++;
+    if(L.revkeys){ dx = -dx; dy = -dy; }
+    const d = Math.hypot(dx, dy) || 1;
+    P.x = clamp(P.x + dx / d * P.speed * dt, P.r, W - P.r); P.y = clamp(P.y + dy / d * P.speed * dt, P.r, H - P.r);
+    if(!grace) for(const b of L.buttons) if(b.r > 4 && dist(P.x, P.y, b.x, b.y) < b.r + P.r * .75){ fail("You bumped into the button. Bumping counts as touching."); break; }
+    if(L.state === 'play') for(const t of [...L.targets]) if(dist(P.x, P.y, t.x, t.y) < t.r + P.r){ hitTarget(t); if(L.state !== 'play') break; }
+    draw(P);
+  }
+  for(const f of L.updates){ if(L.state !== 'play') break; f(dt, L.t); }
+  if(L.state === 'play' && L.timeLeft != null){ L.timeLeft -= dt; if(L.timeLeft <= 0){ L.timeLeft = 0; if(L.timeoutFail) fail(L.timeoutFail); else win(); } }
+  L.buttons = L.buttons.filter(b => { if(b.dead){ b.el.remove(); return false; } return true; });
+  for(const b of L.buttons) draw(b);
+  for(const t of L.targets) draw(t);
+  const sp = screenPointer();
+  if(L.fake) L.fake.style.transform = `translate(${sp.x}px,${sp.y}px)`;
+  if(L.dark){
+    const c = L.player ? {x:L.player.x + L.off.x, y:L.player.y + L.off.y} : sp;
+    L.dark.style.background = `radial-gradient(circle at ${c.x}px ${c.y}px, transparent 0, transparent ${L.darkR}px, rgba(0,0,0,.97) ${L.darkR + 65}px)`;
+  }
+  updateHud();
+}
+function frame(){ tick(); requestAnimationFrame(frame); }
+requestAnimationFrame(frame);
+// Fallback for when the browser pauses animation frames (some previews and background tabs do)
+setInterval(() => { if(performance.now() - last > 50) tick(); }, 25);
+title();
+</script>
+</body>
+</html>
