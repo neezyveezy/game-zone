@@ -399,9 +399,115 @@
     .hud-bar { flex-wrap: wrap; } .hud-stats { order: 3; width: 100%; justify-content: space-between; }
     .lb-header, .lb-row { grid-template-columns: 32px 1fr 70px 100px; }
   }
+
+  /* ================= Seasonal events + music ================= */
+  #sv-scene, #sv-amb { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+  #sv-amb { width: 100%; height: 100%; }
+  #auth-screen, #game-root { position: relative; z-index: 1; }
+  html[data-season] body { background: radial-gradient(ellipse 900px 520px at 15% -10%, var(--sea-glow), transparent 62%),
+    radial-gradient(ellipse 700px 500px at 100% 0%, var(--sea-glow2), transparent 58%), var(--bg); }
+  html[data-season="halloween"]    { --bg: #0d0812; --bg-elevated: #120b18; --accent: #ff9a3c; --accent-dim: #8a4a14; --sea-glow: rgba(255,122,26,.16); --sea-glow2: rgba(140,70,220,.16); }
+  html[data-season="friday13"]     { --bg: #08060e; --bg-elevated: #0e0a16; --accent: #b48cff; --accent-dim: #5a3f8a; --sea-glow: rgba(130,60,200,.18); --sea-glow2: rgba(255,122,26,.08); }
+  html[data-season="christmas"]    { --bg: #071324; --bg-elevated: #0a182c; --accent: #9fe8ff; --accent-dim: #2f6f86; --sea-glow: rgba(120,200,255,.14); --sea-glow2: rgba(255,59,59,.10); }
+  html[data-season="newyear"]      { --bg: #07071a; --bg-elevated: #0c0c22; --accent: #ffd54f; --accent-dim: #8a6d1c; --sea-glow: rgba(255,213,79,.13); --sea-glow2: rgba(255,79,139,.10); }
+  html[data-season="july4"]        { --bg: #070b20; --bg-elevated: #0b1028; --accent: #7fa6ff; --accent-dim: #2f4f9a; --sea-glow: rgba(255,59,59,.12); --sea-glow2: rgba(79,125,255,.16); }
+  html[data-season="valentine"]    { --bg: #14070f; --bg-elevated: #1a0a14; --accent: #ff7aa8; --accent-dim: #8a2e50; --sea-glow: rgba(255,79,139,.18); --sea-glow2: rgba(255,159,208,.08); }
+  html[data-season="stpatrick"]    { --bg: #06140c; --bg-elevated: #091a10; --accent: #5fe08a; --accent-dim: #23794a; --sea-glow: rgba(63,220,110,.15); --sea-glow2: rgba(255,213,79,.08); }
+  html[data-season="easter"]       { --bg: #120c1e; --bg-elevated: #181026; --accent: #ffa6d6; --accent-dim: #8a4d72; --sea-glow: rgba(255,159,208,.16); --sea-glow2: rgba(166,227,255,.12); }
+  html[data-season="summer"]       { --bg: #061820; --bg-elevated: #081e28; --accent: #ffd23f; --accent-dim: #8a7016; --sea-glow: rgba(255,210,63,.16); --sea-glow2: rgba(63,224,197,.12); }
+  html[data-season="thanksgiving"] { --bg: #120a06; --bg-elevated: #180e08; --accent: #ffa04d; --accent-dim: #8a4f1c; --sea-glow: rgba(255,138,61,.16); --sea-glow2: rgba(196,64,26,.10); }
+
+  /* scenery behind the market: sky object, a little airfield, fly-bys */
+  .sv-moon { position: absolute; top: 12vh; right: 7vw; width: min(13vw, 120px); aspect-ratio: 1; border-radius: 50%; opacity: .75;
+    background: radial-gradient(circle at 30% 62%, rgba(0,0,0,.08) 0 8%, transparent 9%), radial-gradient(circle at 64% 34%, rgba(0,0,0,.07) 0 6%, transparent 7%),
+      radial-gradient(circle at 35% 35%, #fffbe9, #e9e3c8 55%, #b9b293); box-shadow: 0 0 60px 14px rgba(255,250,220,.16); }
+  .sv-moon.blood { background: radial-gradient(circle at 30% 62%, rgba(120,40,0,.25) 0 8%, transparent 9%), radial-gradient(circle at 35% 35%, #ffe2b8, #ff9a3c 55%, #b54a12); box-shadow: 0 0 70px 18px rgba(255,122,26,.28); }
+  .sv-moon.grey { filter: grayscale(1); opacity: .5; }
+  .sv-moon.dim { opacity: .4; }
+  .sv-moon.harvest { background: radial-gradient(circle at 35% 35%, #ffe7c2, #ffb066 55%, #c4621a); box-shadow: 0 0 70px 16px rgba(255,138,61,.24); }
+  .sv-sun { position: absolute; top: 9vh; right: 8vw; width: min(14vw, 130px); aspect-ratio: 1; border-radius: 50%;
+    background: radial-gradient(circle, #fff7c2, #ffd23f 55%, #ffb000); box-shadow: 0 0 80px 24px rgba(255,210,63,.28); opacity: .85; }
+  .sv-sun::before { content: ""; position: absolute; inset: -40%; border-radius: 50%; animation: sv-spin 40s linear infinite;
+    background: repeating-conic-gradient(rgba(255,220,100,.18) 0 8deg, transparent 8deg 22deg); -webkit-mask: radial-gradient(circle, transparent 40%, #000 42%, transparent 70%); mask: radial-gradient(circle, transparent 40%, #000 42%, transparent 70%); }
+  .sv-heart { position: absolute; top: 26vh; right: 10vw; width: 90px; height: 90px; transform: rotate(-45deg); background: #ff4f8b; opacity: .35; filter: blur(1px); animation: sv-beat 1.6s ease-in-out infinite; }
+  .sv-heart::before, .sv-heart::after { content: ""; position: absolute; width: 90px; height: 90px; border-radius: 50%; background: inherit; }
+  .sv-heart::before { top: -45px; left: 0; } .sv-heart::after { left: 45px; top: 0; }
+  .sv-rainbow { position: absolute; left: -22vmax; bottom: -32vmax; width: 72vmax; height: 72vmax; border-radius: 50%; opacity: .2; filter: blur(2px);
+    background: radial-gradient(circle, transparent 52%, #ff4d4d 52% 55%, #ffa94d 55% 58%, #ffe14d 58% 61%, #5fd35f 61% 64%, #4dabff 64% 67%, #9b6bff 67% 70%, transparent 70%); }
+  .sv-ground { position: absolute; left: 0; right: 0; bottom: 0; height: clamp(90px, 16vh, 170px); }
+  .sv-ground svg { width: 100%; height: 100%; display: block; }
+  .sv-rwy circle, .sv-pk { animation: sv-blink 2.4s ease-in-out infinite; }
+  .sv-tow { position: absolute; left: 0; display: flex; align-items: center; white-space: nowrap; animation: sv-across 46s linear infinite; will-change: transform; }
+  .sv-tow .ban { font: 700 13px var(--font-display); letter-spacing: .12em; text-transform: uppercase; color: #140c02; background: var(--sea-solid); padding: 4px 12px;
+    border-radius: 2px; box-shadow: 0 2px 10px rgba(0,0,0,.4); transform-origin: right center; animation: sv-flutter 1.1s ease-in-out infinite; }
+  .sv-tow .rope { width: 44px; height: 1px; background: rgba(255,255,255,.5); }
+  .sv-tow svg { width: 72px; height: 26px; display: block; }
+  .sv-tow .nav { animation: sv-blink 1s steps(1) infinite; }
+  .sv-fly { position: absolute; left: 0; font-size: 34px; animation: sv-across 34s linear infinite; animation-delay: -12s; will-change: transform; }
+  .sv-fly.rtl { animation-name: sv-across-rtl; }
+  @keyframes sv-across { from { transform: translateX(-120%); } to { transform: translateX(110vw); } }
+  @keyframes sv-across-rtl { from { transform: translateX(110vw); } to { transform: translateX(-120%); } }
+  @keyframes sv-flutter { 50% { transform: skewY(-2deg) scaleY(.92); } }
+  @keyframes sv-blink { 0%, 100% { opacity: .3; } 50% { opacity: 1; } }
+  @keyframes sv-spin { to { transform: rotate(360deg); } }
+  @keyframes sv-beat { 50% { transform: rotate(-45deg) scale(1.08); } }
+
+  /* event banner under the ticker, with the live countdown */
+  .sv-sea-bar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 8px 20px; border-bottom: 1px solid var(--border-soft);
+    background: linear-gradient(90deg, var(--sea-glow, transparent), transparent 75%), var(--bg-elevated); }
+  .sv-sea-bar[hidden] { display: none; }
+  .sv-sea-bar .ic { font-size: 1.35rem; line-height: 1; }
+  .sv-sea-bar b { font-family: var(--font-display); letter-spacing: .05em; text-transform: uppercase; color: var(--accent); white-space: nowrap; }
+  .sv-sea-bar .msg { color: var(--text-dim); font-size: .85rem; flex: 1; min-width: 200px; }
+  .sv-sea-bar .cd { font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-size: .82rem; color: var(--text); white-space: nowrap;
+    background: var(--panel); border: 1px solid var(--border); border-radius: 20px; padding: 3px 12px; }
+  .sv-sea-bar .cd span { color: var(--accent); font-weight: 600; }
+  .sv-logo-ic { margin-left: 2px; font-size: 1.05rem; }
+  .music-on { color: var(--accent) !important; border-color: var(--accent-dim) !important; box-shadow: 0 0 12px -4px var(--accent); }
+
+  /* catchable bonus item that drifts across the screen */
+  .sv-collect { position: fixed; left: 0; z-index: 45; font-size: 36px; line-height: 1; background: none; border: none; padding: 8px; cursor: pointer;
+    filter: drop-shadow(0 0 10px var(--sea-solid)); animation: sv-collect 13s linear forwards; }
+  .sv-collect.rtl { animation-name: sv-collect-rtl; }
+  .sv-collect span { display: inline-block; animation: sv-bob 1.4s ease-in-out infinite; }
+  .sv-collect:hover span { transform: scale(1.3); }
+  @keyframes sv-collect { from { transform: translateX(-70px); } to { transform: translateX(calc(100vw + 70px)); } }
+  @keyframes sv-collect-rtl { from { transform: translateX(calc(100vw + 70px)); } to { transform: translateX(-70px); } }
+  @keyframes sv-bob { 50% { transform: translateY(-10px) rotate(8deg); } }
+
+  /* the last 10 seconds of the year */
+  .sv-ny { position: fixed; inset: 0; z-index: 90; display: grid; place-items: center; pointer-events: none; text-align: center;
+    font: 700 clamp(64px, 16vw, 180px)/1 var(--font-display); color: #ffd54f; text-shadow: 0 0 40px rgba(255,213,79,.7), 0 6px 0 rgba(0,0,0,.4); }
+  .sv-ny small { display: block; font-size: .28em; letter-spacing: .3em; color: #fff; }
+  .sv-ny.pop { animation: sv-ny-pop .5s cubic-bezier(.3,1.6,.5,1); }
+  @keyframes sv-ny-pop { from { transform: scale(.4); opacity: 0; } }
+
+  /* music & events window */
+  .sv-set h4 { font-family: var(--font-display); text-transform: uppercase; letter-spacing: .07em; color: var(--text-dim); font-size: .78rem; margin: 16px 0 8px; }
+  .sv-set h4:first-child { margin-top: 0; }
+  .sv-switch { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: .88rem; margin-bottom: 10px; }
+  .sv-switch small { display: block; color: var(--text-faint); font-size: .74rem; margin-top: 2px; }
+  .sv-range { width: 100%; accent-color: var(--accent); }
+  .sv-tracks { display: grid; gap: 6px; }
+  .sv-track { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; cursor: pointer; color: var(--text); font: inherit;
+    background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; }
+  .sv-track:hover { border-color: var(--accent-dim); }
+  .sv-track.on { border-color: var(--accent); background: rgba(255,255,255,.05); }
+  .sv-track.sea { border-style: dashed; border-color: var(--sea-solid); }
+  .sv-track.sea.on { border-style: solid; }
+  .sv-track b { font-family: var(--font-display); font-weight: 600; display: block; font-size: .92rem; }
+  .sv-track small { color: var(--text-faint); font-size: .74rem; }
+  .sv-track .t-st { margin-left: auto; font-family: var(--font-mono); font-size: .72rem; color: var(--accent); white-space: nowrap; }
+  #sv-track-left, #sv-next-left { font-family: var(--font-mono); color: var(--accent); }
+  @media (prefers-reduced-motion: reduce) {
+    .sv-tow, .sv-fly { display: none; }
+    .sv-rwy circle, .sv-pk, .sv-sun::before, .sv-heart, .sv-tow .ban { animation: none; }
+  }
 </style>
 </head>
 <body>
+<div id="sv-scene" aria-hidden="true"></div>
+<canvas id="sv-amb" aria-hidden="true"></canvas>
 
 <div id="auth-screen" class="auth-screen">
   <div class="auth-card">
@@ -419,13 +525,14 @@
 
 <div id="game-root" style="display:none">
   <div class="hud-bar">
-    <div class="hud-logo"><span class="mark">&#9992;</span>SkyVault</div>
+    <div class="hud-logo"><span class="mark">&#9992;</span>SkyVault<span class="sv-logo-ic" id="sv-logo-ic"></span></div>
     <nav class="hud-nav" id="nav-links"></nav>
     <div class="hud-stats">
       <div class="hud-stat credits"><div class="l">Credits</div><div class="v" id="hud-credits">&mdash;</div></div>
       <div class="hud-stat portfolio"><div class="l">Portfolio</div><div class="v" id="hud-portfolio">&mdash;</div></div>
     </div>
     <button type="button" class="sound-toggle" id="sound-toggle" title="Mute sound" aria-label="Mute sound">&#9834;</button>
+    <button type="button" class="sound-toggle" id="music-toggle" title="Music &amp; seasonal events" aria-label="Music and seasonal events">&#127911;</button>
     <button type="button" class="quick-toggle" id="quick-toggle" title="Quick mode (instant results)" aria-label="Quick mode (instant results)">&#9889;</button>
     <div class="hud-identity" id="hud-identity">
       <span id="hud-avatar">?</span>
@@ -433,6 +540,7 @@
     </div>
   </div>
   <div class="ticker"><div class="ticker-inner"><div class="ticker-track" id="ticker-track"></div></div></div>
+  <div class="sv-sea-bar" id="sv-season-bar" hidden></div>
 
   <main id="app"></main>
 
@@ -3651,6 +3759,9 @@ var SkyVaultData = (function () {
       '<input class="input" id="admin-ticks" type="number" value="50" style="max-width:160px">' +
       '<button class="btn primary" id="admin-run-ticks">Simulate ticks</button></div>' +
       '<p class="dim small">Each tick is one 20-second cycle &mdash; prices move, bots list, trade, and sometimes buy your listings.</p></div>' +
+      '<div class="panel"><h3>Seasonal events</h3><p class="dim small" id="admin-sea-status">' + adminSeaStatus() + '</p><div class="filter-bar">' +
+      '<select class="input" id="admin-sea-pick" style="min-width:240px">' + adminSeaOptions() + '</select></div>' +
+      '<p class="dim small">Preview any event&rsquo;s theme, scenery, countdown and soundtrack. Only you see this; &ldquo;Automatic&rdquo; follows the real calendar.</p></div>' +
       '<div class="panel"><h3>Danger zone</h3><button class="btn ghost" id="admin-reset" style="border-color:var(--danger);color:var(--danger)">Reset save&hellip;</button></div>' +
       '</section>';
 
@@ -3701,6 +3812,7 @@ var SkyVaultData = (function () {
       adminSimulateTicks(v);
     };
     document.getElementById("admin-reset").onclick = adminResetSave;
+    document.getElementById("admin-sea-pick").onchange = function (e) { setSeaOverride(e.target.value); };
   }
 
   /* ---------- callsign editor ---------- */
@@ -3716,6 +3828,584 @@ var SkyVaultData = (function () {
       ]);
   }
   document.addEventListener("click", function (e) { if (e.target.closest && e.target.closest("#hud-identity")) openCallsignModal(); });
+
+  /* =====================================================================
+     SEASONAL EVENTS + MUSIC
+     The real calendar picks the event (same dates as Midnight Velvet). While
+     one is on: themed colors, an airfield scene and particles behind the
+     market, a banner with a live countdown, bonus items to catch, and an
+     event soundtrack that is only available until the event ends.
+     ===================================================================== */
+  var SEA_DAY = 864e5;
+  function easterSunday(y) {
+    var a = y % 19, b = Math.floor(y / 100), c = y % 100, d = Math.floor(b / 4), e = b % 4, f = Math.floor((b + 8) / 25), g = Math.floor((b - f + 1) / 3),
+      h = (19 * a + b - d - g + 15) % 30, i = Math.floor(c / 4), k = c % 4, l = (32 + 2 * e + 2 * i - h - k) % 7, m = Math.floor((a + 11 * h + 22 * l) / 451),
+      mo = Math.floor((h + l - 7 * m + 114) / 31), da = ((h + l - 7 * m + 114) % 31) + 1;
+    return new Date(y, mo - 1, da);
+  }
+  function EM(mode, list, rate, size, speed, alpha) { return { mode: mode, list: list, rate: rate, size: size, speed: speed, alpha: alpha }; }
+
+  // Little extras drawn on the airfield for each event
+  function pines(xs, col) {
+    return xs.map(function (x, i) {
+      var h = 50 + (i % 3) * 14;
+      return '<path fill="' + col + '" d="M' + x + ' ' + (162 - h) + ' L' + (x + 22) + ' ' + (162 - h * 0.45) + ' H' + (x + 10) + ' L' + (x + 30) + ' 162 H' + (x - 30) + ' L' + (x - 10) + ' ' + (162 - h * 0.45) + ' H' + (x - 22) + 'Z"/>' +
+        '<circle class="sv-pk" cx="' + (x - 6) + '" cy="' + (150 - (i % 3) * 5) + '" r="2.6" fill="#ff3b3b" style="animation-delay:-' + (i * 0.3) + 's"/>' +
+        '<circle class="sv-pk" cx="' + (x + 8) + '" cy="' + (140 - (i % 3) * 8) + '" r="2.6" fill="#ffd54f" style="animation-delay:-' + (i * 0.5) + 's"/>';
+    }).join("");
+  }
+  var BARE_TREES = '<g fill="none" stroke="#07030a" stroke-width="6" stroke-linecap="round"><path d="M350 160 L354 104 M354 104 L334 84 M354 104 L376 80 M353 126 L378 114 M1060 160 L1063 116 M1063 116 L1046 98 M1063 116 L1084 100"/></g>';
+  var GROUND_DECO = {
+    halloween: function () {
+      return BARE_TREES + '<g class="sv-pk"><ellipse cx="460" cy="158" rx="14" ry="10" fill="#ff7a1a"/><ellipse cx="498" cy="160" rx="10" ry="8" fill="#ff8a2a"/><ellipse cx="1120" cy="159" rx="12" ry="9" fill="#ff7a1a"/></g>' +
+        '<path fill="#3a1a00" d="M454 156 h4 v3 h-4z M463 156 h4 v3 h-4z M455 162 h11 v2 h-11z"/>';
+    },
+    friday13: function () { return BARE_TREES; },
+    christmas: function () { return pines([60, 140, 520, 610, 1010, 1100], "#0e3a24"); },
+    easter: function () {
+      var s = "";
+      for (var i = 0; i < 20; i++) { var x = 30 + i * 60 + (i % 3) * 8, c = ["#ff9fd0", "#fff3a0", "#a6e3ff", "#d9c8ff"][i % 4]; s += '<circle cx="' + x + '" cy="' + (158 + (i % 3) * 2) + '" r="4" fill="' + c + '"/><circle cx="' + x + '" cy="' + (158 + (i % 3) * 2) + '" r="1.6" fill="#ffd54f"/>'; }
+      [[330, "#ff9fd0"], [560, "#a6e3ff"], [780, "#fff3a0"], [1040, "#d9c8ff"]].forEach(function (e) { s += '<ellipse cx="' + e[0] + '" cy="154" rx="8" ry="11" fill="' + e[1] + '"/><path d="M' + (e[0] - 8) + ' 154 q4 -3 8 0 t8 0" stroke="#fff" stroke-width="1.6" fill="none"/>'; });
+      return s;
+    },
+    valentine: function () { return '<g fill="#ff4f8b" class="sv-pk">' + [380, 560, 760, 1040].map(function (x) { return '<path d="M' + x + ' 160 c-8 -10 -22 -2 -14 8 l14 12 14 -12 c8 -10 -6 -18 -14 -8z"/>'; }).join("") + '</g>'; },
+    stpatrick: function () {
+      var coins = ""; for (var i = 0; i < 6; i++) coins += '<circle cx="' + (538 + i * 9) + '" cy="' + (148 - (i % 2) * 5) + '" r="6" fill="#ffd54f"/>';
+      return '<ellipse cx="560" cy="154" rx="34" ry="12" fill="#1a1a1a"/><path d="M530 152 h60 l-6 14 h-48z" fill="#222"/><g class="sv-pk">' + coins + '</g>';
+    },
+    summer: function () {
+      return '<g fill="none" stroke="#0a2418" stroke-width="7" stroke-linecap="round"><path d="M90 162 Q100 110 80 60"/><path d="M1110 162 Q1098 118 1124 76"/></g>' +
+        '<g fill="#0a2418"><path d="M80 60 q-50 -10 -74 20 q40 -10 74 -20z M80 60 q50 -16 80 10 q-44 -6 -80 -10z M80 60 q-24 -40 -66 -36 q36 10 66 36z M80 60 q20 -44 64 -46 q-38 16 -64 46z"/>' +
+        '<path d="M1124 76 q-50 -10 -74 20 q40 -10 74 -20z M1124 76 q50 -16 80 10 q-44 -6 -80 -10z M1124 76 q-24 -40 -66 -36 q36 10 66 36z"/></g>';
+    },
+    thanksgiving: function () {
+      var leaves = ""; for (var i = 0; i < 14; i++) leaves += '<circle cx="' + (60 + i * 84) + '" cy="' + (158 + (i % 3) * 2) + '" r="4" fill="' + (i % 2 ? "#c97a1e" : "#e0592a") + '"/>';
+      return BARE_TREES.replace("#07030a", "#1a0a04") + leaves + '<rect x="470" y="146" width="34" height="18" rx="4" fill="#c99a3a"/><rect x="508" y="150" width="26" height="14" rx="4" fill="#b8862c"/>';
+    },
+  };
+
+  var SEASONS = [
+    { id: "newyear", name: "New Year", ic: "🎆", when: function (y) { return [new Date(y - 1, 11, 31), new Date(y, 0, 2)]; },
+      msg: "Fireworks over the airfield.", banner: "Happy New Year! 🎆", solid: "#ffd54f", ground: ["#14122e", "#0c0a20", "#05040e"], sky: '<div class="sv-moon dim"></div>',
+      amb: { em: [EM("glint", ["✨", "⭐"], 3, [10, 18], 0, 0.8), EM("fall", ["🎉", "🎊"], 0.25, [16, 22], 40, 0.6)], fw: 0.9, max: 60 },
+      col: { ic: "🌟", rw: 5000, nm: "shooting star" }, track: { name: "Midnight Countdown", style: "party" } },
+    { id: "valentine", name: "Valentine's Day", ic: "💘", when: function (y) { return [new Date(y, 1, 10), new Date(y, 1, 14)]; },
+      msg: "Love is in the air.", banner: "Love is in the air 💘", solid: "#ff4f8b", ground: ["#3a0f24", "#24061a", "#12030c"], sky: '<div class="sv-heart"></div>',
+      amb: { em: [EM("float", ["💖", "💕", "💗", "🌹"], 1.2, [14, 26], 34, 0.6)], max: 40, pre: 12 },
+      col: { ic: "💘", rw: 1402, nm: "heart" }, track: { name: "Love Is in the Air", style: "spring" } },
+    { id: "stpatrick", name: "St. Patrick's Day", ic: "🍀", when: function (y) { return [new Date(y, 2, 14), new Date(y, 2, 17)]; },
+      msg: "The luck of the Irish is on your side.", banner: "Happy St. Patrick's Day ☘️", solid: "#3fdc6e", ground: ["#1f7a3f", "#145c2e", "#0a2a16"], sky: '<div class="sv-rainbow"></div>',
+      amb: { em: [EM("fall", ["🍀", "☘️"], 1.1, [14, 24], 38, 0.65), EM("glint", ["✨"], 1.2, [10, 14], 0, 0.8)], max: 40, pre: 10 },
+      col: { ic: "🍀", rw: 1703, nm: "four-leaf clover" }, track: { name: "Lucky Landing", style: "spring" } },
+    { id: "easter", name: "Easter", ic: "🐣", when: function (y) { var e = easterSunday(y); return [new Date(y, e.getMonth(), e.getDate() - 3), new Date(y, e.getMonth(), e.getDate() + 1)]; },
+      msg: "Spring has landed at the airfield.", banner: "Happy Easter 🐣", solid: "#ff9fd0", ground: ["#2d7a44", "#1f5a32", "#0f2a1a"], sky: '<div class="sv-sun"></div>',
+      amb: { em: [EM("fall", ["🌸", "🌷", "🌼"], 1, [14, 22], 32, 0.65), EM("fly", ["🦋"], 0.12, [18, 24], 70, 0.8)], max: 40, pre: 10 },
+      col: { ic: "🥚", rw: 1500, nm: "golden egg" }, track: { name: "Spring Takeoff", style: "spring" } },
+    { id: "july4", name: "Fourth of July", ic: "🎇", when: function (y) { return [new Date(y, 6, 2), new Date(y, 6, 4)]; },
+      msg: "Fireworks night over the runway.", banner: "Happy 4th of July 🎇", solid: "#4f7dff", ground: ["#14122e", "#0c0a20", "#05040e"], sky: '<div class="sv-moon dim"></div>',
+      amb: { em: [EM("glint", ["⭐", "✨"], 2, [10, 16], 0, 0.8)], fw: 1.1, max: 40 },
+      col: { ic: "🎇", rw: 1776, nm: "sparkler" }, track: { name: "Fireworks Flyover", style: "party" } },
+    { id: "summer", name: "Summer Skies", ic: "🏖️", when: function (y) { return [new Date(y, 5, 21), new Date(y, 7, 31)]; },
+      msg: "Clear skies and long days.", banner: "Summer Skies 🏖️", solid: "#ffd23f", ground: ["#2f8a5a", "#226b45", "#0d2a1c"], sky: '<div class="sv-sun"></div>',
+      amb: { em: [EM("float", ["🫧", "🫧", "🌺", "🐚"], 0.7, [12, 22], 26, 0.55), EM("glint", ["✨"], 1, [10, 14], 0, 0.7)], max: 36, pre: 8 },
+      col: { ic: "🏐", rw: 2000, nm: "beach ball" }, track: { name: "Summer Skies", style: "summer" } },
+    { id: "halloween", name: "Halloween", ic: "🎃", when: function (y) { return [new Date(y, 9, 15), new Date(y, 9, 31)]; },
+      msg: "Spooky skies over the airfield.", banner: "Happy Halloween 🎃", solid: "#ff7a1a", ground: ["#1d0c26", "#120616", "#07030a"], sky: '<div class="sv-moon blood"></div>', fly: "🧙‍♀️",
+      amb: { em: [EM("fly", ["🦇"], 0.35, [18, 30], 90, 0.75), EM("float", ["👻", "🎃", "🕯️"], 0.35, [16, 24], 22, 0.45), EM("fall", ["🍂"], 0.3, [14, 20], 30, 0.55)], max: 30, pre: 6 },
+      col: { ic: "👻", rw: 6666, nm: "ghost" }, track: { name: "Haunted Hangar", style: "spooky" } },
+    { id: "thanksgiving", name: "Thanksgiving", ic: "🦃", when: function (y) { var d = new Date(y, 10, 1), th = 1 + ((4 - d.getDay() + 7) % 7) + 21; return [new Date(y, 10, th - 3), new Date(y, 10, th)]; },
+      msg: "Autumn leaves on the runway.", banner: "Happy Thanksgiving 🦃", solid: "#ff8a3d", ground: ["#5a2a0e", "#341606", "#140803"], sky: '<div class="sv-moon harvest"></div>',
+      amb: { em: [EM("fall", ["🍂", "🍁", "🍁"], 1.3, [14, 24], 36, 0.65)], max: 40, pre: 12 },
+      col: { ic: "🦃", rw: 1100, nm: "turkey" }, track: { name: "Harvest Moon", style: "harvest" } },
+    { id: "christmas", name: "Christmas", ic: "🎄", when: function (y) { return [new Date(y, 11, 1), new Date(y, 11, 26)]; },
+      msg: "Snow is falling on the flight line.", banner: "Merry Christmas 🎄", solid: "#e0283c", ground: ["#bcd3ea", "#e8f1fa", "#2a3c52"], sky: '<div class="sv-moon"></div>', fly: "🦌🦌🛷", flyRtl: true,
+      amb: { em: [EM("snow", ["•", "•", "•", "•", "•", "❄️"], 7, [8, 18], 46, 0.75)], max: 110, pre: 60 },
+      col: { ic: "🎁", rw: 2512, nm: "present" }, track: { name: "Sleigh Ride", style: "jingle" } },
+    { id: "friday13", name: "Friday the 13th", ic: "🐈‍⬛", test: function (d) { return d.getDay() === 5 && d.getDate() === 13; },
+      msg: "Something unlucky is prowling the hangar.", banner: "Friday the 13th 🐈‍⬛", solid: "#a66bff", ground: ["#140a1e", "#08040e", "#030206"], sky: '<div class="sv-moon grey"></div>',
+      amb: { em: [EM("float", ["🕯️", "👁️"], 0.35, [14, 20], 18, 0.4), EM("fly", ["🦇"], 0.15, [18, 24], 80, 0.6)], max: 20 },
+      col: { ic: "🐈‍⬛", rw: 1313, nm: "black cat" }, track: { name: "Unlucky Skies", style: "spooky" } },
+  ];
+  function seasonById(id) { for (var i = 0; i < SEASONS.length; i++) if (SEASONS[i].id === id) return SEASONS[i]; return null; }
+  function seaSod(d) { return new Date(d.getFullYear(), d.getMonth(), d.getDate()); }
+  function seasonWindow(s, d) {
+    if (s.test) { if (!s.test(d)) return null; var a = seaSod(d); return { start: +a, end: +new Date(a.getFullYear(), a.getMonth(), a.getDate() + 1) }; }
+    for (var y = d.getFullYear() - 1; y <= d.getFullYear() + 1; y++) {
+      var w = s.when(y), last = w[1], end = new Date(last.getFullYear(), last.getMonth(), last.getDate() + 1);
+      if (d >= w[0] && d < end) return { start: +w[0], end: +end };
+    }
+    return null;
+  }
+  function realSeason(d) {
+    for (var i = 0; i < SEASONS.length; i++) { var w = seasonWindow(SEASONS[i], d); if (w) return Object.assign({}, SEASONS[i], w); }
+    return null;
+  }
+  var nxCache = { t: 0, v: null };
+  function nextSeason() {
+    if (Date.now() - nxCache.t < 6e4) return nxCache.v;
+    var cur = realSeason(new Date()), t = seaSod(new Date()), v = null;
+    for (var k = 1; k < 400 && !v; k++) {
+      var r = realSeason(new Date(t.getFullYear(), t.getMonth(), t.getDate() + k, 12));
+      if (r && (!cur || r.id !== cur.id)) v = r;
+    }
+    nxCache = { t: Date.now(), v: v };
+    return v;
+  }
+  function seasonLen(s) {
+    if (s.test) return SEA_DAY;
+    var w = s.when(new Date().getFullYear());
+    return +new Date(w[1].getFullYear(), w[1].getMonth(), w[1].getDate() + 1) - +w[0];
+  }
+  function fmtLeft(ms) {
+    ms = Math.max(0, ms);
+    var d = Math.floor(ms / SEA_DAY), h = Math.floor(ms % SEA_DAY / 36e5), m = Math.floor(ms % 36e5 / 6e4), s = Math.floor(ms % 6e4 / 1e3);
+    var p = function (n) { return String(n).padStart(2, "0"); };
+    return d ? d + "d " + p(h) + "h " + p(m) + "m" : p(h) + ":" + p(m) + ":" + p(s);
+  }
+  function nextNewYear() { var d = new Date(); return +new Date(d.getMonth() === 11 ? d.getFullYear() + 1 : d.getFullYear(), 0, 1); }
+
+  /* admin preview: show any event right now (saved in this browser only) */
+  var SEA_ADMIN_KEY = "skyvault_season_admin_v1";
+  var seaOverride = (function () { try { return JSON.parse(localStorage.getItem(SEA_ADMIN_KEY) || "null"); } catch (e) { return null; } })();
+  if (!adminUnlocked) seaOverride = null;
+  (function () {   // ?season=halloween also previews, but only once the admin panel is unlocked
+    var q = null; try { q = new URLSearchParams(location.search).get("season"); } catch (e) {}
+    if (q && adminUnlocked && (q === "none" || seasonById(q))) seaOverride = { id: q, at: Date.now(), temp: true };
+  })();
+  function saveSeaOverride() {
+    if (seaOverride && seaOverride.temp) return;
+    try { if (seaOverride) localStorage.setItem(SEA_ADMIN_KEY, JSON.stringify(seaOverride)); else localStorage.removeItem(SEA_ADMIN_KEY); } catch (e) {}
+  }
+  function seasonNow() {
+    var o = seaOverride;
+    if (o && o.id === "none") return null;
+    if (o && o.id) {
+      var s = seasonById(o.id);
+      if (!s) return null;
+      var r = realSeason(new Date());
+      if (r && r.id === s.id) return r;
+      var len = seasonLen(s);
+      if (!o.at || Date.now() >= o.at + len) { o.at = Date.now(); saveSeaOverride(); }
+      return Object.assign({}, s, { start: o.at, end: o.at + len, preview: true });
+    }
+    return realSeason(new Date());
+  }
+
+  /* player settings for music + decorations */
+  var SV_SET_KEY = "skyvault_music_events_v1";
+  var svSet = (function () {
+    var d = { music: false, vol: 0.5, track: "cruise", deco: true };
+    try { var raw = JSON.parse(localStorage.getItem(SV_SET_KEY) || "null"); if (raw && typeof raw === "object") Object.assign(d, raw); } catch (e) {}
+    d.vol = clamp(Number(d.vol) || 0, 0, 1);
+    return d;
+  })();
+  function saveSvSet() { try { localStorage.setItem(SV_SET_KEY, JSON.stringify(svSet)); } catch (e) {} }
+
+  var SEA = null;
+  function decoOn() { return !!(SEA && svSet.deco); }
+
+  /* ---------- scenery ---------- */
+  var PLANE_SVG = '<svg viewBox="0 0 64 24" aria-hidden="true"><path d="M4 12 L14 10 L40 9 C50 9 58 10 62 12 C58 14 50 15 40 15 L14 14 Z" fill="#cfd8e8"/>' +
+    '<path d="M26 10 L34 2 L38 2 L34 10Z M26 14 L34 22 L38 22 L34 14Z M4 12 L2 5 L7 5 L12 11Z" fill="#9fb0c8"/><path d="M44 10.4 h8 l2 1.6 h-10z" fill="#5a6f8f"/>' +
+    '<circle class="nav" cx="36" cy="3" r="1.6" fill="#ff5c5c"/></svg>';
+  function sceneHTML(s) {
+    var g = s.ground, rw = "", dashes = "";
+    for (var i = 0; i < 24; i++) rw += '<circle cx="' + (25 + i * 50) + '" cy="171" r="2.4" fill="' + (i % 6 === 0 ? "#ff5c5c" : "#ffe9a8") + '" style="animation-delay:' + (-(i % 6) * 0.4) + 's"/>';
+    for (var j = 0; j < 20; j++) dashes += '<rect x="' + (10 + j * 62) + '" y="183" width="32" height="3" rx="1"/>';
+    var ground = '<div class="sv-ground"><svg viewBox="0 0 1200 200" preserveAspectRatio="xMidYMax slice">' +
+      '<path fill="' + g[0] + '" d="M0 128 Q150 100 320 126 T640 118 T960 130 T1200 116 V200 H0Z"/>' +
+      '<path fill="' + g[2] + '" d="M120 162 V128 Q175 96 230 128 V162Z M244 162 V140 h60 v22Z M890 162 V98 h-10 v-16 h44 v16 h-10 V162Z"/>' +
+      '<rect class="sv-pk" x="884" y="84" width="36" height="10" fill="#ffe9a8" opacity=".6"/>' +
+      '<path fill="' + g[1] + '" d="M0 158 Q220 140 440 156 T860 152 T1200 160 V200 H0Z"/>' +
+      (GROUND_DECO[s.id] ? GROUND_DECO[s.id]() : "") +
+      '<rect y="166" width="1200" height="34" fill="#0a0d14"/><g fill="rgba(255,255,255,.28)">' + dashes + '</g><g class="sv-rwy">' + rw + '</g></svg></div>';
+    var tow = '<div class="sv-tow" style="top:' + (14 + Math.random() * 10) + 'vh"><span class="ban">' + esc(s.banner) + '</span><span class="rope"></span>' + PLANE_SVG + '</div>';
+    var fly = s.fly ? '<div class="sv-fly' + (s.flyRtl ? " rtl" : "") + '" style="top:' + (30 + Math.random() * 12) + 'vh">' + s.fly + '</div>' : "";
+    return (s.sky || "") + tow + fly + ground;
+  }
+
+  /* ---------- particles behind the market (snow, leaves, bats, fireworks) ---------- */
+  var svSprites = {};
+  function svStamp(c, ch, size, x, y) {
+    var sp = svSprites[ch];
+    if (!sp) {
+      sp = document.createElement("canvas"); var x2 = sp.getContext("2d"), font = '56px "Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji",sans-serif';
+      x2.font = font; sp.width = Math.ceil(x2.measureText(ch).width) + 8; sp.height = 72;
+      x2.font = font; x2.textAlign = "center"; x2.textBaseline = "middle"; x2.fillText(ch, sp.width / 2, 38);
+      svSprites[ch] = sp;
+    }
+    var k = size / 64;
+    c.drawImage(sp, x - sp.width * k / 2, y - sp.height * k / 2, sp.width * k, sp.height * k);
+  }
+  var AMB = { cv: null, c: null, p: [], cfg: null, run: false, last: 0, acc: [], boostUntil: 0,
+    size: function () {
+      this.cv = this.cv || document.getElementById("sv-amb"); if (!this.cv) return;
+      var d = Math.min(1.5, window.devicePixelRatio || 1);
+      this.cv.width = innerWidth * d; this.cv.height = innerHeight * d;
+      this.c = this.cv.getContext("2d"); this.c.setTransform(d, 0, 0, d, 0, 0);
+    },
+    set: function (cfg) {
+      if (!this.c) this.size(); if (!this.c) return;
+      this.cfg = cfg; this.p = []; this.acc = [];
+      this.c.clearRect(0, 0, innerWidth, innerHeight);
+      if (cfg) { for (var i = 0; i < (cfg.pre || 0); i++) this.spawn(cfg.em[0], true); this.kick(); }
+    },
+    kick: function () {
+      var self = this;
+      if (!this.run && this.cfg && !document.hidden) { this.run = true; this.last = performance.now(); requestAnimationFrame(function (t) { self.frame(t); }); }
+    },
+    spawn: function (e, pre) {
+      var W_ = innerWidth, H_ = innerHeight, s = e.size[0] + Math.random() * (e.size[1] - e.size[0]);
+      var q = { m: e.mode, t: e.list[Math.floor(Math.random() * e.list.length)], s: s, x: Math.random() * W_, y: 0, vx: 0, vy: 0, ph: Math.random() * 7, a: e.alpha || 0.7, life: 1, r: Math.random() * 6, vr: (Math.random() - 0.5) * 1.2 };
+      if (e.mode === "fall" || e.mode === "snow") { q.y = pre ? Math.random() * H_ : -20; q.vy = e.speed * (0.6 + Math.random() * 0.8); q.vx = (Math.random() - 0.5) * 12; }
+      else if (e.mode === "float") { q.y = pre ? Math.random() * H_ : H_ + 20; q.vy = -e.speed * (0.6 + Math.random() * 0.8); q.vx = (Math.random() - 0.5) * 10; }
+      else if (e.mode === "fly") { var ltr = Math.random() < 0.5; q.x = ltr ? -40 : W_ + 40; q.y = H_ * (0.12 + Math.random() * 0.5); q.vx = (ltr ? 1 : -1) * e.speed * (0.7 + Math.random() * 0.6); q.dir = ltr ? 1 : -1; }
+      else if (e.mode === "glint") { q.y = Math.random() * H_; q.dur = 1.2 + Math.random() * 1.6; q.age = 0; }
+      this.p.push(q);
+    },
+    firework: function () {
+      this.p.push({ m: "rk", x: innerWidth * (0.1 + Math.random() * 0.8), y: innerHeight + 10, vy: -(380 + Math.random() * 180), ty: innerHeight * (0.12 + Math.random() * 0.35), hue: Math.floor(Math.random() * 360), life: 1 });
+    },
+    pop: function (x, y) {
+      var col = SEA ? SEA.solid : "#ffffff";
+      for (var i = 0; i < 26; i++) { var a = i / 26 * Math.PI * 2, v = 80 + Math.random() * 140; this.p.push({ m: "sp", x: x, y: y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, c: col, life: 1 }); }
+      this.kick();
+    },
+    frame: function (now) {
+      var self = this;
+      if (!this.cfg || document.hidden) { this.run = false; if (this.c) this.c.clearRect(0, 0, innerWidth, innerHeight); return; }
+      requestAnimationFrame(function (t) { self.frame(t); });
+      if (now - this.last < 31) return;   // about 30 fps is plenty for background effects
+      var dt = Math.min(0.1, (now - this.last) / 1000); this.last = now;
+      var c = this.c, W_ = innerWidth, H_ = innerHeight, cfg = this.cfg, max = cfg.max || 70;
+      c.clearRect(0, 0, W_, H_);
+      for (var i = 0; i < cfg.em.length; i++) {
+        this.acc[i] = (this.acc[i] || 0) + dt * cfg.em[i].rate;
+        while (this.acc[i] >= 1) { this.acc[i]--; if (this.p.length < max) this.spawn(cfg.em[i]); }
+      }
+      var fwRate = (cfg.fw || 0) * (now < this.boostUntil ? 5 : 1);
+      if (fwRate && Math.random() < dt * fwRate && this.p.length < max + 220) this.firework();
+      var add = [];
+      for (var n = 0; n < this.p.length; n++) {
+        var q = this.p[n];
+        if (q.m === "rk") {
+          q.y += q.vy * dt; c.globalAlpha = 1; c.fillStyle = "hsl(" + q.hue + " 90% 70%)"; c.fillRect(q.x - 1.5, q.y, 3, 10);
+          if (q.y <= q.ty) { q.life = 0; for (var k = 0; k < 44; k++) { var a = k / 44 * Math.PI * 2, v = 60 + Math.random() * 120; add.push({ m: "sp", x: q.x, y: q.y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, c: "hsl(" + (q.hue + Math.floor(Math.random() * 50)) + " 95% 65%)", life: 1 }); } }
+          continue;
+        }
+        if (q.m === "sp") { q.vy += 70 * dt; q.vx *= 0.985; q.vy *= 0.985; q.x += q.vx * dt; q.y += q.vy * dt; q.life -= dt * 0.75; c.globalAlpha = Math.max(0, q.life); c.fillStyle = q.c; c.fillRect(q.x - 1.4, q.y - 1.4, 2.8, 2.8); continue; }
+        if (q.m === "glint") { q.age += dt; var kk = q.age / q.dur; if (kk >= 1) { q.life = 0; continue; } c.globalAlpha = Math.sin(kk * Math.PI) * q.a; svStamp(c, q.t, q.s, q.x, q.y); continue; }
+        q.ph += dt * 2;
+        if (q.m === "fly") {
+          q.x += q.vx * dt; q.y += Math.sin(q.ph * 1.6) * 22 * dt; if (q.x < -60 || q.x > W_ + 60) q.life = 0;
+          c.globalAlpha = q.a; c.save(); c.translate(q.x, q.y); c.scale(q.dir < 0 ? -1 : 1, 0.55 + 0.45 * Math.abs(Math.sin(q.ph * 5))); svStamp(c, q.t, q.s, 0, 0); c.restore();
+          continue;
+        }
+        q.x += (q.vx + Math.sin(q.ph) * 14) * dt; q.y += q.vy * dt; q.r += q.vr * dt;
+        if (q.y > H_ + 30 || q.y < -40) q.life = 0;
+        c.globalAlpha = q.a;
+        if (q.t === "•") { c.fillStyle = "#fff"; c.beginPath(); c.arc(q.x, q.y, q.s * 0.18, 0, 7); c.fill(); }
+        else { c.save(); c.translate(q.x, q.y); c.rotate(Math.sin(q.r) * 0.5); svStamp(c, q.t, q.s, 0, 0); c.restore(); }
+      }
+      c.globalAlpha = 1;
+      if (add.length) this.p.push.apply(this.p, add);
+      this.p = this.p.filter(function (q2) { return q2.life > 0; });
+    },
+  };
+
+  /* ---------- bonus items to catch ---------- */
+  var colTimer = 0;
+  function scheduleCollect() {
+    clearTimeout(colTimer);
+    if (!decoOn() || reduceMotion) return;
+    var next = function (d) { colTimer = setTimeout(function () { spawnCollect(); next((40 + Math.random() * 50) * 1000); }, d); };
+    next(15000);
+  }
+  function spawnCollect() {
+    if (!decoOn() || document.hidden || !ready || !state) return;
+    var ov = document.getElementById("reveal-overlay"), host = document.getElementById("modal-host");
+    if ((ov && ov.classList.contains("active")) || (host && host.innerHTML)) return;   // never interrupt a case opening or a popup
+    var c = SEA.col, b = document.createElement("button");
+    b.type = "button"; b.className = "sv-collect" + (Math.random() < 0.5 ? " rtl" : "");
+    b.innerHTML = "<span>" + c.ic + "</span>";
+    b.setAttribute("aria-label", "Catch the " + c.nm);
+    b.style.top = (22 + Math.random() * 50) + "vh";
+    b.onclick = function (e) {
+      e.stopPropagation();
+      if (b.getAttribute("data-got")) return;
+      b.setAttribute("data-got", "1");
+      state.credits += c.rw; save(); updateHud();
+      sfx.buy(); AMB.pop(e.clientX, e.clientY);
+      toast("You caught the " + c.nm + "! +" + fmtCr(c.rw), "good");
+      b.remove();
+    };
+    (document.getElementById("game-root") || document.body).appendChild(b);   // inside the game, so popups and case openings stay on top of it
+    setTimeout(function () { b.remove(); }, 13500);
+  }
+
+  /* ---------- banner, logo, countdowns ---------- */
+  function paintSeaBar() {
+    var bar = document.getElementById("sv-season-bar");
+    if (!bar) return;
+    if (!decoOn()) { bar.hidden = true; bar.innerHTML = ""; return; }
+    bar.hidden = false;
+    bar.innerHTML = '<span class="ic">' + SEA.ic + '</span><b>' + esc(SEA.name) + (SEA.preview ? " (preview)" : "") + '</b>' +
+      '<span class="msg">' + esc(SEA.msg) + ' Catch the ' + SEA.col.ic + ' ' + esc(SEA.col.nm) + ' flying by for ' + fmtCr(SEA.col.rw) + '!</span>' +
+      '<span class="cd" id="sv-sea-cd"></span>' +
+      '<button type="button" class="btn small ghost" id="sv-sea-music">🎵 ' + esc(SEA.track.name) + '</button>';
+    paintSeaCountdown();
+  }
+  function paintSeaCountdown() {
+    var el = document.getElementById("sv-sea-cd");
+    if (!el || !SEA) return;
+    var now = Date.now(), html;
+    if (SEA.id === "newyear" && !SEA.preview && nextNewYear() > now) html = '<span>' + new Date(nextNewYear()).getFullYear() + '</span> in ' + fmtLeft(nextNewYear() - now);
+    else html = 'Ends in <span>' + fmtLeft(SEA.end - now) + '</span>';
+    if (el.innerHTML !== html) el.innerHTML = html;
+  }
+  function paintLogo() { var el = document.getElementById("sv-logo-ic"); if (el) el.textContent = decoOn() ? SEA.ic : ""; }
+
+  // The last ten seconds of the year get a big countdown, then a fireworks finale
+  function newYearMoment() {
+    if (!SEA || SEA.id !== "newyear" || SEA.preview || !decoOn()) return;
+    var left = nextNewYear() - Date.now(), el = document.getElementById("sv-ny");
+    if (left > 0 && left <= 10500) {
+      if (!el) { el = document.createElement("div"); el.id = "sv-ny"; el.className = "sv-ny"; document.body.appendChild(el); }
+      var n = String(Math.ceil(left / 1000));
+      if (el.getAttribute("data-n") !== n) {
+        el.setAttribute("data-n", n); el.textContent = n;
+        el.classList.remove("pop"); void el.offsetWidth; el.classList.add("pop");
+        var c = audioCtx(); if (c) sfxTone(c, 660, c.currentTime, 0.12, { type: "square", gain: 0.05 });
+      }
+    } else if (left <= 0 && el && el.getAttribute("data-n") !== "0") {
+      el.setAttribute("data-n", "0");
+      el.innerHTML = '<div><small>Happy New Year</small>' + new Date().getFullYear() + '</div>';
+      el.classList.remove("pop"); void el.offsetWidth; el.classList.add("pop");
+      AMB.boostUntil = performance.now() + 30000; sfx.buy();
+      setTimeout(function () { el.remove(); }, 5000);
+    }
+  }
+
+  /* ---------- music (generated live with Web Audio: no files to download) ---------- */
+  var TRACKS = {
+    cruise:      { name: "Cruise Altitude", desc: "Chill lo-fi for browsing the market", bpm: 82, ch: [[57, 60, 64, 67], [53, 57, 60, 64], [50, 53, 57, 60], [55, 59, 62, 65]], pad: "sine", bass: "triangle", hat: 1, lead: "triangle", walk: [0, 7, 12, 7], lp: 2000 },
+    jetstream:   { name: "Jetstream", desc: "Upbeat synthwave with a beat", bpm: 108, ch: [[57, 60, 64], [53, 57, 60], [48, 52, 55], [55, 59, 62]], pad: "sawtooth", bass: "square", hat: 1, kick: 1, lead: "square", walk: [0, 12, 0, 12], lp: 1100 },
+    nightflight: { name: "Night Flight", desc: "Slow, dreamy and calm", bpm: 66, ch: [[52, 59, 64, 67], [48, 55, 60, 64], [53, 57, 60, 65], [50, 57, 62, 65]], pad: "triangle", bass: "sine", lead: "sine", walk: [0, 7, 0, 7], lp: 1500, bells: 1, sparse: 1 },
+    spooky:  { bpm: 70, ch: [[50, 53, 57], [46, 50, 53], [43, 46, 50], [45, 49, 52]], pad: "square", bass: "sine", lead: "sine", walk: [0, 7, 6, 7], lp: 700, theremin: 1 },
+    jingle:  { bpm: 116, ch: [[48, 52, 55, 60], [53, 57, 60, 65], [55, 59, 62, 67], [48, 52, 55, 64]], pad: "triangle", bass: "triangle", hat: 1, lead: "sine", walk: [0, 7, 12, 7], bells: 1 },
+    party:   { bpm: 122, ch: [[57, 61, 64], [54, 57, 61], [50, 54, 57], [52, 56, 59]], pad: "sawtooth", bass: "square", hat: 1, kick: 1, lead: "triangle", walk: [0, 12, 0, 12], lp: 1400, bells: 1 },
+    spring:  { bpm: 96, ch: [[60, 64, 67, 72], [57, 60, 64, 69], [53, 57, 60, 65], [55, 59, 62, 67]], pad: "triangle", bass: "sine", hat: 1, lead: "triangle", walk: [0, 7, 12, 7], bells: 1, lp: 2600 },
+    summer:  { bpm: 100, ch: [[55, 59, 62, 66], [52, 55, 59, 62], [57, 60, 64, 67], [50, 54, 57, 60]], pad: "sine", bass: "triangle", hat: 1, lead: "sine", walk: [0, 7, 10, 7], lp: 2200 },
+    harvest: { bpm: 88, ch: [[55, 59, 62, 67], [52, 55, 59, 64], [48, 52, 55, 60], [50, 54, 57, 62]], pad: "triangle", bass: "triangle", hat: 1, lead: "triangle", walk: [0, 7, 12, 7], lp: 1800, bells: 1 },
+  };
+  var BASE_TRACKS = ["cruise", "jetstream", "nightflight"];
+  // The "season" track only exists while an event is on; afterwards the player falls back to Cruise Altitude.
+  function trackAvailable(k) { return k === "season" ? !!SEA : BASE_TRACKS.indexOf(k) >= 0; }
+  function musicKey() { return trackAvailable(svSet.track) ? svSet.track : "cruise"; }
+  function musicDef() { var k = musicKey(); return k === "season" ? TRACKS[SEA.track.style] : TRACKS[k]; }
+  function musicName() { var k = musicKey(); return k === "season" ? SEA.ic + " " + SEA.track.name : TRACKS[k].name; }
+  function musicCtx() {   // music has its own switch, so it works even when sound effects are muted
+    if (!actx) { try { actx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { return null; } }
+    if (actx.state === "suspended") { try { actx.resume(); } catch (e) {} }
+    return actx;
+  }
+  var MUS = { timer: 0, rt: 0, node: null, filt: null, next: 0, beat: 0, tr: null, hb: null,
+    start: function () {
+      if (this.timer || !svSet.music || document.hidden) return;
+      var c = musicCtx(); if (!c) return;
+      this.tr = musicDef();
+      this.node = c.createGain();
+      this.node.gain.setValueAtTime(0.0001, c.currentTime);
+      this.node.gain.linearRampToValueAtTime(svSet.vol * 0.55, c.currentTime + 1.5);
+      this.filt = c.createBiquadFilter(); this.filt.type = "lowpass"; this.filt.frequency.value = this.tr.lp || 2400;
+      this.filt.connect(this.node); this.node.connect(c.destination);
+      this.next = c.currentTime + 0.15; this.beat = 0;
+      var self = this;
+      this.timer = setInterval(function () { self.sched(); }, 90);
+      paintMusicBtn();
+    },
+    stop: function () {
+      clearTimeout(this.rt);
+      if (!this.timer) return;
+      clearInterval(this.timer); this.timer = 0;
+      var n = this.node, c = actx;
+      if (n && c) {
+        n.gain.cancelScheduledValues(c.currentTime); n.gain.setValueAtTime(n.gain.value, c.currentTime); n.gain.linearRampToValueAtTime(0, c.currentTime + 0.6);
+        setTimeout(function () { try { n.disconnect(); } catch (e) {} }, 900);
+      }
+      this.node = null; this.filt = null;
+      paintMusicBtn();
+    },
+    restart: function () { var self = this; this.stop(); this.rt = setTimeout(function () { self.start(); }, 650); },
+    setVol: function () { if (this.node && actx) this.node.gain.setTargetAtTime(svSet.vol * 0.55, actx.currentTime, 0.2); },
+    sched: function () {
+      var c = actx; if (!c || !this.node) return;
+      var spb = 60 / this.tr.bpm;
+      if (this.next < c.currentTime - 0.2) this.next = c.currentTime + 0.05;   // fell behind (busy tab): skip ahead instead of piling notes up
+      while (this.next < c.currentTime + 0.35) { this.play(this.beat, this.next, spb); this.next += spb / 2; this.beat++; }
+    },
+    play: function (b, t, spb) {
+      var tr = this.tr, ch = tr.ch[Math.floor(b / 8) % tr.ch.length], pos = b % 8, self = this;
+      var pick = function () { return ch[Math.floor(Math.random() * ch.length)]; };
+      if (pos === 0) ch.forEach(function (n) { self.note(n, t, spb * 3.9, tr.pad, 0.035); });
+      if (tr.sparse) { if (pos === 0 || pos === 4) this.note(ch[0] - 12, t, spb * 1.8, tr.bass, 0.07); }
+      else if (pos % 2 === 0) this.note(ch[0] - 12 + tr.walk[pos / 2], t, spb * 0.9, tr.bass, 0.08);
+      if (tr.kick && pos % 4 === 0) this.kick(t);
+      if (tr.hat && pos % 2 === 1) this.hat(t);
+      if (tr.bells && (pos === 0 || pos === 3 || pos === 6) && (!tr.sparse || Math.random() < 0.5)) this.note(pick() + 24, t, spb * 1.2, "sine", 0.03);
+      if (tr.theremin && pos === 4 && Math.random() < 0.5) this.glide(ch[0] + 24, t, spb * 3);
+      if (!tr.bells && pos % 2 === 1 && Math.random() < 0.22) this.note(pick() + 12, t, spb * 0.45, tr.lead, 0.025);
+    },
+    hz: function (m) { return 440 * Math.pow(2, (m - 69) / 12); },
+    note: function (m, t, d, type, v) {
+      var c = actx, o = c.createOscillator(), g = c.createGain();
+      o.type = type; o.frequency.value = this.hz(m);
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(v, t + 0.03); g.gain.exponentialRampToValueAtTime(0.0001, t + d);
+      o.connect(g); g.connect(this.filt); o.start(t); o.stop(t + d + 0.05);
+    },
+    glide: function (m, t, d) {
+      var c = actx, o = c.createOscillator(), g = c.createGain(), l = c.createOscillator(), lg = c.createGain();
+      o.type = "sine"; o.frequency.setValueAtTime(this.hz(m), t); o.frequency.linearRampToValueAtTime(this.hz(m + 5), t + d * 0.6); o.frequency.linearRampToValueAtTime(this.hz(m - 2), t + d);
+      l.frequency.value = 6; lg.gain.value = 8; l.connect(lg); lg.connect(o.frequency);
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.03, t + 0.2); g.gain.exponentialRampToValueAtTime(0.0001, t + d);
+      o.connect(g); g.connect(this.filt); o.start(t); l.start(t); o.stop(t + d + 0.05); l.stop(t + d + 0.05);
+    },
+    hat: function (t) {
+      var c = actx;
+      if (!this.hb) { var n = Math.floor(c.sampleRate * 0.05); this.hb = c.createBuffer(1, n, c.sampleRate); var a = this.hb.getChannelData(0); for (var i = 0; i < n; i++) a[i] = (Math.random() * 2 - 1) * (1 - i / n); }
+      var s = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain();
+      s.buffer = this.hb; f.type = "highpass"; f.frequency.value = 7000; g.gain.value = 0.025;
+      s.connect(f); f.connect(g); g.connect(this.node); s.start(t);
+    },
+    kick: function (t) {
+      var c = actx, o = c.createOscillator(), g = c.createGain();
+      o.frequency.setValueAtTime(140, t); o.frequency.exponentialRampToValueAtTime(45, t + 0.15);
+      g.gain.setValueAtTime(0.12, t); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.2);
+      o.connect(g); g.connect(this.node); o.start(t); o.stop(t + 0.22);
+    },
+  };
+  function paintMusicBtn() {
+    var b = document.getElementById("music-toggle");
+    if (!b) return;
+    b.classList.toggle("music-on", !!MUS.timer);
+    b.title = MUS.timer ? "Now playing: " + musicName() + " (music & events)" : "Music & seasonal events";
+    b.setAttribute("aria-label", b.title);
+  }
+  // Browsers only allow sound after the player clicks or presses a key, so saved music waits for that.
+  function armMusic() {
+    var go = function () {
+      document.removeEventListener("pointerdown", go, true); document.removeEventListener("keydown", go, true);
+      if (svSet.music) MUS.start();
+    };
+    document.addEventListener("pointerdown", go, true); document.addEventListener("keydown", go, true);
+  }
+
+  /* ---------- the Music & Events window ---------- */
+  function trackBtn(k, label, desc, sea) {
+    var sel = musicKey() === k, st = sel && MUS.timer ? "♫ playing" : sel ? "selected" : sea ? "⏳ limited" : "";
+    return '<button type="button" class="sv-track' + (sel ? " on" : "") + (sea ? " sea" : "") + '" data-track="' + k + '"><span><b>' + esc(label) + '</b><small>' + esc(desc) + '</small></span><span class="t-st">' + st + '</span></button>';
+  }
+  function openMusicModal() {
+    var nx = nextSeason();
+    var rows = BASE_TRACKS.map(function (k) { return trackBtn(k, TRACKS[k].name, TRACKS[k].desc, false); }).join("");
+    if (SEA) rows += trackBtn("season", SEA.ic + " " + SEA.track.name, SEA.name + " event soundtrack", true);
+    var note = SEA
+      ? "The " + esc(SEA.track.name) + " track is only here during " + esc(SEA.name) + ". It leaves in <span id=\"sv-track-left\"></span>."
+      : "Event soundtracks show up here only while a seasonal event is on." + (nx ? " Next event: " + nx.ic + " " + esc(nx.name) + " in <span id=\"sv-next-left\"></span>." : "");
+    var body = '<div class="sv-set" id="sv-music-modal">' +
+      '<h4>Music</h4><div class="sv-switch"><span>Background music<small>Made live in your browser, nothing to download.</small></span>' +
+      '<button type="button" class="btn small' + (svSet.music ? " primary" : "") + '" id="sv-music-on">' + (svSet.music ? "On" : "Off") + '</button></div>' +
+      '<label class="field-label" for="sv-vol">Music volume</label><input type="range" class="sv-range" id="sv-vol" min="0" max="100" value="' + Math.round(svSet.vol * 100) + '">' +
+      '<h4>Pick a track</h4><div class="sv-tracks">' + rows + '</div><p class="dim small">' + note + '</p>' +
+      '<h4>Seasonal events</h4><div class="sv-switch"><span>Decorations &amp; effects<small>Themes, scenery, particles and bonus catches.</small></span>' +
+      '<button type="button" class="btn small' + (svSet.deco ? " primary" : "") + '" id="sv-deco-on">' + (svSet.deco ? "On" : "Off") + '</button></div>' +
+      '</div>';
+    showModal("Music & Events", body, [{ label: "Done", cls: "primary", action: closeModal }]);
+    document.getElementById("sv-music-on").onclick = function () {
+      svSet.music = !svSet.music; saveSvSet();
+      if (svSet.music) MUS.start(); else MUS.stop();
+      openMusicModal();
+    };
+    document.getElementById("sv-vol").oninput = function (e) { svSet.vol = clamp(e.target.value / 100, 0, 1); saveSvSet(); MUS.setVol(); };
+    document.querySelectorAll("#sv-music-modal [data-track]").forEach(function (b) {
+      b.onclick = function () {
+        var k = b.getAttribute("data-track"), changed = k !== musicKey();
+        svSet.track = k; svSet.music = true; saveSvSet();
+        if (changed || !MUS.timer) MUS.restart();
+        openMusicModal();
+        setTimeout(function () { if (document.getElementById("sv-music-modal")) openMusicModal(); }, 750);   // show "playing" once it starts
+      };
+    });
+    document.getElementById("sv-deco-on").onclick = function () { svSet.deco = !svSet.deco; saveSvSet(); applySeason(); openMusicModal(); };
+    paintMusicModalTimes();
+  }
+  function paintMusicModalTimes() {
+    var now = Date.now(), a = document.getElementById("sv-track-left"), b = document.getElementById("sv-next-left");
+    if (a && SEA) a.textContent = fmtLeft(SEA.end - now);
+    if (b) { var nx = nextSeason(); if (nx) b.textContent = fmtLeft(nx.start - now); }
+  }
+
+  /* ---------- admin panel: preview any event ---------- */
+  function adminSeaOptions() {
+    var cur = seaOverride && !seaOverride.temp ? seaOverride.id : "";
+    return '<option value="">Automatic (real calendar)</option><option value="none"' + (cur === "none" ? " selected" : "") + '>Off</option>' +
+      SEASONS.map(function (s) { return '<option value="' + s.id + '"' + (cur === s.id ? " selected" : "") + '>' + s.ic + ' ' + esc(s.name) + '</option>'; }).join("");
+  }
+  function adminSeaStatus() {
+    var r = realSeason(new Date()), nx = nextSeason(), now = Date.now();
+    var real = r ? "Real calendar: " + r.ic + " " + esc(r.name) + " is on, ends in " + fmtLeft(r.end - now) + "."
+      : "Real calendar: no event right now" + (nx ? ", next is " + nx.ic + " " + esc(nx.name) + " in " + fmtLeft(nx.start - now) : "") + ".";
+    if (seaOverride && seaOverride.id === "none") return "Events are switched off. " + real;
+    if (SEA && SEA.preview) return "Previewing " + SEA.ic + " " + esc(SEA.name) + ". " + real;
+    return real;
+  }
+  function setSeaOverride(v) {
+    seaOverride = v ? { id: v, at: Date.now() } : null;
+    saveSeaOverride(); applySeason();
+    toast(v === "none" ? "Seasonal events switched off." : v ? "Previewing " + seasonById(v).name + "." : "Back to the real calendar.", "good");
+    var st = document.getElementById("admin-sea-status"); if (st) st.innerHTML = adminSeaStatus();
+  }
+
+  /* ---------- switching events on and off ---------- */
+  function applySeason() {
+    var prev = SEA && SEA.id;
+    SEA = seasonNow();
+    var h = document.documentElement, on = decoOn();
+    if (on) h.setAttribute("data-season", SEA.id); else h.removeAttribute("data-season");
+    h.style.setProperty("--sea-solid", SEA ? SEA.solid : "#4fd8ff");
+    var sc = document.getElementById("sv-scene"), key = on ? SEA.id : "";
+    if (sc && sc.getAttribute("data-k") !== key) { sc.setAttribute("data-k", key); sc.innerHTML = on ? sceneHTML(SEA) : ""; }
+    AMB.set(on && !reduceMotion ? SEA.amb : null);
+    paintSeaBar(); paintLogo(); scheduleCollect();
+    if ((SEA && SEA.id) !== prev) {
+      // the event soundtrack swaps in or out the moment the event starts or ends
+      if (MUS.timer && svSet.track === "season") MUS.restart();
+      paintMusicBtn();
+      if (document.getElementById("sv-music-modal")) openMusicModal();
+    }
+  }
+  document.addEventListener("click", function (e) {
+    if (!e.target.closest) return;
+    if (e.target.closest("#music-toggle") || e.target.closest("#sv-sea-music")) openMusicModal();
+  });
+  document.addEventListener("visibilitychange", function () {
+    if (document.hidden) MUS.stop();
+    else { if (svSet.music && actx) MUS.start(); AMB.kick(); }
+  });
+  window.addEventListener("resize", function () { AMB.size(); });
+  // Checked every second, so events start and end right on time, even if the page stays open
+  setInterval(function () {
+    var want = seasonNow();
+    if ((want && want.id) !== (SEA && SEA.id) || (want && SEA && want.end !== SEA.end)) { applySeason(); return; }
+    paintSeaCountdown(); paintMusicModalTimes();
+    var st = document.getElementById("admin-sea-status"); if (st) st.innerHTML = adminSeaStatus();
+  }, 1000);
+  setInterval(newYearMoment, 200);
+
+  AMB.size();
+  applySeason();
+  paintMusicBtn();
+  armMusic();
 
   boot();
 })();

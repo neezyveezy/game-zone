@@ -16,6 +16,10 @@
    ===================================================================== */
 (window.GZ_NEWS = window.GZ_NEWS || []).push(
 
+  { game: "SkyVault.html", date: "2026-10-20",
+    title: "SkyVault: Seasons & Music update 🎃🎵",
+    text: "Seasonal events with themes, countdowns and bonus catches, plus background music: 3 tracks and a limited Halloween soundtrack." },
+
   { game: "Iron-Mandate.html", date: "2026-10-20",
     title: "New game: Iron Mandate",
     text: "Choose your nation, declare wars and take the world one province at a time." },
