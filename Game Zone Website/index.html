@@ -1,0 +1,1743 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Game Zone</title>
+<!-- Each card uses its game's own fonts. Without internet they fall back to normal fonts. -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Saira+Condensed:wght@700;800&family=Barlow:wght@400;500&family=Rajdhani:wght@600;700&family=IBM+Plex+Sans:wght@400;500&family=IBM+Plex+Mono:wght@500&family=Limelight&family=Monoton&family=Manrope:wght@400;600&family=JetBrains+Mono:wght@500;700&family=Bricolage+Grotesque:opsz,wght@12..96,800&family=Fredoka:wght@600;700&family=Nunito:wght@600;700&family=Big+Shoulders+Stencil+Display:wght@800&family=Barlow+Semi+Condensed:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@500;600&display=swap">
+<style>
+  :root {
+    --bg: #07040f;
+    --text: #f4f1ff;
+    --muted: #9b93b8;
+    --pink: #ff3d81;
+    --cyan: #22e4ff;
+    --yellow: #ffd23f;
+    --purple: #8b5cff;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Trebuchet MS", "Segoe UI", system-ui, sans-serif;
+    overflow-x: hidden;
+  }
+  #stars { position: fixed; inset: 0; z-index: 0; }
+  .glow-blob {
+    position: fixed; width: 50vmax; height: 50vmax; border-radius: 50%;
+    filter: blur(90px); opacity: .28; z-index: 0; pointer-events: none;
+    animation: drift 18s ease-in-out infinite alternate;
+  }
+  .glow-blob.a { background: var(--purple); top: -20vmax; left: -15vmax; }
+  .glow-blob.b { background: var(--pink); bottom: -25vmax; right: -15vmax; animation-delay: -9s; }
+  @keyframes drift { to { transform: translate(10vmax, 6vmax) scale(1.15); } }
+
+  main { position: relative; z-index: 1; max-width: 1240px; margin: 0 auto; padding: 56px 20px 80px; }
+
+  /* ---------- Title ---------- */
+  header { text-align: center; margin-bottom: 40px; }
+  .title {
+    position: relative; display: inline-block;
+    font-size: clamp(3rem, 11vw, 7.5rem); font-weight: 900; letter-spacing: .04em;
+    line-height: 1; text-transform: uppercase;
+    background: linear-gradient(90deg, var(--cyan), var(--purple), var(--pink), var(--yellow), var(--cyan));
+    background-size: 300% 100%;
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    animation: shimmer 6s linear infinite, pop-in 1s cubic-bezier(.2,1.6,.4,1) both;
+    filter: drop-shadow(0 0 24px rgba(139,92,255,.55));
+  }
+  .title::before, .title::after {
+    content: attr(data-text); position: absolute; inset: 0; opacity: 0;
+  }
+  .title::before { animation: glitch 4s infinite steps(1); -webkit-text-fill-color: var(--cyan); }
+  .title::after  { animation: glitch 4s infinite steps(1) .1s; -webkit-text-fill-color: var(--pink); }
+  @keyframes glitch {
+    0%, 92%, 100% { opacity: 0; transform: none; clip-path: none; }
+    93% { opacity: .8; transform: translate(-6px, 2px); clip-path: inset(10% 0 55% 0); }
+    95% { opacity: .8; transform: translate(6px, -2px); clip-path: inset(60% 0 8% 0); }
+    97% { opacity: .8; transform: translate(-3px, 0); clip-path: inset(35% 0 35% 0); }
+  }
+  @keyframes shimmer { to { background-position: 300% 0; } }
+  @keyframes pop-in { from { transform: scale(.3) rotate(-8deg); opacity: 0; } }
+  .subtitle {
+    margin-top: 14px; color: var(--muted); font-size: 1.1rem; letter-spacing: .3em; text-transform: uppercase;
+    animation: fade-up .8s .4s both;
+  }
+  .subtitle .blink { color: var(--yellow); animation: blink 1.2s steps(1) infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+  @keyframes fade-up { from { opacity: 0; transform: translateY(20px); } }
+
+  /* ---------- Toolbar ---------- */
+  .toolbar {
+    display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-bottom: 40px;
+    animation: fade-up .8s .6s both;
+  }
+  .search {
+    flex: 1 1 260px; max-width: 420px; padding: 14px 18px; border-radius: 14px;
+    border: 2px solid rgba(255,255,255,.12); background: rgba(10,6,22,.7); color: var(--text);
+    font: inherit; font-size: 1rem; outline: none; transition: border-color .2s, box-shadow .2s;
+  }
+  .search:focus { border-color: var(--cyan); box-shadow: 0 0 0 4px rgba(34,228,255,.18), 0 0 30px rgba(34,228,255,.25); }
+  .btn {
+    position: relative; overflow: hidden; border: none; cursor: pointer; font: inherit; font-weight: 800;
+    padding: 14px 20px; border-radius: 14px; color: #0b0618; letter-spacing: .05em; text-transform: uppercase;
+    background: linear-gradient(135deg, var(--yellow), var(--pink));
+    box-shadow: 0 6px 0 #9a1f52, 0 10px 30px rgba(255,61,129,.35);
+    transition: transform .12s, box-shadow .12s;
+  }
+  .btn:hover { transform: translateY(-2px); }
+  .btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #9a1f52, 0 4px 14px rgba(255,61,129,.35); }
+  .btn.ghost { background: rgba(255,255,255,.08); color: var(--text); box-shadow: 0 6px 0 rgba(0,0,0,.5); }
+  .btn .count {
+    display: inline-grid; place-items: center; min-width: 20px; height: 20px; padding: 0 6px; margin-left: 8px;
+    border-radius: 999px; background: var(--pink); color: #fff; font-size: .72rem; vertical-align: 1px;
+    animation: pulse 1.6s ease-in-out infinite;
+  }
+  .btn .count[hidden] { display: none; }
+
+  /* ---------- Cards (shared) ---------- */
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 30px; perspective: 1200px; }
+  @media (max-width: 380px) { .grid { grid-template-columns: 1fr; } }
+  .card {
+    /* defaults; each game theme below overrides these */
+    --card-bg: rgba(22, 16, 40, 0.85); --card-fg: var(--text); --card-muted: var(--muted);
+    --font-title: inherit; --font-body: inherit;
+    --btn-bg: var(--c); --btn-fg: #0b0618; --btn-r: 999px; --btn-shadow: none;
+    position: relative; border-radius: 20px; padding: 2px; cursor: pointer;
+    transform-style: preserve-3d; transition: transform .15s ease-out;
+    animation: card-in .7s cubic-bezier(.2,1.4,.4,1) both;
+    animation-delay: calc(var(--i) * 90ms + 700ms);
+  }
+  @keyframes card-in { from { opacity: 0; transform: translateY(60px) rotateX(30deg) scale(.85); } }
+  .card::before {
+    content: ""; position: absolute; inset: 0; border-radius: inherit; z-index: -1;
+    background: conic-gradient(from var(--angle, 0deg), var(--c), transparent 30%, transparent 70%, var(--c));
+    animation: spin 4s linear infinite; opacity: .55; transition: opacity .3s;
+  }
+  .card:hover::before { opacity: 1; }
+  @property --angle { syntax: "<angle>"; initial-value: 0deg; inherits: false; }
+  @keyframes spin { to { --angle: 360deg; } }
+  .card-inner {
+    position: relative; overflow: hidden; border-radius: 18px; height: 100%;
+    background: var(--card-bg); color: var(--card-fg); font-family: var(--font-body);
+    display: flex; flex-direction: column; transition: box-shadow .3s;
+  }
+  .card:hover { z-index: 2; }
+  .card:hover .card-inner { box-shadow: 0 30px 60px -10px var(--c-glow); }
+  .thumb { position: relative; height: 200px; overflow: hidden; }
+  .art { position: absolute; inset: 0; overflow: hidden; }
+  .shine {
+    position: absolute; inset: 0; pointer-events: none; mix-blend-mode: overlay; z-index: 5;
+    background: radial-gradient(circle at var(--mx, 50%) var(--my, 50%), rgba(255,255,255,.5), transparent 45%);
+    opacity: 0; transition: opacity .3s;
+  }
+  .card:hover .shine { opacity: 1; }
+  .info { padding: 18px 20px 20px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
+  .info h2 { font-family: var(--font-title); font-size: 1.6rem; line-height: 1.1; }
+  .info p { color: var(--card-muted); font-size: .95rem; line-height: 1.45; flex: 1; }
+  .meta { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; gap: 10px; }
+  .tag { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .12em; color: var(--c); }
+  .play {
+    border: none; cursor: pointer; font-family: var(--font-title); font-weight: 800; font-size: 1rem; letter-spacing: .1em;
+    padding: 10px 20px; border-radius: var(--btn-r); color: var(--btn-fg); background: var(--btn-bg);
+    box-shadow: var(--btn-shadow); transition: transform .15s, filter .3s;
+    display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;
+  }
+  .card:hover .play { transform: scale(1.08); filter: drop-shadow(0 0 12px var(--c)); }
+  .badges {
+    position: absolute; top: 12px; left: 12px; z-index: 6;
+    display: flex; flex-direction: column; align-items: flex-start; gap: 6px;
+  }
+  .badge {
+    font-size: .7rem; font-weight: 800;
+    padding: 5px 10px; border-radius: 999px; background: var(--yellow); color: #0b0618;
+    font-family: "Trebuchet MS", sans-serif; letter-spacing: .08em; text-transform: uppercase;
+    animation: pulse 1.6s ease-in-out infinite;
+  }
+  .badge.upd { background: linear-gradient(90deg, var(--cyan), var(--pink)); animation: none; }
+  .badge.upd.fresh { box-shadow: 0 0 0 2px #fff, 0 0 18px var(--pink); animation: pulse 1.2s ease-in-out infinite; }
+  @keyframes pulse { 50% { transform: scale(1.1); } }
+  .card.highlight { transform: scale(1.06); }
+  .card.highlight .card-inner { box-shadow: 0 0 0 3px var(--c), 0 0 50px var(--c); }
+  .empty { text-align: center; color: var(--muted); padding: 40px; font-size: 1.2rem; display: none; }
+  .ripple {
+    position: absolute; border-radius: 50%; background: rgba(255,255,255,.6); pointer-events: none; z-index: 7;
+    transform: scale(0); animation: ripple .6s ease-out forwards;
+  }
+  @keyframes ripple { to { transform: scale(4); opacity: 0; } }
+
+  /* Seasonal sticker on each card's corner (set by the season code below) */
+  .card::after {
+    content: attr(data-sticker); position: absolute; top: -16px; right: -10px; z-index: 9;
+    font-size: 34px; line-height: 1; pointer-events: none;
+    transform: translateZ(30px) rotate(14deg); transition: transform .3s cubic-bezier(.2,1.6,.4,1);
+    filter: drop-shadow(0 4px 6px rgba(0,0,0,.55));
+  }
+  .card:hover::after { transform: translateZ(30px) rotate(-8deg) scale(1.25); }
+
+  /* Generic card art (for games you add later without a theme) */
+  .art-generic { display: grid; place-items: center;
+    background: radial-gradient(circle at 50% 120%, var(--c), transparent 70%), linear-gradient(160deg, #1a1033, #0b0618); }
+  .art-generic .emoji { font-size: 5rem; animation: bob 3s ease-in-out infinite; }
+  @keyframes bob { 50% { transform: translateY(-10px); } }
+
+  /* ================= IRON ATOLL: naval radar, islands, dark sea ================= */
+  .t-atoll {
+    --c: #f2a93b; --card-bg: linear-gradient(180deg, #0f1f26, #0a1a22); --card-fg: #dce8e4; --card-muted: #8aa29f;
+    --font-title: "Saira Condensed", "Arial Narrow", sans-serif; --font-body: "Barlow", system-ui, sans-serif;
+    --btn-fg: #1d1406; --btn-r: 4px;
+  }
+  .t-atoll h2, .t-atoll .play { text-transform: uppercase; letter-spacing: .06em; }
+  .art-atoll { background: radial-gradient(circle at 50% 55%, #14404a, #0a1a22 75%); }
+  .atoll-grid { position: absolute; inset: 0; opacity: .5;
+    background-image: linear-gradient(rgba(95,212,196,.12) 1px, transparent 1px), linear-gradient(90deg, rgba(95,212,196,.12) 1px, transparent 1px);
+    background-size: 30px 30px; animation: sea-pan 12s linear infinite; }
+  @keyframes sea-pan { to { background-position: 30px 30px; } }
+  .isle { position: absolute; background: #2f5a3a; box-shadow: 0 0 0 3px #c9a46a, 0 0 0 9px rgba(95,212,196,.15); }
+  .isle.i1 { width: 64px; height: 44px; left: calc(50% - 32px); top: calc(55% - 22px); border-radius: 58% 42% 55% 45% / 50% 60% 40% 50%; }
+  .isle.i2 { width: 38px; height: 26px; left: 12%; top: 18%; border-radius: 40% 60% 45% 55%; background: #5a3a2f; }
+  .isle.i3 { width: 46px; height: 30px; right: 10%; bottom: 14%; border-radius: 60% 40% 50% 50%; background: #5a3a2f; }
+  .radar { position: absolute; width: 170px; height: 170px; left: calc(50% - 85px); top: calc(55% - 85px); border-radius: 50%;
+    border: 1px solid rgba(95,212,196,.5);
+    background: repeating-radial-gradient(circle, transparent 0 27px, rgba(95,212,196,.22) 27px 28px); }
+  .radar .sweep { position: absolute; inset: 0; border-radius: 50%;
+    background: conic-gradient(from 0deg, rgba(95,212,196,.55), rgba(95,212,196,0) 22%, transparent);
+    animation: spin-plain 3s linear infinite; }
+  @keyframes spin-plain { to { transform: rotate(360deg); } }
+  .blip { position: absolute; width: 8px; height: 8px; border-radius: 50%; background: #ff5a4e;
+    box-shadow: 0 0 10px #ff5a4e; animation: blip 3s ease-out infinite; }
+  .blip.ally { background: #7bd88f; box-shadow: 0 0 10px #7bd88f; }
+  @keyframes blip { 0%, 100% { opacity: .2; transform: scale(.8); } 10% { opacity: 1; transform: scale(1.5); } }
+  .art-atoll svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .missile { fill: none; stroke: #f2a93b; stroke-width: 2; stroke-dasharray: 6 200; stroke-linecap: round; animation: missile 2.6s ease-in infinite; }
+  @keyframes missile { from { stroke-dashoffset: 200; } to { stroke-dashoffset: -10; } }
+  .mono-hud { position: absolute; font: 700 10px "JetBrains Mono", ui-monospace, Menlo, monospace; letter-spacing: .12em; }
+  .art-atoll .mono-hud { left: 10px; bottom: 8px; color: #5fd4c4; }
+  .art-atoll .mono-hud b { color: #f2a93b; }
+
+  /* ================= SKYVAULT: aircraft market, price chart ================= */
+  .t-sky {
+    --c: #4fd8ff; --card-bg: #131a28; --card-fg: #e8edf8; --card-muted: #93a4c4;
+    --font-title: "Rajdhani", "Segoe UI", sans-serif; --font-body: "IBM Plex Sans", system-ui, sans-serif;
+    --btn-fg: #0a0e16; --btn-r: 10px;
+  }
+  .t-sky h2 { font-size: 1.8rem; letter-spacing: .02em; }
+  .art-sky { background: #0a0e16;
+    background-image: linear-gradient(#1a2338 1px, transparent 1px), linear-gradient(90deg, #1a2338 1px, transparent 1px);
+    background-size: 100% 38px, 50px 100%; }
+  .art-sky svg { position: absolute; inset: 0 0 26px 0; width: 100%; height: calc(100% - 26px); }
+  .sky-line { fill: none; stroke: #4fd8ff; stroke-width: 2.5; stroke-dasharray: 500; animation: draw 4s ease-out infinite;
+    filter: drop-shadow(0 0 6px #4fd8ff); vector-effect: non-scaling-stroke; }
+  .sky-area { animation: fade-area 4s ease-out infinite; }
+  @keyframes draw { 0% { stroke-dashoffset: 500; } 60%, 100% { stroke-dashoffset: 0; } }
+  @keyframes fade-area { 0%, 30% { opacity: 0; } 70%, 100% { opacity: 1; } }
+  .sky-plane { position: absolute; font-size: 30px; color: #e8edf8; left: -40px; top: 30px;
+    animation: fly-across 6s linear infinite; text-shadow: 0 0 12px #4fd8ff; }
+  @keyframes fly-across { from { transform: translate(0, 30px) rotate(-12deg); } to { transform: translate(420px, -20px) rotate(-12deg); } }
+  .sky-price { position: absolute; right: 12px; top: 12px; padding: 4px 9px; border-radius: 6px;
+    font: 600 13px "IBM Plex Mono", ui-monospace, monospace; color: #0a0e16; background: #ffb347;
+    animation: pulse 2s ease-in-out infinite; }
+  .sky-credits { position: absolute; left: 12px; top: 12px; font: 600 11px "IBM Plex Mono", ui-monospace, monospace; color: #93a4c4; letter-spacing: .08em; }
+  .sky-credits b { color: #ffb347; }
+  .ticker { position: absolute; left: 0; right: 0; bottom: 0; height: 26px; background: #0e1420; border-top: 1px solid #232e46;
+    overflow: hidden; white-space: nowrap; font: 500 11px/26px "IBM Plex Mono", ui-monospace, monospace; color: #93a4c4; }
+  .ticker div { display: inline-block; animation: ticker 18s linear infinite; }
+  .ticker .up { color: #3ddc84; } .ticker .dn { color: #ff5c5c; }
+  @keyframes ticker { to { transform: translateX(-50%); } }
+
+  /* ================= MIDNIGHT VELVET: neon casino on green felt ================= */
+  .t-velvet {
+    --c: #e9b95f; --card-bg: linear-gradient(180deg, #311524, #22101a); --card-fg: #f6ead4; --card-muted: #c3a69d;
+    --font-title: "Limelight", Georgia, serif; --font-body: "Manrope", system-ui, sans-serif;
+    --btn-bg: linear-gradient(180deg, #f7d891, #b5883a); --btn-fg: #140810;
+    --btn-shadow: 0 3px 0 #6b4c1c;
+  }
+  .t-velvet h2 { font-weight: 400; color: #f7d891; }
+  .art-velvet { background: radial-gradient(ellipse at 50% 40%, #18634b, #0d3a2d 60%, #072419);
+    box-shadow: inset 0 0 0 10px #3b1d12, inset 0 0 0 12px #e9b95f55, inset 0 0 40px #000a; }
+  .neon-sign { position: absolute; top: 22px; left: 0; right: 0; text-align: center;
+    font: 400 26px "Monoton", "Limelight", Georgia, serif; color: #ffd6de; letter-spacing: .04em;
+    text-shadow: 0 0 4px #fff, 0 0 10px #ff3b5c, 0 0 22px #ff3b5c, 0 0 40px #ff3b5c;
+    animation: neon-flicker 5s infinite; }
+  @keyframes neon-flicker { 0%, 18%, 22%, 25%, 53%, 57%, 100% { opacity: 1; } 20%, 24%, 55% { opacity: .35; text-shadow: none; } }
+  .pcard { position: absolute; width: 56px; height: 80px; border-radius: 6px; background: #fbf4e6;
+    box-shadow: 0 6px 14px rgba(0,0,0,.5); color: #1c1218; font: 700 20px Georgia, serif;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1;
+    bottom: 22px; transition: transform .4s cubic-bezier(.2,1.6,.4,1); }
+  .pcard i { font-style: normal; font-size: 26px; }
+  .pcard.red { color: #c4122f; }
+  .pcard.k1 { left: calc(50% - 62px); transform: rotate(-12deg); }
+  .pcard.k2 { left: calc(50% - 8px); transform: rotate(10deg); }
+  .card:hover .pcard.k1 { transform: rotate(-22deg) translate(-10px, -8px); }
+  .card:hover .pcard.k2 { transform: rotate(20deg) translate(10px, -8px); }
+  .chipstack { position: absolute; bottom: 24px; display: flex; flex-direction: column-reverse; }
+  .chipstack.s1 { left: 18%; } .chipstack.s2 { right: 16%; }
+  .chip { width: 38px; height: 11px; border-radius: 50%; margin-top: -4px; border: 2px dashed rgba(255,255,255,.75);
+    box-shadow: 0 2px 0 rgba(0,0,0,.35); animation: chip-drop .5s cubic-bezier(.3,1.6,.5,1) both; }
+  .chip.r { background: #d6203f; } .chip.g { background: #1f8a5b; } .chip.v { background: #7b4dff; } .chip.o { background: #ff7a2e; }
+  @keyframes chip-drop { from { transform: translateY(-60px); opacity: 0; } }
+  .sparkle-dot { position: absolute; width: 4px; height: 4px; border-radius: 50%; background: #f7d891; box-shadow: 0 0 8px #f7d891;
+    animation: twinkle 2s ease-in-out infinite; }
+  @keyframes twinkle { 0%, 100% { opacity: 0; transform: scale(.4); } 50% { opacity: 1; transform: scale(1.3); } }
+
+  /* ================= BURNOUT SKIES: sunset dogfight, HUD ================= */
+  .t-burnout {
+    --c: #ff5a2a; --card-bg: #0b1220; --card-fg: #f3ead9; --card-muted: #9aa6b8;
+    --font-title: "Saira Condensed", "Arial Narrow", sans-serif; --font-body: "Barlow", system-ui, sans-serif;
+    --btn-bg: #ffb54a; --btn-fg: #0b1220; --btn-r: 2px;
+  }
+  .t-burnout h2, .t-burnout .play { text-transform: uppercase; letter-spacing: .08em; font-style: italic; }
+  .t-burnout .play { clip-path: polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%); padding-inline: 24px; }
+  .art-burnout { background: #0b1220; }
+  .burn-sky { position: absolute; inset: -40%; animation: bank 6s ease-in-out infinite;
+    background: linear-gradient(180deg, #141a38 0%, #3a2350 30%, #a3405a 42%, #ff7a3a 48%, #ffb54a 50%, #3a1c14 50.4%, #1a0e0c 70%); }
+  @keyframes bank { 0%, 100% { transform: rotate(-9deg) translateY(4px); } 50% { transform: rotate(9deg) translateY(-6px); } }
+  .burn-sun { position: absolute; width: 70px; height: 70px; border-radius: 50%; left: 62%; top: 46%;
+    background: radial-gradient(circle, #fff3c4, #ffb54a 50%, transparent 72%); }
+  .cloud { position: absolute; height: 18px; border-radius: 20px; background: rgba(255,200,170,.25); filter: blur(4px);
+    animation: cloud-pass linear infinite; }
+  .cloud.c1 { width: 120px; top: 22%; animation-duration: 3.5s; }
+  .cloud.c2 { width: 80px; top: 70%; animation-duration: 2.4s; animation-delay: -1s; }
+  .cloud.c3 { width: 160px; top: 40%; animation-duration: 5s; animation-delay: -3s; opacity: .6; }
+  @keyframes cloud-pass { from { transform: translateX(380px); } to { transform: translateX(-200px); } }
+  .jet { position: absolute; width: 130px; left: calc(50% - 70px); top: calc(50% - 26px); animation: jet-bob 2.2s ease-in-out infinite; }
+  @keyframes jet-bob { 50% { transform: translate(6px, -8px) rotate(-3deg); } }
+  .flame { animation: flame .08s steps(2) infinite; transform-origin: right center; }
+  @keyframes flame { 50% { transform: scaleX(.6); opacity: .7; } }
+  .hud { position: absolute; inset: 0; color: #ffb54a; }
+  .reticle { position: absolute; width: 46px; height: 46px; left: calc(50% - 23px); top: calc(50% - 23px);
+    border: 1.5px solid #ffb54a; border-radius: 50%; opacity: .85; }
+  .reticle::before, .reticle::after { content: ""; position: absolute; background: #ffb54a; }
+  .reticle::before { left: 50%; top: -10px; bottom: -10px; width: 1.5px; transform: translateX(-50%); }
+  .reticle::after { top: 50%; left: -10px; right: -10px; height: 1.5px; transform: translateY(-50%); }
+  .tape { position: absolute; top: 50%; transform: translateY(-50%); padding: 3px 6px; border: 1px solid #ffb54a;
+    font: 700 13px "JetBrains Mono", ui-monospace, monospace; background: rgba(11,18,32,.55); }
+  .tape small { display: block; font-size: 8px; opacity: .8; }
+  .tape.l { left: 10px; } .tape.r { right: 10px; text-align: right; }
+  .pullup { position: absolute; top: 12px; left: 0; right: 0; text-align: center; color: #ff5a2a;
+    font: 800 15px "Saira Condensed", "Arial Narrow", sans-serif; letter-spacing: .3em; animation: blink .5s steps(1) infinite; }
+  .art-burnout .mono-hud { left: 10px; bottom: 8px; color: #ffb54a; opacity: .85; }
+
+  /* ================= TUMBLE LAB: graph paper physics ================= */
+  .t-tumble {
+    --c: #ff5a36; --card-bg: #f7f9fb; --card-fg: #1a2634; --card-muted: #5a6a7b;
+    --font-title: "Bricolage Grotesque", "Avenir Next", system-ui, sans-serif; --font-body: "IBM Plex Mono", ui-monospace, monospace;
+    --btn-bg: #1a2634; --btn-fg: #f7f9fb; --btn-r: 6px;
+  }
+  .t-tumble h2 { letter-spacing: -.02em; }
+  .t-tumble h2 em { color: #ff5a36; font-style: normal; }
+  .t-tumble .info p { font-size: .85rem; }
+  .art-tumble { background-color: #f7f9fb; border-bottom: 1.5px solid #1a2634;
+    background-image: linear-gradient(#c9d5df 1px, transparent 1px), linear-gradient(90deg, #c9d5df 1px, transparent 1px),
+      linear-gradient(#e1e8ee 1px, transparent 1px), linear-gradient(90deg, #e1e8ee 1px, transparent 1px);
+    background-size: 100px 100px, 100px 100px, 20px 20px, 20px 20px; }
+  .tb { position: absolute; bottom: 0; border: 1.8px solid #1a2634; animation: drop 3.2s infinite; }
+  .tb.ball { border-radius: 50%; }
+  .tb.b1 { width: 40px; height: 40px; left: 12%; background: #ff5a36; animation-delay: 0s; }
+  .tb.b2 { width: 28px; height: 28px; left: 70%; background: #13a37e; animation-delay: -.8s; }
+  .tb.bouncy { width: 22px; height: 22px; left: 86%; background: #8a5cf0; animation: bouncy 1.1s infinite cubic-bezier(.5,0,.5,1); }
+  .tb.crate { width: 46px; height: 46px; left: 32%; background: #2c7be5 linear-gradient(45deg, transparent 48%, #1a2634 48% 52%, transparent 52%);
+    animation-name: drop-spin; animation-delay: -1.6s; }
+  .tb-wedge { position: absolute; bottom: 0; left: 52%; width: 50px; height: 44px; animation: drop 3.2s infinite; animation-delay: -2.4s; }
+  @keyframes drop {
+    0% { transform: translateY(-260px); animation-timing-function: cubic-bezier(.55,0,1,.45); }
+    35% { transform: translateY(0) scale(1.15, .85); animation-timing-function: cubic-bezier(0,.55,.45,1); }
+    48% { transform: translateY(-60px); animation-timing-function: cubic-bezier(.55,0,1,.45); }
+    60% { transform: translateY(0) scale(1.08, .92); animation-timing-function: cubic-bezier(0,.55,.45,1); }
+    68% { transform: translateY(-16px); animation-timing-function: cubic-bezier(.55,0,1,.45); }
+    75%, 92% { transform: translateY(0); opacity: 1; }
+    100% { transform: translateY(0); opacity: 0; }
+  }
+  @keyframes drop-spin {
+    0% { transform: translateY(-260px) rotate(-60deg); animation-timing-function: cubic-bezier(.55,0,1,.45); }
+    35% { transform: translateY(0) rotate(0); animation-timing-function: cubic-bezier(0,.55,.45,1); }
+    48% { transform: translateY(-40px) rotate(20deg); animation-timing-function: cubic-bezier(.55,0,1,.45); }
+    60%, 92% { transform: translateY(0) rotate(0); opacity: 1; }
+    100% { transform: translateY(0); opacity: 0; }
+  }
+  @keyframes bouncy { 0%, 100% { transform: translateY(0) scale(1.2, .8); } 50% { transform: translateY(-150px); } }
+  .tb-plank { position: absolute; left: -10px; top: 46px; width: 130px; height: 12px; background: #34485e; border: 1.8px solid #1a2634;
+    transform: rotate(18deg); transform-origin: left; }
+  .tb-tramp { position: absolute; right: -6px; top: 70px; width: 70px; height: 10px; background: #ff5a36; border: 1.8px solid #1a2634; transform: rotate(-14deg); }
+  .art-tumble .mono-hud { right: 10px; top: 8px; color: #5a6a7b; font-weight: 500; }
+  .art-tumble .mono-hud b { color: #1a2634; }
+
+  /* ================= PIXEL FRONT: pixel map conquest ================= */
+  .t-pixel {
+    --c: #2f80ed; --card-bg: #ffffff; --card-fg: #1d2b3a; --card-muted: #6a7b8c;
+    --font-title: "Fredoka", "Nunito", system-ui, sans-serif; --font-body: "Nunito", system-ui, sans-serif;
+    --btn-bg: #27ae60; --btn-fg: #fff; --btn-r: 999px; --btn-shadow: 0 4px 0 #1b7f45;
+  }
+  .t-pixel h2 { font-weight: 700; }
+  .art-pixel { background: #7cc4e8; }
+  .art-pixel canvas { width: 100%; height: 100%; image-rendering: pixelated; display: block; }
+  .px-hud { position: absolute; left: 10px; top: 10px; display: flex; gap: 6px; }
+  .px-hud span { background: rgba(255,255,255,.92); color: #1d2b3a; border-radius: 999px; padding: 4px 10px;
+    font: 700 12px "Fredoka", "Nunito", system-ui, sans-serif; box-shadow: 0 2px 6px rgba(29,43,58,.15); }
+
+  /* ================= HANGAR WORKSHOP: blueprint, parts bolting together ================= */
+  .t-hangar {
+    --c: #f2b134; --card-bg: linear-gradient(180deg, #212c35, #19222a); --card-fg: #e7ebee; --card-muted: #8f9ca6;
+    --font-title: "Big Shoulders Stencil Display", Impact, "Arial Narrow", sans-serif;
+    --font-body: "Barlow Semi Condensed", "Arial Narrow", system-ui, sans-serif;
+    --btn-fg: #1d1406; --btn-r: 3px; --btn-shadow: 0 3px 0 #8a6312;
+  }
+  .t-hangar h2, .t-hangar .play { text-transform: uppercase; letter-spacing: .08em; }
+  .t-hangar h2 { font-size: 1.9rem; font-weight: 800; }
+  .art-hangar { background-color: #163a5f;
+    background-image: linear-gradient(rgba(255,255,255,.14) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.14) 1px, transparent 1px),
+      linear-gradient(rgba(255,255,255,.06) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.06) 1px, transparent 1px);
+    background-size: 80px 80px, 80px 80px, 16px 16px, 16px 16px;
+    box-shadow: inset 0 0 60px rgba(0,0,0,.45); }
+  .bp-plane { position: absolute; inset: 0 0 14px 0; width: 100%; height: calc(100% - 14px); }
+  .bp-plane .part path, .bp-plane .part rect { fill: rgba(231,235,238,.07); stroke: #e7ebee; stroke-width: 1.6; stroke-linejoin: round; }
+  .bp-plane .thin { stroke: rgba(231,235,238,.5); stroke-width: 1; stroke-dasharray: 3 3; }
+  .bp-plane .prop line { stroke: #e7ebee; stroke-width: 3; stroke-linecap: round; }
+  .bp-plane .prop { transform-origin: 282px 100px; transform-box: view-box; animation: prop-spin 6s linear infinite; }
+  .bp-plane .hub-dot { fill: #f2b134; }
+  .bp-plane .part { transform-box: view-box; animation: 6s cubic-bezier(.3,1.3,.5,1) infinite; }
+  .p-fuse { animation-name: part-fuse !important; }
+  .p-wing { animation-name: part-wing !important; }
+  .p-tail { animation-name: part-tail !important; }
+  .p-eng  { animation-name: part-eng !important; }
+  @keyframes part-fuse { 0% { transform: translateX(-260px); opacity: 0; } 10%, 90% { transform: none; opacity: 1; } 100% { opacity: 0; } }
+  @keyframes part-wing { 0%, 12% { transform: translateY(-200px) rotate(-8deg); opacity: 0; } 24%, 90% { transform: none; opacity: 1; } 100% { opacity: 0; } }
+  @keyframes part-tail { 0%, 24% { transform: translate(-120px, 140px); opacity: 0; } 36%, 90% { transform: none; opacity: 1; } 100% { opacity: 0; } }
+  @keyframes part-eng  { 0%, 36% { transform: translateX(160px); opacity: 0; } 48%, 90% { transform: none; opacity: 1; } 100% { opacity: 0; } }
+  @keyframes prop-spin { 0%, 52% { transform: rotate(0); } 53%, 90% { transform: rotate(0) scaleY(.25); } 100% { transform: rotate(0); } }
+  .bolts circle { fill: #f2b134; animation: bolt-in 6s infinite; transform-box: fill-box; transform-origin: center; }
+  .bolts circle:nth-child(2) { animation-delay: .25s; } .bolts circle:nth-child(3) { animation-delay: .5s; }
+  @keyframes bolt-in { 0%, 50% { transform: scale(0); } 55% { transform: scale(2); } 60%, 90% { transform: scale(1); } 100% { transform: scale(0); } }
+  .dims line { stroke: rgba(231,235,238,.55); stroke-width: 1; }
+  .dims text { fill: rgba(231,235,238,.75); font: 500 9px "JetBrains Mono", ui-monospace, monospace; text-anchor: middle; }
+  .dims { opacity: 0; animation: dims-in 6s infinite; }
+  @keyframes dims-in { 0%, 56% { opacity: 0; } 62%, 90% { opacity: 1; } 100% { opacity: 0; } }
+  .bp-stamp { position: absolute; right: 14px; top: 12px; padding: 2px 8px; transform: rotate(-6deg);
+    border: 2px solid #ff5b4a; color: #ff5b4a; border-radius: 3px; opacity: .85;
+    font: 800 18px "Big Shoulders Stencil Display", Impact, sans-serif; letter-spacing: .12em; }
+  .bp-label { position: absolute; left: 12px; bottom: 22px; color: rgba(231,235,238,.75); font: 500 10px "JetBrains Mono", ui-monospace, monospace; letter-spacing: .12em; }
+  .hazard { position: absolute; left: 0; right: 0; bottom: 0; height: 14px;
+    background: repeating-linear-gradient(-45deg, #f2b134 0 12px, #11171c 12px 24px); background-size: 34px 14px;
+    animation: hazard-move 1.2s linear infinite; }
+  @keyframes hazard-move { to { background-position: 34px 0; } }
+
+  /* ================= IRON MANDATE: province map, nations at war ================= */
+  .t-mandate {
+    --c: #e8b931; --card-bg: linear-gradient(180deg, #0d141c, #070c12); --card-fg: #e3e8ee; --card-muted: #93a0b2;
+    --font-title: "Saira Condensed", "Arial Narrow", Impact, sans-serif;
+    --font-body: "IBM Plex Sans Condensed", "Arial Narrow", system-ui, sans-serif;
+    --btn-fg: #1d1503; --btn-r: 9px;
+  }
+  .t-mandate h2, .t-mandate .play { text-transform: uppercase; letter-spacing: .06em; }
+  .art-mandate { background: #0a1622; }
+  .art-mandate canvas { width: 100%; height: 100%; display: block; image-rendering: pixelated; }
+  .im-hud { position: absolute; top: 10px; right: 10px; display: flex; flex-direction: column; align-items: flex-end; gap: 5px; }
+  .im-pill { display: flex; align-items: center; gap: 6px; padding: 4px 9px; border-radius: 8px;
+    background: rgba(13,19,27,.88); border: 1px solid rgba(255,255,255,.1); color: #93a0b2;
+    font: 600 11px "IBM Plex Mono", ui-monospace, monospace; }
+  .im-pill b { color: #e3e8ee; font-variant-numeric: tabular-nums; }
+  .im-pill .who { font: 800 13px "Saira Condensed", "Arial Narrow", sans-serif; letter-spacing: .06em; color: #e3e8ee; }
+  .im-flag { width: 11px; height: 11px; border-radius: 3px; background: #e8b931; box-shadow: 0 0 0 2px rgba(232,185,49,.3); }
+  .im-news { position: absolute; left: 10px; bottom: 10px; max-width: calc(100% - 20px); padding: 3px 9px; border-radius: 0 6px 6px 0;
+    background: rgba(9,13,19,.82); border-left: 3px solid #e5533f; color: #e3e8ee; font: 500 11.5px "IBM Plex Sans Condensed", "Arial Narrow", sans-serif;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .im-news.me { border-left-color: #e8b931; }
+  .im-news:empty { display: none; }
+  .im-ping { position: absolute; width: 14px; height: 14px; margin: -7px 0 0 -7px; border-radius: 50%; border: 2px solid #ffd766; pointer-events: none; opacity: 0; }
+  .im-ping.go { animation: im-ping 1s ease-out; }
+  @keyframes im-ping { from { opacity: 1; transform: scale(.4); } to { opacity: 0; transform: scale(3); } }
+
+  /* ================= DON'T TOUCH THE BUTTON: a cursor chasing a big red button ================= */
+  .t-button {
+    --c: #ff3b47; --card-bg: linear-gradient(180deg, #1f1b33, #14121f); --card-fg: #f3f0ff; --card-muted: #a59fc6;
+    --font-title: system-ui, -apple-system, "Segoe UI", sans-serif; --font-body: system-ui, -apple-system, "Segoe UI", sans-serif;
+    --btn-bg: #ffd84a; --btn-fg: #1a1400; --btn-r: 12px;
+  }
+  .t-button h2 { font-weight: 900; letter-spacing: -.01em; }
+  .art-button { background: radial-gradient(circle at 50% 55%, #2a2447, #14121f 72%); }
+  .art-button::after { content: ""; position: absolute; inset: 0; background: rgba(255,59,71,.3); opacity: 0; pointer-events: none; }
+  .art-button.flash::after { animation: bt-flash .6s ease-out; }
+  @keyframes bt-flash { from { opacity: 1; } }
+  .bt-btn { position: absolute; left: 50%; top: 55%; width: 78px; height: 78px; margin: -39px 0 0 -39px; border-radius: 50%;
+    display: grid; place-items: center; font: 900 15px system-ui, sans-serif; letter-spacing: 1px; color: #fff; text-shadow: 0 2px 0 #7a0910;
+    background: radial-gradient(circle at 35% 30%, #ff8a8f, #ff3b47 40%, #b3121d 80%);
+    box-shadow: 0 8px 0 #7a0910, 0 14px 24px rgba(0,0,0,.5), inset 0 -6px 12px rgba(0,0,0,.25);
+    transition: left .22s cubic-bezier(.2,1.4,.4,1), top .22s cubic-bezier(.2,1.4,.4,1), transform .1s, box-shadow .1s; }
+  .bt-btn.pressed { transform: translateY(6px); box-shadow: 0 2px 0 #7a0910, 0 6px 12px rgba(0,0,0,.5), inset 0 -6px 12px rgba(0,0,0,.25); }
+  .bt-say { position: absolute; left: 50%; top: 55%; transform: translate(-50%, calc(-100% - 50px)); padding: 4px 10px; border-radius: 10px;
+    background: #fff; color: #222; font: 800 12px system-ui, sans-serif; white-space: nowrap; pointer-events: none;
+    transition: left .22s cubic-bezier(.2,1.4,.4,1), top .22s cubic-bezier(.2,1.4,.4,1); }
+  .bt-say::after { content: ""; position: absolute; left: 50%; bottom: -5px; margin-left: -5px; border: 5px solid transparent; border-bottom: 0; border-top-color: inherit; }
+  .bt-say { border-top-color: #fff; }
+  .bt-say.win { background: #ffd84a; color: #1a1400; border-top-color: #ffd84a; }
+  .bt-cur { position: absolute; width: 26px; height: 26px; margin: -2px 0 0 -5px; filter: drop-shadow(0 2px 3px rgba(0,0,0,.6)); pointer-events: none; z-index: 2; }
+  .bt-hud { position: absolute; left: 0; right: 0; bottom: 0; display: flex; align-items: center; gap: 10px; padding: 6px 12px;
+    background: #1f1b33; border-top: 2px solid #2e2850; font: 800 11px system-ui, sans-serif; color: #a59fc6; letter-spacing: .04em; }
+  .bt-hud .bt-lvl { color: #ffd84a; }
+  .bt-hud .bt-name { flex: 1; color: #f3f0ff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  /* ---------- Launch overlay ---------- */
+  #launch { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; pointer-events: none; opacity: 0; transition: opacity .3s; }
+  #launch.on { opacity: 1; pointer-events: all; }
+  #launch .ring { position: fixed; width: 20px; height: 20px; border-radius: 50%; background: var(--c, #fff); transform: scale(0); }
+  #launch.on .ring { animation: grow 1.1s cubic-bezier(.7,0,.3,1) forwards; }
+  @keyframes grow { to { transform: scale(220); } }
+  #launch .label { position: relative; z-index: 2; text-align: center; color: var(--lc, #0b0618); opacity: 0;
+    font-weight: 900; font-size: clamp(1.6rem, 6vw, 3.5rem); text-transform: uppercase; letter-spacing: .08em; padding: 0 16px; }
+  #launch.on .label { animation: label-in .5s .45s cubic-bezier(.2,1.6,.4,1) forwards; }
+  #launch .label small { display: block; font-size: .35em; letter-spacing: .4em; margin-bottom: 8px; }
+  @keyframes label-in { from { opacity: 0; transform: scale(.5); } to { opacity: 1; transform: none; } }
+
+  .shake { animation: shake .4s; }
+  @keyframes shake {
+    20% { transform: translate(-6px, 3px); } 40% { transform: translate(5px, -4px); }
+    60% { transform: translate(-4px, 2px); } 80% { transform: translate(3px, -1px); }
+  }
+  .sparkle { position: fixed; pointer-events: none; z-index: 60; width: 8px; height: 8px; border-radius: 50%; animation: sparkle .8s ease-out forwards; }
+  @keyframes sparkle { to { transform: translate(var(--dx), var(--dy)) scale(0); opacity: 0; } }
+
+  footer { text-align: center; color: var(--muted); margin-top: 60px; font-size: .85rem; }
+  .legal-line { margin-top: 18px; padding-top: 18px; border-top: 1px solid rgba(255,255,255,.08); font-size: .8rem; }
+  .legal-line a { color: var(--muted); text-decoration: underline; text-underline-offset: 3px; }
+  .legal-line a:hover { color: var(--yellow); }
+  kbd { background: rgba(255,255,255,.1); padding: 2px 7px; border-radius: 6px; border: 1px solid rgba(255,255,255,.15); }
+
+  /* =====================================================================
+     SEASONAL EVENTS
+     The script picks a season from today's date and adds a class like
+     "season-halloween" to <body>, plus the decorations below.
+     ===================================================================== */
+  #season-back  { position: fixed; inset: 0; z-index: 0;  pointer-events: none; overflow: hidden; }
+  #season-front { position: fixed; inset: 0; z-index: 30; pointer-events: none; overflow: hidden; }
+  #season-fx    { position: fixed; inset: 0; z-index: 40; pointer-events: none; }
+
+  .season-bar { position: relative; display: inline-block; margin-top: 20px; animation: fade-up .8s .5s both; }
+  .season-chip {
+    font: inherit; font-weight: 800; font-size: .9rem; letter-spacing: .06em; color: var(--text); cursor: pointer;
+    padding: 9px 18px; border-radius: 999px; border: 1.5px solid var(--yellow); background: rgba(255,255,255,.06);
+    box-shadow: 0 0 24px -6px var(--yellow); font-variant-numeric: tabular-nums; transition: transform .15s;
+  }
+  .season-chip:hover { transform: translateY(-2px); }
+  .season-chip.idle { border-color: rgba(255,255,255,.15); color: var(--muted); font-weight: 600; box-shadow: none; }
+  .season-menu {
+    position: absolute; top: calc(100% + 8px); left: 50%; transform: translateX(-50%); z-index: 20; min-width: 230px;
+    display: grid; padding: 6px; border-radius: 14px; text-align: left;
+    background: rgba(14,9,28,.97); border: 1px solid rgba(255,255,255,.12); box-shadow: 0 20px 50px rgba(0,0,0,.6);
+  }
+  .season-menu[hidden] { display: none; }
+  .season-menu small { padding: 6px 12px 4px; color: var(--muted); font-size: .7rem; letter-spacing: .12em; text-transform: uppercase; }
+  .season-menu button { all: unset; display: block; cursor: pointer; padding: 9px 12px; border-radius: 9px; font-weight: 600; }
+  .season-menu button:hover, .season-menu button.on { background: rgba(255,255,255,.09); }
+
+  /* Halloween */
+  .s-moon { position: absolute; top: 7vh; right: 7vw; width: 17vmin; height: 17vmin; border-radius: 50%; opacity: .85;
+    background: radial-gradient(circle at 30% 60%, rgba(160,90,30,.35) 0 9%, transparent 10%),
+                radial-gradient(circle at 62% 35%, rgba(160,90,30,.3) 0 6%, transparent 7%),
+                radial-gradient(circle at 35% 35%, #fff4d6, #ffcf78 45%, #e48f35 80%);
+    box-shadow: 0 0 60px 18px rgba(255,160,60,.35), 0 0 180px 70px rgba(255,110,30,.14); }
+  .s-web { position: absolute; top: 0; left: 0; width: 24vmin; height: 24vmin; }
+  .s-web line, .s-web path { stroke: rgba(255,255,255,.22); stroke-width: .8; fill: none; }
+  .s-spider { position: absolute; left: 15vmin; top: 0; width: 1px; height: 18vmin; background: rgba(255,255,255,.3);
+    transform-origin: top; animation: dangle 6s ease-in-out infinite; }
+  .s-spider span { position: absolute; bottom: -16px; left: -13px; font-size: 26px; }
+  @keyframes dangle { 50% { height: 28vmin; transform: rotate(5deg); } }
+  .s-fog { position: absolute; left: -50%; bottom: -50px; width: 200%; height: 190px; filter: blur(10px);
+    background: radial-gradient(ellipse at 15% 60%, rgba(190,160,230,.2), transparent 55%),
+                radial-gradient(ellipse at 45% 75%, rgba(150,220,170,.13), transparent 55%),
+                radial-gradient(ellipse at 75% 60%, rgba(210,170,240,.18), transparent 55%);
+    animation: fog 38s ease-in-out infinite alternate; }
+  .s-fog.f2 { animation-duration: 55s; animation-direction: alternate-reverse; opacity: .7; }
+  @keyframes fog { to { transform: translateX(25%); } }
+
+  /* Christmas */
+  .s-lights { position: absolute; left: 0; right: 0; top: 0; height: 48px; }
+  .s-lights svg { position: absolute; left: 0; top: 0; width: 100%; height: 40px; }
+  .s-lights path { fill: none; stroke: #22332a; stroke-width: 2.5; vector-effect: non-scaling-stroke; }
+  .bulb { position: absolute; width: 9px; height: 14px; margin-left: -4.5px; border-radius: 50% 50% 50% 50% / 40% 40% 60% 60%;
+    background: var(--bc); box-shadow: 0 0 10px 3px var(--bc), 0 0 26px 6px var(--bc); animation: bulb 1.5s steps(1) infinite; }
+  .bulb::before { content: ""; position: absolute; top: -4px; left: 2px; width: 5px; height: 5px; border-radius: 1px; background: #2b3a30; }
+  @keyframes bulb { 50% { opacity: .35; box-shadow: 0 0 4px 1px var(--bc); } }
+  .s-drift { position: absolute; left: 0; right: 0; bottom: 0; height: 40px; opacity: .92;
+    background: radial-gradient(60px 26px at 50% 100%, #eef8ff 96%, transparent 100%) 0 100% / 120px 40px repeat-x,
+                radial-gradient(48px 18px at 50% 100%, #ffffff 96%, transparent 100%) 60px 100% / 100px 30px repeat-x;
+    filter: drop-shadow(0 -2px 6px rgba(180,220,255,.35)); }
+
+  /* New Year */
+  .s-year { position: absolute; inset: 0; display: grid; place-items: center; font-size: 32vw; font-weight: 900; line-height: 1;
+    color: transparent; -webkit-text-stroke: 2px rgba(255,215,0,.09); letter-spacing: -.02em; animation: year-glow 4s ease-in-out infinite; }
+  @keyframes year-glow { 50% { -webkit-text-stroke-color: rgba(255,215,0,.17); } }
+
+  /* Easter */
+  .s-grass { position: absolute; left: 0; bottom: 0; width: 100%; height: 36px; }
+  .s-bunny { position: absolute; bottom: 16px; left: 0; font-size: 34px; animation: bunny-run 26s linear infinite; }
+  .s-bunny span { display: inline-block; animation: hop .55s ease-in-out infinite alternate; }
+  @keyframes bunny-run { from { transform: translateX(-80px) scaleX(-1); } to { transform: translateX(calc(100vw + 40px)) scaleX(-1); } }
+  @keyframes hop { to { transform: translateY(-16px); } }
+  .s-egg { position: absolute; z-index: 8; width: 18px; height: 24px; cursor: pointer;
+    border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+    background: repeating-linear-gradient(170deg, var(--e1) 0 5px, var(--e2) 5px 9px);
+    box-shadow: inset -3px -3px 0 rgba(0,0,0,.15), 0 0 12px rgba(255,255,255,.3);
+    transform: rotate(var(--r)); transition: transform .2s; animation: egg-wiggle 3s ease-in-out infinite; }
+  .s-egg:hover { transform: rotate(var(--r)) scale(1.4); }
+  @keyframes egg-wiggle { 0%, 85%, 100% { rotate: 0deg; } 90% { rotate: 14deg; } 95% { rotate: -14deg; } }
+
+  /* St. Patrick's */
+  .s-rainbow { position: absolute; left: -25vmax; bottom: -30vmax; width: 75vmax; height: 75vmax; border-radius: 50%; opacity: .2; filter: blur(3px);
+    background: radial-gradient(circle, transparent 52%, #ff4d4d 52% 55%, #ffa94d 55% 58%, #ffe14d 58% 61%, #5fd35f 61% 64%, #4dabff 64% 67%, #9b6bff 67% 70%, transparent 70%); }
+
+  /* ---------- News panel + pop-up ---------- */
+  #news-backdrop { position: fixed; inset: 0; z-index: 44; background: rgba(0,0,0,.5); opacity: 0; pointer-events: none; transition: opacity .25s; }
+  #news-backdrop.open { opacity: 1; pointer-events: all; }
+  #news-panel { position: fixed; top: 0; right: 0; bottom: 0; z-index: 45; width: min(420px, 100vw);
+    display: flex; flex-direction: column; background: rgba(14,9,28,.97); border-left: 1px solid rgba(255,255,255,.1);
+    box-shadow: -20px 0 60px rgba(0,0,0,.5); transform: translateX(105%); transition: transform .35s cubic-bezier(.2,1,.3,1); }
+  #news-panel.open { transform: none; }
+  .np-head { display: flex; justify-content: space-between; align-items: center; padding: 20px 20px 14px; border-bottom: 1px solid rgba(255,255,255,.08); }
+  .np-head h3 { font-size: 1.15rem; letter-spacing: .08em; text-transform: uppercase; }
+  .np-close { all: unset; cursor: pointer; font-size: 1.1rem; padding: 4px 10px; border-radius: 8px; }
+  .np-close:hover { background: rgba(255,255,255,.1); }
+  .np-list { flex: 1; overflow-y: auto; padding: 14px 16px 30px; display: grid; gap: 12px; align-content: start; }
+  .np-item { position: relative; padding: 14px 16px; border-radius: 14px; background: rgba(255,255,255,.04);
+    border: 1px solid rgba(255,255,255,.08); border-left: 4px solid var(--c, var(--cyan)); }
+  .np-item.unread { background: rgba(255,255,255,.08); box-shadow: 0 0 26px -8px var(--c, var(--cyan)); }
+  .np-item.unread::after { content: "NEW"; position: absolute; top: 12px; right: 12px; padding: 3px 7px; border-radius: 999px;
+    font-size: .65rem; font-weight: 800; letter-spacing: .1em; background: var(--yellow); color: #0b0618; }
+  .np-top { display: flex; gap: 10px; margin-bottom: 6px; font-size: .72rem; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+  .np-game { color: var(--c, var(--cyan)); font-weight: 800; }
+  .np-item h4 { font-size: 1.05rem; line-height: 1.25; margin-bottom: 4px; padding-right: 44px; }
+  .np-ver { display: inline-block; padding: 1px 7px; border-radius: 999px; font-size: .7rem; vertical-align: 2px;
+    border: 1px solid var(--c, var(--cyan)); color: var(--c, var(--cyan)); }
+  .np-item p { color: var(--muted); font-size: .9rem; line-height: 1.45; }
+  .np-play { margin-top: 10px; border: none; cursor: pointer; font: inherit; font-weight: 800; font-size: .78rem; letter-spacing: .08em;
+    padding: 7px 14px; border-radius: 999px; background: var(--c, var(--cyan)); }
+  .np-empty { color: var(--muted); text-align: center; padding: 30px 10px; line-height: 1.6; }
+
+  #toast { position: fixed; left: 50%; bottom: 22px; z-index: 46; width: min(560px, calc(100vw - 32px));
+    display: flex; gap: 14px; align-items: center; padding: 14px 14px 14px 16px; border-radius: 18px;
+    background: rgba(18,12,36,.96); border: 1.5px solid var(--c, var(--cyan));
+    box-shadow: 0 20px 50px rgba(0,0,0,.6), 0 0 30px -8px var(--c, var(--cyan));
+    transform: translate(-50%, 180%); transition: transform .5s cubic-bezier(.2,1.4,.4,1); }
+  #toast.show { transform: translate(-50%, 0); }
+  #toast .t-icon { font-size: 1.8rem; animation: bob 2s ease-in-out infinite; }
+  #toast .t-body { flex: 1; min-width: 0; }
+  #toast small { color: var(--c, var(--cyan)); font-weight: 800; letter-spacing: .12em; text-transform: uppercase; font-size: .68rem; }
+  #toast b { display: block; font-size: 1rem; }
+  #toast .t-text { color: var(--muted); font-size: .85rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  #toast .t-actions { display: flex; gap: 8px; flex-shrink: 0; }
+  #toast button { border: none; cursor: pointer; font: inherit; font-weight: 800; font-size: .78rem; letter-spacing: .06em;
+    padding: 8px 12px; border-radius: 999px; background: rgba(255,255,255,.1); color: var(--text); }
+  #toast button.t-play { background: var(--c, var(--cyan)); color: #0b0618; }
+  @media (max-width: 520px) { #toast { flex-wrap: wrap; } #toast .t-actions { width: 100%; justify-content: flex-end; } }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
+  }
+</style>
+</head>
+<body>
+<canvas id="stars"></canvas>
+<div class="glow-blob a"></div>
+<div class="glow-blob b"></div>
+<div id="season-back"></div>
+
+<main id="app">
+  <header>
+    <h1 class="title" id="title"></h1>
+    <p class="subtitle">Press <span class="blink">Play</span> to start</p>
+    <div class="season-bar">
+      <button class="season-chip" id="season-chip" title="Click to preview other seasons"></button>
+      <div class="season-menu" id="season-menu" hidden></div>
+    </div>
+  </header>
+
+  <div class="toolbar">
+    <input class="search" id="search" type="text" placeholder="🔍  Search games…  (press / )" autocomplete="off">
+    <button class="btn" id="random">🎲 Random</button>
+    <button class="btn ghost" id="news-btn">📢 News<span class="count" hidden></span></button>
+    <button class="btn ghost" id="sound">🔊 Sound</button>
+  </div>
+
+  <div class="grid" id="grid"></div>
+  <p class="empty" id="empty">No games found 😢</p>
+
+  <footer>Tip: press <kbd>/</kbd> to search · <kbd>R</kbd> for a random game · <kbd>N</kbd> for news
+    <p class="legal-line">© 2026 NeezyVeezy. All rights reserved. · <a href="legal.html">Copyright, Terms &amp; Privacy</a></p>
+  </footer>
+</main>
+
+<div id="season-front"></div>
+<canvas id="season-fx"></canvas>
+
+<div id="news-backdrop"></div>
+<aside id="news-panel" aria-label="News and updates">
+  <div class="np-head"><h3>📢 News &amp; Updates</h3><button class="np-close" id="news-close" aria-label="Close">✕</button></div>
+  <div class="np-list" id="news-list"></div>
+</aside>
+<div id="toast" role="status"></div>
+
+<div id="launch"><div class="ring"></div><div class="label"><small>Loading</small><span id="launch-name"></span></div></div>
+
+<!-- Announcements live in these two small files next to this page (both optional):
+     news.js      = the ones you write yourself
+     auto-news.js = the ones "Check for Updates" writes when a game file changes -->
+<script src="news.js"></script>
+<script src="auto-news.js"></script>
+
+<script>
+/* =====================================================================
+   ✏️  EDIT THIS PART  ✏️
+   Put this file in the SAME folder as your game files.
+   - file:  the game's exact file name, like "my-game.html"
+   - theme: which card style to use (atoll, sky, velvet, burnout, tumble, pixel).
+            Leave it out for a new game and it gets a plain card with the emoji.
+   ===================================================================== */
+const SITE_NAME = "Game Zone";
+
+const GAMES = [
+  { title: "Iron Atoll", file: "iron-atoll.html", theme: "atoll", tag: "Island Strategy",
+    description: "Claim an island, grow an economy and build an air-defense network. Strike rival commanders before they strike you." },
+  { title: "SkyVault", file: "SkyVault.html", theme: "sky", tag: "Aircraft Market",
+    description: "Buy, sell and collect aircraft, from Cessna trainers to rare legends. Build your hangar and grow your credits." },
+  { title: "Midnight Velvet", file: "midnight-velvet.html", theme: "velvet", tag: "Casino",
+    description: "A neon casino after dark: slots, blackjack, roulette, crash, plinko, mines and more." },
+  { title: "Burnout Skies", file: "burnout-skies.html", theme: "burnout", tag: "Flight Combat",
+    description: "Pick an aircraft, fly it with your cursor and crash it spectacularly. Guns, missiles, flares and thunderstorms." },
+  { title: "Tumble Lab", file: "tumble-lab.html", theme: "tumble", tag: "Physics Sandbox",
+    description: "Ropes, springs, ragdolls, cars, black holes and wrecking balls. Build it, then knock it all down." },
+  { title: "Pixel Front", file: "pixel-front.html", theme: "pixel", tag: "World Conquest",
+    description: "Every pixel of land can be taken. Pick a country and conquer the world." },
+  { title: "Hangar Workshop", file: "hangar-workshop.html", theme: "hangar", tag: "Aircraft Builder",
+    description: "Bolt an aircraft together from parts. Then roll it out and find out if it flies." },
+  { title: "Iron Mandate", file: "Iron-Mandate.html", theme: "mandate", tag: "Grand Strategy",
+    description: "Choose your nation and lead it. Declare wars, make peace and take the map one province at a time." },
+  { title: "Don't Touch the Button", file: "dont-touch-the-button.html", theme: "button", tag: "Self-Control",
+    description: "53 levels of a big red button begging to be pressed. Whatever you do, don't touch it." },
+  // Example of adding another game later:
+  // { title: "My New Game", file: "my-new-game.html", emoji: "🚀", color: "#22e4ff", tag: "Action", description: "..." },
+];
+/* ===================================================================== */
+
+/* Each theme: its glow color + the little animated scene on the card */
+const THEMES = {
+  atoll: { color: "#f2a93b", art: () => `
+    <div class="art art-atoll">
+      <div class="atoll-grid"></div>
+      <div class="isle i2"></div><div class="isle i3"></div>
+      <div class="radar"><div class="sweep"></div></div>
+      <div class="isle i1"></div>
+      <svg viewBox="0 0 320 200" preserveAspectRatio="none">
+        <path class="missile" d="M160 110 Q 120 10 60 45"/>
+        <path class="missile" style="animation-delay:-1.3s" d="M160 110 Q 240 60 275 165"/>
+      </svg>
+      <span class="blip" style="left:20%;top:26%"></span>
+      <span class="blip" style="left:84%;top:80%;animation-delay:-1.5s"></span>
+      <span class="blip ally" style="left:66%;top:30%;animation-delay:-.7s"></span>
+      <div class="mono-hud">SECTOR 07 · AIR DEFENSE <b>ONLINE</b></div>
+    </div>` },
+
+  sky: { color: "#4fd8ff", art: () => `
+    <div class="art art-sky">
+      <svg viewBox="0 0 300 170" preserveAspectRatio="none">
+        <defs><linearGradient id="skyfill" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#4fd8ff" stop-opacity=".35"/><stop offset="1" stop-color="#4fd8ff" stop-opacity="0"/>
+        </linearGradient></defs>
+        <path class="sky-area" fill="url(#skyfill)" d="M0 140 L30 128 L60 134 L90 108 L120 116 L150 88 L180 98 L210 70 L240 76 L270 44 L300 30 L300 170 L0 170Z"/>
+        <polyline class="sky-line" points="0,140 30,128 60,134 90,108 120,116 150,88 180,98 210,70 240,76 270,44 300,30"/>
+      </svg>
+      <div class="sky-credits">PORTFOLIO <b>⬢ 248,900</b></div>
+      <div class="sky-price">▲ +12.4%</div>
+      <div class="sky-plane">✈</div>
+      <div class="ticker"><div>${(() => {
+        const t = `CESSNA 172 SKYHAWK <span class="up">▲ 4,200</span> · BEECHCRAFT BARON <span class="up">▲ 18,400</span> · GRUMMAN GOOSE <span class="dn">▼ 22,900</span> · EXTRA 300 <span class="up">▲ 12,750</span> · BELL 407 <span class="dn">▼ 31,000</span> · AIRBUS H145 <span class="up">▲ 64,200</span> · CESSNA 152 <span class="up">▲ 3,200</span> · `;
+        return t + t; })()}</div></div>
+    </div>` },
+
+  velvet: { color: "#e9b95f", art: () => `
+    <div class="art art-velvet">
+      <div class="neon-sign">Midnight Velvet</div>
+      <div class="chipstack s1">${["r","g","v","r","o"].map((c, i) => `<span class="chip ${c}" style="animation-delay:${1 + i * .12}s"></span>`).join("")}</div>
+      <div class="chipstack s2">${["v","g","r"].map((c, i) => `<span class="chip ${c}" style="animation-delay:${1.5 + i * .12}s"></span>`).join("")}</div>
+      <div class="pcard k1"><b>A</b><i>♠</i></div>
+      <div class="pcard k2 red"><b>K</b><i>♥</i></div>
+      ${[[12,30],[84,20],[30,62],[72,58],[50,12],[92,70]].map(([x, y], i) =>
+        `<span class="sparkle-dot" style="left:${x}%;top:${y}%;animation-delay:${-i * .37}s"></span>`).join("")}
+    </div>` },
+
+  burnout: { color: "#ff5a2a", art: () => `
+    <div class="art art-burnout">
+      <div class="burn-sky"><div class="burn-sun"></div></div>
+      <div class="cloud c1"></div><div class="cloud c2"></div><div class="cloud c3"></div>
+      <svg class="jet" viewBox="0 0 130 50">
+        <ellipse class="flame" cx="10" cy="25" rx="14" ry="4.5" fill="#ffb54a"/>
+        <ellipse class="flame" cx="14" cy="25" rx="8" ry="2.5" fill="#fff3c4"/>
+        <path d="M54 21 L38 3 L48 3 L74 21Z" fill="#2a3448"/>
+        <path d="M22 22 L68 19 L100 21 L124 25 L100 29 L68 31 L22 28Z" fill="#3a465c"/>
+        <path d="M86 21 Q96 18 104 22 L100 24 Z" fill="#7fb8ff"/>
+        <path d="M24 22 L16 9 L23 9 L36 22Z" fill="#2a3448"/>
+        <path d="M54 29 L38 47 L48 47 L74 29Z" fill="#1c2434"/>
+      </svg>
+      <div class="hud">
+        <div class="reticle"></div>
+        <div class="tape l">420<small>KT</small></div>
+        <div class="tape r">8,200<small>FT</small></div>
+        <div class="pullup">PULL UP</div>
+      </div>
+      <div class="mono-hud">GUNS · MSL 4 · FLARES 12</div>
+    </div>` },
+
+  tumble: { color: "#ff5a36", titleHTML: "Tumble<em>.</em>Lab", art: () => `
+    <div class="art art-tumble">
+      <div class="tb-plank"></div>
+      <div class="tb-tramp"></div>
+      <span class="tb ball b1"></span>
+      <span class="tb crate"></span>
+      <svg class="tb-wedge" viewBox="0 0 50 44"><path d="M25 2 L48 42 L2 42Z" fill="#f2b400" stroke="#1a2634" stroke-width="1.8" stroke-linejoin="round"/></svg>
+      <span class="tb ball b2"></span>
+      <span class="tb ball bouncy"></span>
+      <div class="mono-hud">gravity <b>1.0 g</b> · bodies <b>6</b></div>
+    </div>` },
+
+  pixel: { color: "#2f80ed", art: () => `
+    <div class="art art-pixel">
+      <canvas width="64" height="40"></canvas>
+      <div class="px-hud"><span>🗺️ Land <b class="px-land">0%</b></span><span>🪖 <b class="px-troops">0</b></span></div>
+    </div>`, init: pixelMap },
+
+  hangar: { color: "#f2b134", art: () => `
+    <div class="art art-hangar">
+      <svg class="bp-plane" viewBox="0 0 320 200">
+        <g class="part p-wing"><path d="M118 100 L150 34 L176 34 L170 100 L176 166 L150 166 Z"/><line x1="150" y1="34" x2="150" y2="166" class="thin"/></g>
+        <g class="part p-fuse"><path d="M60 100 C 70 88 110 86 200 88 C 240 89 262 94 270 100 C 262 106 240 111 200 112 C 110 114 70 112 60 100 Z"/></g>
+        <g class="part p-tail"><path d="M68 100 L56 68 L74 68 L94 98 Z"/><path d="M68 100 L56 132 L74 132 L94 102 Z"/></g>
+        <g class="part p-eng"><rect x="262" y="92" width="14" height="16" rx="3"/><g class="prop"><line x1="282" y1="72" x2="282" y2="128"/></g><circle cx="282" cy="100" r="3" class="hub-dot"/></g>
+        <g class="dims">
+          <line x1="150" y1="22" x2="176" y2="22"/><line x1="150" y1="18" x2="150" y2="26"/><line x1="176" y1="18" x2="176" y2="26"/>
+          <line x1="296" y1="34" x2="296" y2="166"/><line x1="292" y1="34" x2="300" y2="34"/><line x1="292" y1="166" x2="300" y2="166"/>
+          <text x="163" y="16">1.6 m</text><text x="304" y="104">9.8 m</text>
+        </g>
+        <g class="bolts"><circle cx="150" cy="100" r="2.6"/><circle cx="94" cy="100" r="2.6"/><circle cx="262" cy="100" r="2.6"/></g>
+      </svg>
+      <div class="bp-stamp">BAY 7</div>
+      <div class="bp-label">EXPERIMENTAL · SHEET 1/4</div>
+      <div class="hazard"></div>
+    </div>` },
+
+  mandate: { color: "#e8b931", art: () => `
+    <div class="art art-mandate">
+      <canvas width="176" height="100"></canvas>
+      <span class="im-ping"></span>
+      <div class="im-hud">
+        <span class="im-pill"><i class="im-flag"></i><span class="who">Valdoria</span></span>
+        <span class="im-pill">DAY <b class="im-day">1</b> · ⛁ <b class="im-gold">500</b></span>
+      </div>
+      <div class="im-news"></div>
+    </div>`, init: mandateMap },
+
+  button: { color: "#ff3b47", art: () => `
+    <div class="art art-button">
+      <span class="bt-say">press me</span>
+      <span class="bt-btn">DON'T</span>
+      <svg class="bt-cur" viewBox="0 0 24 24"><path d="M5 2 L5 20 L9.5 15.5 L12.5 22 L15.5 20.6 L12.6 14.3 L19 14.3 Z" fill="#fff" stroke="#111" stroke-width="1.5" stroke-linejoin="round"/></svg>
+      <div class="bt-hud"><span class="bt-lvl">LVL 1</span><span class="bt-name">The Easy One</span><span class="bt-fails">Touches: 0</span></div>
+    </div>`, init: buttonChase },
+};
+
+const $ = s => document.querySelector(s);
+const grid = $("#grid");
+let launching = false;
+
+$("#title").textContent = SITE_NAME;
+$("#title").dataset.text = SITE_NAME;
+document.title = SITE_NAME;
+
+const store = {
+  get(k) { try { return localStorage.getItem(k); } catch { return null; } },
+  set(k, v) { try { localStorage.setItem(k, v); } catch {} }
+};
+const lastPlayed = store.get("hub-last");
+
+/* ---------- Sound ---------- */
+let soundOn = store.get("hub-sound") !== "off";
+let audio;
+function beep(freq = 600, dur = .08, type = "square", vol = .05, slide = 0) {
+  if (!soundOn) return;
+  try {
+    audio = audio || new (window.AudioContext || window.webkitAudioContext)();
+    if (audio.state === "suspended") audio.resume();
+    const o = audio.createOscillator(), g = audio.createGain();
+    o.type = type; o.frequency.value = freq;
+    if (slide) o.frequency.exponentialRampToValueAtTime(freq * slide, audio.currentTime + dur);
+    g.gain.setValueAtTime(vol, audio.currentTime);
+    g.gain.exponentialRampToValueAtTime(.0001, audio.currentTime + dur);
+    o.connect(g).connect(audio.destination); o.start(); o.stop(audio.currentTime + dur);
+  } catch {}
+}
+function updateSoundBtn() { $("#sound").textContent = soundOn ? "🔊 Sound" : "🔇 Muted"; }
+updateSoundBtn();
+$("#sound").onclick = () => { soundOn = !soundOn; store.set("hub-sound", soundOn ? "on" : "off"); updateSoundBtn(); beep(880, .1); };
+
+/* ---------- Helpers ---------- */
+function hexToRgb(hex) { const n = parseInt(hex.replace("#", ""), 16); return [n >> 16 & 255, n >> 8 & 255, n & 255]; }
+const rgba = (hex, a) => `rgba(${hexToRgb(hex).join(",")},${a})`;
+const isLight = hex => { const [r, g, b] = hexToRgb(hex); return (r * 299 + g * 587 + b * 114) / 1000 > 150; };
+const rand = (a, b) => a + Math.random() * (b - a);
+const pick = arr => arr[Math.floor(Math.random() * arr.length)];
+
+/* ---------- Build cards ---------- */
+GAMES.forEach((g, i) => {
+  const theme = THEMES[g.theme];
+  const color = g.color || theme?.color || "#22e4ff";
+  g.color = color;
+  const card = document.createElement("div");
+  card.className = "card" + (theme ? " t-" + g.theme : "");
+  card.style.setProperty("--i", i);
+  card.style.setProperty("--c", color);
+  card.style.setProperty("--c-glow", rgba(color, .45));
+  card.dataset.search = (g.title + " " + (g.tag || "") + " " + (g.description || "")).toLowerCase();
+  const art = theme ? theme.art()
+    : g.image ? `<div class="art"><img src="${g.image}" alt="" style="width:100%;height:100%;object-fit:cover"></div>`
+    : `<div class="art art-generic"><span class="emoji">${g.emoji || "🎮"}</span></div>`;
+  card.innerHTML = `
+    <div class="card-inner">
+      <div class="badges">${g.file === lastPlayed ? '<span class="badge">Last played</span>' : ""}</div>
+      <div class="thumb">${art}</div>
+      <div class="info">
+        <h2></h2>
+        <p></p>
+        <div class="meta"><span class="tag"></span><button class="play">▶ PLAY</button></div>
+      </div>
+      <div class="shine"></div>
+    </div>`;
+  if (theme?.titleHTML) card.querySelector("h2").innerHTML = theme.titleHTML;
+  else card.querySelector("h2").textContent = g.title;
+  card.querySelector("p").textContent = g.description || "";
+  card.querySelector(".tag").textContent = g.tag || "";
+  grid.appendChild(card);
+  theme?.init?.(card);
+
+  card.addEventListener("mousemove", e => {
+    const r = card.getBoundingClientRect();
+    const x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height;
+    card.style.transform = `rotateY(${(x - .5) * 16}deg) rotateX(${(.5 - y) * 16}deg) scale(1.04)`;
+    card.style.setProperty("--mx", x * 100 + "%");
+    card.style.setProperty("--my", y * 100 + "%");
+  });
+  card.addEventListener("mouseenter", () => beep(420 + i * 60, .05, "triangle", .04));
+  card.addEventListener("mouseleave", () => { card.style.transform = ""; });
+  card.addEventListener("animationend", e => { if (e.target === card) card.style.animation = "none"; });
+  card.addEventListener("click", e => launch(g, card, e));
+});
+
+/* ---------- Pixel Front mini map: countries growing pixel by pixel ---------- */
+function pixelMap(card) {
+  const cv = card.querySelector("canvas"), c = cv.getContext("2d");
+  const W = cv.width, H = cv.height;
+  const COLORS = ["#2f80ed", "#27ae60", "#f5b400", "#e74c3c", "#8e44ad", "#ff5d8f"];
+  const landEl = card.querySelector(".px-land"), troopEl = card.querySelector(".px-troops");
+  let land, owner, landCount, owned, resetAt;
+
+  function reset() {
+    land = new Uint8Array(W * H); owner = new Int8Array(W * H).fill(-1); landCount = 0; owned = 0; resetAt = 0;
+    const blobs = Array.from({ length: 7 }, () => ({ x: Math.random() * W, y: Math.random() * H, r: 6 + Math.random() * 9 }));
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+      let v = 0;
+      for (const b of blobs) v += Math.max(0, 1 - Math.hypot((x - b.x) / 1.3, y - b.y) / b.r);
+      if (v + Math.random() * .15 > .45) { land[y * W + x] = 1; landCount++; }
+    }
+    c.fillStyle = "#7cc4e8"; c.fillRect(0, 0, W, H);
+    for (let i = 0; i < W * H; i++) if (land[i]) { c.fillStyle = (i * 7 + (i / W | 0)) % 5 ? "#e8dcb5" : "#dccf9f"; c.fillRect(i % W, i / W | 0, 1, 1); }
+    COLORS.forEach((col, p) => {
+      for (let tries = 0; tries < 500; tries++) {
+        const i = Math.floor(Math.random() * W * H);
+        if (land[i] && owner[i] < 0) { paint(i, p); break; }
+      }
+    });
+  }
+  function paint(i, p) {
+    if (owner[i] < 0) owned++;
+    owner[i] = p;
+    c.fillStyle = COLORS[p]; c.fillRect(i % W, i / W | 0, 1, 1);
+  }
+  function step() {
+    for (let n = 0; n < 140; n++) {
+      const i = Math.floor(Math.random() * W * H), p = owner[i];
+      if (p < 0) continue;
+      const x = i % W, y = i / W | 0;
+      const d = [[1,0],[-1,0],[0,1],[0,-1]][Math.floor(Math.random() * 4)];
+      const nx = x + d[0], ny = y + d[1];
+      if (nx < 0 || ny < 0 || nx >= W || ny >= H) continue;
+      const j = ny * W + nx;
+      if (!land[j] || owner[j] === p) continue;
+      if (owner[j] < 0 || Math.random() < (p === 0 ? .12 : .05)) paint(j, p);
+    }
+    let mine = 0;
+    for (let i = 0; i < owner.length; i++) if (owner[i] === 0) mine++;
+    landEl.textContent = Math.round(mine / landCount * 100) + "%";
+    troopEl.textContent = (mine * 137).toLocaleString();
+    if (owned >= landCount && !resetAt) resetAt = performance.now() + 2500;
+    if (resetAt && performance.now() > resetAt) reset();
+  }
+  reset();
+  setInterval(step, 70);
+}
+
+/* ---------- Don't Touch the Button: the button dodges a cursor, until it doesn't ---------- */
+function buttonChase(card) {
+  const art = card.querySelector(".art-button"), btn = art.querySelector(".bt-btn"), cur = art.querySelector(".bt-cur"), say = art.querySelector(".bt-say");
+  const lvlEl = art.querySelector(".bt-lvl"), nameEl = art.querySelector(".bt-name"), failEl = art.querySelector(".bt-fails");
+  const LEVELS = ["The Easy One", "Clingy", "Teleporter", "Opposite Day", "Lights Out", "Mirror World", "Button Rain", "Fake Victory", "Snake", "The Maze", "Bullet Hell", "Final Exam"];
+  const TAUNTS = ["do it", "just once", "press me", "nobody's watching", "c'mon", "boop?", "I'm so squishy", "you know you want to"];
+  let bx = .5, by = .55, cx = .12, cy = .85, dodges = 0, need = 4, touches = 0, lvl = 0, pause = 0;
+  const place = () => {
+    for (const el of [btn, say]) { el.style.left = bx * 100 + "%"; el.style.top = by * 100 + "%"; }
+  };
+  const jump = () => {
+    let nx, ny;
+    do { nx = .14 + Math.random() * .72; ny = .47 + Math.random() * .24; } while (Math.hypot(nx - cx, ny - cy) < .35);
+    bx = nx; by = ny; place();
+  };
+  setInterval(() => {
+    const r = art.getBoundingClientRect();
+    if (!r.width || pause-- > 0) return;
+    cx += (bx - cx) * .09; cy += (by - cy) * .09;   // the cursor creeps toward the button
+    cur.style.left = cx * 100 + "%"; cur.style.top = cy * 100 + "%";
+    if (Math.hypot((bx - cx) * r.width, (by - cy) * r.height) > 46) return;
+    if (dodges < need) {   // dodge!
+      dodges++; jump();
+      say.className = "bt-say"; say.textContent = TAUNTS[Math.floor(Math.random() * TAUNTS.length)];
+      return;
+    }
+    // ...but sooner or later the cursor gets it
+    touches++; dodges = 0; need = 3 + Math.floor(Math.random() * 4); pause = 22;
+    failEl.textContent = "Touches: " + touches;
+    btn.classList.add("pressed"); art.classList.add("flash");
+    say.className = "bt-say win"; say.textContent = "HA! you touched it";
+    setTimeout(() => {
+      btn.classList.remove("pressed"); art.classList.remove("flash");
+      lvl = (lvl + 1) % LEVELS.length;
+      lvlEl.textContent = "LVL " + (lvl + 1); nameEl.textContent = LEVELS[lvl];
+      say.className = "bt-say"; say.textContent = "try again";
+      jump();
+    }, 1000);
+  }, 50);
+}
+
+/* ---------- Iron Mandate mini map: provinces changing hands ---------- */
+function mandateMap(card) {
+  const cv = card.querySelector("canvas"), c = cv.getContext("2d"), W = cv.width, H = cv.height;
+  const dayEl = card.querySelector(".im-day"), goldEl = card.querySelector(".im-gold");
+  const newsEl = card.querySelector(".im-news"), ping = card.querySelector(".im-ping");
+  const NAMES = ["Valdoria", "Kestrel", "Ostmark", "Serane", "Dravia", "Halvor", "Corvain", "Elmora"];
+  const COLORS = ["#e8b931", "#c44b3a", "#4f86c6", "#5aa86f", "#9a6bc7", "#d07a3a", "#3fa3a0", "#b8577f"].map(hexToRgb);
+  const PROV = ["Ashford", "Brennmoor", "Calden", "Dunmere", "Eastwatch", "Fallow", "Greyhaven", "Highmark", "Ironvale", "Kettering", "Lowfen", "Marrow"];
+  let cell, seeds, owner, nb, day, gold, resetAt;
+
+  function reset() {
+    seeds = Array.from({ length: 46 }, () => ({ x: Math.random() * W, y: Math.random() * H }));
+    const blobs = Array.from({ length: 6 }, () => ({ x: W * (.15 + Math.random() * .7), y: H * (.2 + Math.random() * .6), r: 26 + Math.random() * 26 }));
+    cell = new Int16Array(W * H).fill(-1);
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+      let v = 0;
+      for (const b of blobs) v += Math.max(0, 1 - Math.hypot((x - b.x) / 1.4, y - b.y) / b.r);
+      if (v < .32) continue;   // sea
+      const wx = x + Math.sin(y * .35) * 1.6, wy = y + Math.cos(x * .3) * 1.6;   // wobbly borders
+      let best = 0, bd = Infinity;
+      seeds.forEach((s, i) => { const d = (s.x - wx) ** 2 + (s.y - wy) ** 2; if (d < bd) { bd = d; best = i; } });
+      cell[y * W + x] = best;
+    }
+    nb = seeds.map(() => new Set());
+    for (let i = 0; i < W * H; i++) {
+      const k = cell[i]; if (k < 0) continue;
+      const r = (i + 1) % W ? cell[i + 1] : -1, d = cell[i + W] ?? -1;
+      if (r >= 0 && r !== k) { nb[k].add(r); nb[r].add(k); }
+      if (d >= 0 && d !== k) { nb[k].add(d); nb[d].add(k); }
+    }
+    owner = seeds.map(() => 1 + Math.floor(Math.random() * 7));
+    const land = seeds.map((_, i) => i).filter(i => nb[i].size);
+    const cap = land[Math.floor(Math.random() * land.length)];
+    owner[cap] = 0; nb[cap].forEach(j => { if (Math.random() < .5) owner[j] = 0; });
+    day = 1; gold = 500; resetAt = 0; newsEl.textContent = "";
+    draw();
+  }
+  function draw() {
+    const img = c.createImageData(W, H), d = img.data;
+    for (let i = 0; i < W * H; i++) {
+      const k = cell[i], o = i * 4;
+      if (k < 0) { const g = (i % W + (i / W | 0)) % 6 ? 0 : 6; d[o] = 10 + g; d[o + 1] = 24 + g; d[o + 2] = 38 + g; d[o + 3] = 255; continue; }
+      let [r, g, b] = COLORS[owner[k]];
+      const rk = (i + 1) % W ? cell[i + 1] : k, dk = cell[i + W] ?? k;
+      const edge = (rk !== k && rk >= 0) || (dk !== k && dk >= 0), coast = rk < 0 || dk < 0;
+      const nation = (rk >= 0 && owner[rk] !== owner[k]) || (dk >= 0 && owner[dk] !== owner[k]);
+      const f = nation ? .25 : coast ? .55 : edge ? .72 : owner[k] === 0 ? 1 : .86;
+      d[o] = r * f; d[o + 1] = g * f; d[o + 2] = b * f; d[o + 3] = 255;
+    }
+    c.putImageData(img, 0, 0);
+  }
+  function step() {
+    if (resetAt) { if (performance.now() > resetAt) reset(); return; }
+    day++; gold += 40 + owner.filter(o => o === 0).length * 6;
+    dayEl.textContent = day; goldEl.textContent = gold.toLocaleString();
+    for (let tries = 0; tries < 30; tries++) {   // one border province changes hands
+      const k = Math.floor(Math.random() * seeds.length), list = [...nb[k]];
+      if (!list.length) continue;
+      const j = list[Math.floor(Math.random() * list.length)], a = owner[j], b = owner[k];
+      if (a === b || Math.random() > (a === 0 ? .9 : b === 0 ? .35 : .6)) continue;
+      owner[k] = a;
+      if (Math.random() < .5 || a === 0 || b === 0) {
+        newsEl.className = "im-news" + (a === 0 ? " me" : "");
+        newsEl.textContent = `⚔ ${NAMES[a]} seizes ${PROV[k % PROV.length]} from ${NAMES[b]}`;
+      }
+      if (a === 0) {
+        ping.style.left = seeds[k].x / W * 100 + "%"; ping.style.top = seeds[k].y / H * 100 + "%";
+        ping.classList.remove("go"); void ping.offsetWidth; ping.classList.add("go");
+      }
+      break;
+    }
+    draw();
+    const alive = new Set(owner.filter((_, i) => nb[i].size));
+    if (alive.size === 1) { newsEl.textContent = `👑 ${NAMES[[...alive][0]]} rules the world`; resetAt = performance.now() + 3000; }
+  }
+  reset();
+  setInterval(step, 450);
+}
+
+/* ---------- Load games in the background so they open instantly ---------- */
+const prefetched = new Set();
+function prefetch(file) {
+  if (prefetched.has(file)) return;
+  prefetched.add(file);
+  const l = document.createElement("link");
+  l.rel = "prefetch"; l.href = file;
+  document.head.appendChild(l);
+}
+[...grid.children].forEach((card, i) => {
+  card.addEventListener("mouseenter", () => prefetch(GAMES[i].file));
+  card.addEventListener("touchstart", () => prefetch(GAMES[i].file), { passive: true });
+});
+
+/* ---------- Launch a game ---------- */
+function launch(game, card, e) {
+  if (launching) return;
+  launching = true;
+  store.set("hub-last", game.file);
+
+  const inner = card.querySelector(".card-inner"), r = inner.getBoundingClientRect();
+  const cx = e?.clientX ?? r.left + r.width / 2, cy = e?.clientY ?? r.top + r.height / 2;
+  const rip = document.createElement("span"), size = Math.max(r.width, r.height);
+  rip.className = "ripple";
+  rip.style.cssText = `width:${size}px;height:${size}px;left:${cx - r.left - size / 2}px;top:${cy - r.top - size / 2}px`;
+  inner.appendChild(rip);
+  burst(cx, cy, game.color, 30);
+  if (seasonKey) fxBurst(cx, cy, SEASONS[seasonKey].stickers, 14);
+
+  beep(200, .6, "sawtooth", .05, 6);
+  setTimeout(() => beep(1200, .15, "square", .04), 500);
+  document.body.classList.add("shake");
+  warp = true;
+
+  const ov = $("#launch"), ring = ov.querySelector(".ring");
+  ov.style.setProperty("--c", game.color);
+  ov.style.setProperty("--lc", isLight(game.color) ? "#0b0618" : "#ffffff");
+  ring.style.left = (r.left + r.width / 2 - 10) + "px";
+  ring.style.top = (r.top + r.height / 2 - 10) + "px";
+  $("#launch-name").textContent = game.title;
+  setTimeout(() => ov.classList.add("on"), 250);
+  setTimeout(() => { window.location.href = game.file; }, 1500);
+}
+
+// Reset everything when coming back with the browser's Back button
+window.addEventListener("pageshow", () => {
+  launching = false; warp = false;
+  $("#launch").classList.remove("on");
+  document.body.classList.remove("shake");
+  document.querySelectorAll(".ripple").forEach(el => el.remove());
+});
+
+/* ---------- Search ---------- */
+$("#search").addEventListener("input", e => {
+  const q = e.target.value.trim().toLowerCase();
+  let shown = 0;
+  document.querySelectorAll(".card").forEach(c => {
+    const hit = c.dataset.search.includes(q);
+    c.style.display = hit ? "" : "none";
+    shown += hit;
+  });
+  $("#empty").style.display = shown ? "none" : "block";
+});
+
+/* ---------- Random game (slot machine) ---------- */
+let rolling = false;
+function randomGame() {
+  if (launching || rolling) return;
+  const cards = [...document.querySelectorAll(".card")].filter(c => c.style.display !== "none");
+  if (!cards.length) return;
+  rolling = true;
+  const pick = Math.floor(Math.random() * cards.length);
+  const steps = cards.length * 2 + pick + 1;
+  let n = 0;
+  (function tick() {
+    cards.forEach(c => c.classList.remove("highlight"));
+    const c = cards[n % cards.length];
+    c.classList.add("highlight");
+    beep(500 + (n % cards.length) * 80, .05, "square", .04);
+    n++;
+    if (n < steps) setTimeout(tick, 60 + n * 12);
+    else setTimeout(() => {
+      c.classList.remove("highlight");
+      rolling = false;
+      launch(GAMES[[...grid.children].indexOf(c)], c);
+    }, 500);
+  })();
+}
+$("#random").onclick = randomGame;
+
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape") { closeNews(); $("#season-menu").hidden = true; }
+  if (e.target.tagName === "INPUT") { if (e.key === "Escape") e.target.blur(); return; }
+  if (e.ctrlKey || e.metaKey || e.altKey || newsIsOpen()) return;
+  if (e.key === "/") { e.preventDefault(); $("#search").focus(); }
+  if (e.key.toLowerCase() === "r") randomGame();
+  if (e.key.toLowerCase() === "n") openNews();
+});
+
+/* ---------- Sparkles ---------- */
+function burst(x, y, color, count = 1) {
+  for (let i = 0; i < count; i++) {
+    const s = document.createElement("div");
+    const ang = Math.random() * Math.PI * 2, dist = 30 + Math.random() * (count > 1 ? 140 : 30);
+    s.className = "sparkle";
+    s.style.left = x + "px"; s.style.top = y + "px";
+    s.style.background = color;
+    s.style.boxShadow = `0 0 10px ${color}`;
+    s.style.setProperty("--dx", Math.cos(ang) * dist + "px");
+    s.style.setProperty("--dy", Math.sin(ang) * dist + "px");
+    document.body.appendChild(s);
+    setTimeout(() => s.remove(), 800);
+  }
+}
+const DEFAULT_TRAIL = ["#22e4ff", "#ff3d81", "#ffd23f", "#8b5cff"];
+let trailColors = DEFAULT_TRAIL;   // the season code swaps these
+let lastSpark = 0;
+document.addEventListener("mousemove", e => {
+  const now = performance.now();
+  if (now - lastSpark < 30) return;
+  lastSpark = now;
+  const card = e.target.closest?.(".card");
+  burst(e.clientX, e.clientY, card ? card.style.getPropertyValue("--c") : pick(trailColors));
+});
+
+/* ---------- Starfield background (warps when launching) ---------- */
+const cv = $("#stars"), ctx = cv.getContext("2d");
+let W, H, stars = [], warp = false, speed = 0.6, bgRGB = "7,4,15";
+function resize() {
+  W = cv.width = innerWidth; H = cv.height = innerHeight;
+  stars = Array.from({ length: Math.min(500, Math.floor(W * H / 3500)) }, newStar);
+}
+function newStar() {
+  return { x: (Math.random() - .5) * W, y: (Math.random() - .5) * H, z: Math.random() * W, pz: 0,
+           c: pick(trailColors) };
+}
+let mouseX = 0, mouseY = 0;
+addEventListener("mousemove", e => { mouseX = (e.clientX / W - .5) * 40; mouseY = (e.clientY / H - .5) * 40; });
+function frame() {
+  speed += ((warp ? 40 : 0.6) - speed) * 0.05;
+  ctx.fillStyle = `rgba(${bgRGB},${warp ? .25 : .6})`;
+  ctx.fillRect(0, 0, W, H);
+  const cx = W / 2 - mouseX, cy = H / 2 - mouseY;
+  for (const s of stars) {
+    s.pz = s.z;
+    s.z -= speed;
+    if (s.z < 1) { Object.assign(s, newStar(), { z: W }); s.pz = s.z; continue; }
+    const sx = s.x / s.z * W * .5 + cx, sy = s.y / s.z * W * .5 + cy;
+    const px = s.x / s.pz * W * .5 + cx, py = s.y / s.pz * W * .5 + cy;
+    ctx.strokeStyle = s.c; ctx.lineWidth = Math.max(.5, (1 - s.z / W) * 2.5); ctx.globalAlpha = 1 - s.z / W;
+    ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(sx, sy); ctx.stroke();
+  }
+  ctx.globalAlpha = 1;
+  requestAnimationFrame(frame);
+}
+addEventListener("resize", resize);
+resize(); frame();
+
+/* =====================================================================
+   🎃🎄🎆  SEASONAL EVENTS
+   Uses your computer's date. Each event has a start and an end, and the
+   page checks the date every second, so it switches by itself (even if
+   the page is left open overnight). Outside of events it looks normal.
+
+   Preview any season: click the event chip under the title, or open the
+   page with ?season=christmas (or halloween, newyear, easter, valentine,
+   stpatrick, none) at the end of the address.
+   ===================================================================== */
+const DAY = 864e5;
+
+// Easter Sunday for a given year (the standard "computus" calculation)
+function easterSunday(y) {
+  const a = y % 19, b = Math.floor(y / 100), c = y % 100, d = Math.floor(b / 4), e = b % 4;
+  const f = Math.floor((b + 8) / 25), g = Math.floor((b - f + 1) / 3), h = (19 * a + b - d - g + 15) % 30;
+  const i = Math.floor(c / 4), k = c % 4, l = (32 + 2 * e + 2 * i - h - k) % 7, m = Math.floor((a + 11 * h + 22 * l) / 451);
+  const month = Math.floor((h + l - 7 * m + 114) / 31), day = ((h + l - 7 * m + 114) % 31) + 1;
+  return new Date(y, month - 1, day);
+}
+
+// When each event runs. "end" is the first day it's OVER (so Halloween ends the moment Nov 1 starts).
+function seasonWindows(y) {
+  const D = (m, d, yy = y) => new Date(yy, m - 1, d);
+  const e = easterSunday(y), plus = n => new Date(e.getFullYear(), e.getMonth(), e.getDate() + n);
+  return [
+    { key: "newyear",   start: D(12, 31, y - 1), end: D(1, 3) },
+    { key: "valentine", start: D(2, 7),          end: D(2, 15) },
+    { key: "stpatrick", start: D(3, 14),         end: D(3, 18) },
+    { key: "easter",    start: plus(-7),         end: plus(2) },   // Palm Sunday → Easter Monday
+    { key: "halloween", start: D(10, 1),         end: D(11, 1) },
+    { key: "christmas", start: D(12, 1),         end: D(12, 31) },
+    { key: "newyear",   start: D(12, 31),        end: D(1, 3, y + 1) },
+  ];
+}
+const currentWindow = (now = new Date()) => seasonWindows(now.getFullYear()).find(w => now >= w.start && now < w.end) || null;
+const nextWindow = (now = new Date()) =>
+  [...seasonWindows(now.getFullYear()), ...seasonWindows(now.getFullYear() + 1)]
+    .filter(w => w.start > now).sort((a, b) => a.start - b.start)[0];
+
+/* Particle helpers for the effects layer */
+const P = o => Object.assign({ t: 0, vx: 0, vy: 0, g: 0, sx: 0, sy: 0, sf: 1.5, ph: Math.random() * 6.28,
+  rot: 0, vr: 0, size: 20, alpha: 1, life: null, decay: 0, drag: 0 }, o);
+const spawn = (n, make) => { for (let c = Math.floor(n) + (Math.random() < n % 1 ? 1 : 0); c > 0; c--) fxParts.push(make()); };
+const scaleFor = w => Math.min(1.4, Math.max(.4, w / 1400));
+
+const SEASONS = {
+  halloween: {
+    name: "Halloween", icon: "🎃", bg: "#0b0612",
+    colors: ["#ff7a18", "#9dff5c", "#a855f7", "#ffb020"],   // pink, cyan, purple, yellow slots
+    stickers: ["🎃", "👻", "🦇", "🕸️"],
+    back: () => `<div class="s-moon"></div>${webSVG()}`,
+    front: () => `<div class="s-fog"></div><div class="s-fog f2"></div>`,
+    fx(dt, w, h) {
+      const k = scaleFor(w);
+      spawn(1.3 * k * dt, () => P({ ch: pick(["🍂", "🍁", "🍂"]), x: rand(0, w), y: -30, vx: rand(-15, 15), vy: rand(35, 70),
+        sx: rand(25, 55), sf: rand(1, 2), vr: rand(-1.6, 1.6), size: rand(16, 28), alpha: .9 }));
+      if (Math.random() < .13 * dt) {   // a little flock of bats
+        const left = Math.random() < .5, y0 = rand(.06, .4) * h;
+        for (let i = 0, n = 1 + Math.floor(Math.random() * 3); i < n; i++)
+          fxParts.push(P({ ch: "🦇", x: left ? -40 - i * 50 : w + 40 + i * 50, y: y0 + rand(-30, 30), vx: (left ? 1 : -1) * rand(170, 240),
+            sy: rand(30, 60), sf: rand(2, 4), size: rand(22, 34), flap: rand(10, 16) }));
+      }
+      if (Math.random() < .035 * dt) {
+        const left = Math.random() < .5;
+        fxParts.push(P({ ch: "👻", x: left ? -50 : w + 50, y: rand(.2, .7) * h, vx: (left ? 1 : -1) * rand(50, 80), sy: 30, size: 44, alpha: .5 }));
+      }
+    },
+  },
+  christmas: {
+    name: "Christmas", icon: "🎄", bg: "#050f1a",
+    colors: ["#ff3b4f", "#e9fbff", "#1fae5b", "#ffd36b"],
+    stickers: ["🎄", "🎁", "⛄", "🔔"],
+    front: () => lightsHTML() + `<div class="s-drift"></div>`,
+    fx(dt, w, h) {
+      const k = scaleFor(w);
+      spawn(9 * k * dt, () => { const r = rand(1, 3.2); return P({ kind: "dot", color: "#fff", r, x: rand(0, w), y: -10,
+        vy: 18 + r * 16, sx: rand(10, 30), sf: rand(.5, 1.5), alpha: rand(.45, .95) }); });
+      spawn(.5 * k * dt, () => P({ ch: "❄️", x: rand(0, w), y: -30, vy: rand(30, 55), sx: rand(15, 30), sf: rand(.6, 1.2),
+        vr: rand(-1, 1), size: rand(14, 22), alpha: .85 }));
+      if (Math.random() < .025 * dt)   // Santa's sleigh
+        fxParts.push(P({ ch: "🦌🦌🛷", x: w + 120, y: rand(.08, .25) * h, vx: -rand(130, 170), sy: 12, sf: 2, size: 32 }));
+    },
+  },
+  newyear: {
+    name: "New Year", icon: "🎆", bg: "#05050c",
+    colors: ["#ff4fd8", "#7ad7ff", "#c8c8e8", "#ffd700"],
+    stickers: ["🎉", "🥳", "🎆", "✨"],
+    back: () => `<div class="s-year">${upcomingYear()}</div>`,
+    fx(dt, w, h) {
+      const k = scaleFor(w), now = new Date();
+      const boost = now.getMonth() === 0 && now.getDate() === 1 && now.getHours() === 0 ? 3 : 1;   // the first hour of the year goes wild
+      spawn(1.0 * k * boost * dt, () => P({ kind: "spark", w: 2.5, color: "#ffe9b0", x: rand(.1, .9) * w, y: h + 10,
+        vx: rand(-30, 30), vy: -Math.sqrt(2 * 300 * rand(.45, .8) * h), g: 300,
+        update: p => { if (p.vy > -30) { explode(p); return false; } } }));
+      spawn(5 * k * dt, () => P({ kind: "confetti", color: pick(["#ffd700", "#ff4fd8", "#7ad7ff", "#fff", "#7dff9b"]), x: rand(0, w), y: -10,
+        vy: rand(60, 120), sx: rand(20, 40), sf: rand(1, 2), vr: rand(-4, 4), spin: rand(4, 9) }));
+    },
+  },
+  easter: {
+    name: "Easter", icon: "🐣", bg: "#110c20",
+    colors: ["#ff9ecf", "#8fe3ff", "#b49cff", "#fff07a"],
+    stickers: ["🐣", "🥚", "🐰", "🌷"],
+    front: () => grassHTML() + `<div class="s-bunny"><span>🐇</span></div>`,
+    fx(dt, w, h) {
+      const k = scaleFor(w);
+      spawn(1.2 * k * dt, () => P({ ch: "🌸", x: rand(0, w), y: -30, vx: rand(-10, 10), vy: rand(25, 50), sx: rand(20, 45), sf: rand(1, 2),
+        vr: rand(-1.5, 1.5), size: rand(14, 22), alpha: .9 }));
+      if (Math.random() < .06 * dt)
+        fxParts.push(P({ ch: "🦋", x: -30, y: rand(.2, .7) * h, vx: rand(60, 95), sy: 45, sf: 3, size: 24 }));
+    },
+  },
+  valentine: {
+    name: "Valentine's", icon: "💘", bg: "#14040c",
+    colors: ["#ff3d7f", "#ffb3c7", "#c2185b", "#ffd1dc"],
+    stickers: ["💖", "💘", "🌹", "💌"],
+    fx(dt, w, h) {
+      spawn(1.8 * scaleFor(w) * dt, () => P({ ch: pick(["💖", "💕", "❤️", "💗"]), x: rand(0, w), y: h + 30, vy: -rand(40, 80),
+        sx: rand(15, 35), sf: rand(1, 2), size: rand(16, 30), alpha: .8 }));
+    },
+  },
+  stpatrick: {
+    name: "St. Patrick's", icon: "☘️", bg: "#03110a",
+    colors: ["#ffd23f", "#3ddc84", "#1fa463", "#b8ff9e"],
+    stickers: ["☘️", "🍀", "🌈", "🪙"],
+    back: () => `<div class="s-rainbow"></div>`,
+    fx(dt, w, h) {
+      const k = scaleFor(w);
+      spawn(1.3 * k * dt, () => P({ ch: pick(["☘️", "🍀"]), x: rand(0, w), y: -30, vy: rand(35, 65), sx: rand(20, 45), sf: rand(1, 2),
+        vr: rand(-1.5, 1.5), size: rand(16, 26), alpha: .9 }));
+      spawn(.25 * k * dt, () => P({ ch: "🪙", x: rand(0, w), y: -30, vy: rand(80, 120), vr: rand(-5, 5), size: 20 }));
+    },
+  },
+};
+
+/* Decoration builders */
+function webSVG() {
+  const A = [0, 15, 30, 45, 60, 75, 90].map(d => d * Math.PI / 180);
+  let s = A.map(a => `<line x1="0" y1="0" x2="${200 * Math.cos(a)}" y2="${200 * Math.sin(a)}"/>`).join("");
+  for (const r of [30, 62, 98, 138, 182]) {
+    let d = "";
+    A.forEach((a, i) => {
+      const x = r * Math.cos(a), y = r * Math.sin(a);
+      if (!i) d += `M${x} ${y}`;
+      else { const m = (A[i - 1] + a) / 2, rr = r * .86; d += ` Q${rr * Math.cos(m)} ${rr * Math.sin(m)} ${x} ${y}`; }
+    });
+    s += `<path d="${d}"/>`;
+  }
+  return `<svg class="s-web" viewBox="0 0 200 200">${s}</svg><div class="s-spider"><span>🕷️</span></div>`;
+}
+function lightsHTML() {
+  const n = 30, loops = 7, cols = ["#ff3b4f", "#2ecc71", "#ffd36b", "#4fc3ff", "#ff8a3d"];
+  let d = "M0 4", bulbs = "";
+  for (let i = 0; i < loops; i++) { const a = i * 1000 / loops, b = (i + 1) * 1000 / loops; d += ` Q${(a + b) / 2} 40 ${b} 4`; }
+  for (let i = 0; i < n; i++) {
+    const f = (i + .5) / n, y = 4 + 18 * Math.sin(Math.PI * ((f * loops) % 1));
+    bulbs += `<span class="bulb" style="left:${f * 100}%;top:${y + 2}px;--bc:${cols[i % cols.length]};animation-delay:${-(i % 3) * .5}s"></span>`;
+  }
+  return `<div class="s-lights"><svg viewBox="0 0 1000 40" preserveAspectRatio="none"><path d="${d}"/></svg>${bulbs}</div>`;
+}
+function grassHTML() {
+  return `<svg class="s-grass"><defs><pattern id="grass" width="24" height="36" patternUnits="userSpaceOnUse">
+    <path d="M0 36 L4 14 L8 36 L12 4 L16 36 L20 16 L24 36Z" fill="#62c46e"/></pattern></defs>
+    <rect width="100%" height="36" fill="url(#grass)"/><rect y="28" width="100%" height="8" fill="#4aa857"/></svg>`;
+}
+const upcomingYear = (now = new Date()) => now.getMonth() === 11 ? now.getFullYear() + 1 : now.getFullYear();
+
+/* ---------- Effects layer (falling leaves, snow, fireworks...) ---------- */
+const fxCv = $("#season-fx"), fxCtx = fxCv.getContext("2d");
+const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+let fxParts = [], fxCfg = null, fxOn = false, fxLast = 0;
+const sprites = {};
+function sprite(ch) {   // draw each emoji once, then reuse the picture (much faster)
+  if (sprites[ch]) return sprites[ch];
+  const c = document.createElement("canvas"), x = c.getContext("2d");
+  const font = '64px "Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji",sans-serif';
+  x.font = font;
+  c.width = Math.ceil(x.measureText(ch).width) + 10; c.height = 84;
+  x.font = font; x.textAlign = "center"; x.textBaseline = "middle";
+  x.fillText(ch, c.width / 2, 44);
+  return sprites[ch] = c;
+}
+function fxResize() { fxCv.width = innerWidth; fxCv.height = innerHeight; }
+addEventListener("resize", fxResize); fxResize();
+function startFx() { if (!fxOn) { fxOn = true; fxLast = performance.now(); requestAnimationFrame(fxFrame); } }
+function explode(p) {
+  const cols = SEASONS.newyear.colors.concat("#7dff9b", "#ffffff"), c1 = pick(cols), c2 = Math.random() < .4 ? pick(cols) : c1;
+  const n = 50 + Math.floor(Math.random() * 40), power = rand(140, 260);
+  for (let i = 0; i < n; i++) {
+    const a = i / n * Math.PI * 2 + Math.random() * .1, sp = power * rand(.6, 1);
+    fxParts.push(P({ kind: "spark", x: p.x, y: p.y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, g: 90, drag: 1.2,
+      life: 1, decay: rand(.55, .9), color: i % 2 ? c1 : c2, w: 2 }));
+  }
+  fxParts.push(P({ kind: "dot", x: p.x, y: p.y, r: 34, color: c1, alpha: .25, life: 1, decay: 4 }));
+}
+function fxBurst(x, y, chars, n) {   // emoji explosion (launching a game, finding eggs)
+  if (reduceMotion) return;
+  for (let i = 0; i < n; i++) {
+    const a = Math.random() * Math.PI * 2, sp = rand(150, 380);
+    fxParts.push(P({ ch: pick(chars), x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 160, g: 700,
+      vr: rand(-6, 6), size: rand(18, 30), life: 1, decay: .8 }));
+  }
+  startFx();
+}
+function fxFrame(now) {
+  const dt = Math.min(.05, (now - fxLast) / 1000), w = fxCv.width, h = fxCv.height;
+  fxLast = now;
+  fxCtx.clearRect(0, 0, w, h);
+  if (fxCfg && fxParts.length < 300) fxCfg(dt, w, h);
+  for (let i = fxParts.length - 1; i >= 0; i--) {
+    const p = fxParts[i];
+    p.t += dt;
+    p.vy += p.g * dt;
+    if (p.drag) { const f = Math.max(0, 1 - p.drag * dt); p.vx *= f; p.vy *= f; }
+    p.px = p.x; p.py = p.y;
+    p.x += (p.vx + Math.cos(p.t * p.sf + p.ph) * p.sx) * dt;
+    p.y += (p.vy + Math.sin(p.t * p.sf + p.ph) * p.sy) * dt;
+    p.rot += p.vr * dt;
+    let dead = p.y > h + 80 || p.y < -160 || p.x < -260 || p.x > w + 260;
+    if (p.life !== null) { p.life -= p.decay * dt; if (p.life <= 0) dead = true; }
+    if (!dead && p.update && p.update(p) === false) dead = true;
+    if (dead) { fxParts.splice(i, 1); continue; }
+
+    fxCtx.globalAlpha = p.alpha * (p.life === null ? 1 : Math.min(1, p.life * 1.5));
+    if (p.ch) {
+      const sp = sprite(p.ch), sc = p.size / 84;
+      fxCtx.save(); fxCtx.translate(p.x, p.y); fxCtx.rotate(p.rot);
+      if (p.flap) fxCtx.scale(1, .55 + .45 * Math.abs(Math.sin(p.t * p.flap)));
+      fxCtx.drawImage(sp, -sp.width * sc / 2, -42 * sc, sp.width * sc, 84 * sc);
+      fxCtx.restore();
+    } else if (p.kind === "dot") {
+      fxCtx.fillStyle = p.color; fxCtx.beginPath(); fxCtx.arc(p.x, p.y, p.r, 0, 6.283); fxCtx.fill();
+    } else if (p.kind === "confetti") {
+      fxCtx.save(); fxCtx.translate(p.x, p.y); fxCtx.rotate(p.rot); fxCtx.scale(1, Math.cos(p.t * p.spin));
+      fxCtx.fillStyle = p.color; fxCtx.fillRect(-3, -5, 6, 10); fxCtx.restore();
+    } else if (p.kind === "spark") {
+      fxCtx.globalCompositeOperation = "lighter";
+      fxCtx.strokeStyle = p.color; fxCtx.lineWidth = p.w; fxCtx.lineCap = "round";
+      fxCtx.beginPath(); fxCtx.moveTo(p.x - (p.x - p.px) * 4, p.y - (p.y - p.py) * 4); fxCtx.lineTo(p.x, p.y); fxCtx.stroke();
+      fxCtx.globalCompositeOperation = "source-over";
+    }
+  }
+  fxCtx.globalAlpha = 1;
+  if (fxCfg || fxParts.length) requestAnimationFrame(fxFrame);
+  else { fxOn = false; fxCtx.clearRect(0, 0, w, h); }
+}
+
+/* ---------- Easter egg hunt ---------- */
+const EGG_COUNT = 6;
+let eggsFound = 0;
+function hideEggs() {
+  removeEggs(); eggsFound = 0;
+  const main = $("#app"), hgt = main.scrollHeight, cols = ["#ff9ecf", "#8fe3ff", "#fff07a", "#b49cff", "#9dffb0", "#ffb37a"];
+  for (let i = 0; i < EGG_COUNT; i++) {
+    const egg = document.createElement("span");
+    egg.className = "s-egg"; egg.title = "An egg!";
+    egg.style.cssText = `left:${rand(2, 96)}%;top:${rand(160, hgt - 50)}px;--r:${rand(-25, 25)}deg;--e1:${pick(cols)};--e2:${pick(cols)};animation-delay:${-rand(0, 3)}s`;
+    egg.onclick = e => {
+      e.stopPropagation();
+      egg.remove(); eggsFound++;
+      fxBurst(e.clientX, e.clientY, ["🥚", "🐣", "🌸"], 8);
+      beep(700 + eggsFound * 120, .1, "triangle", .05);
+      if (eggsFound === EGG_COUNT) {
+        fxBurst(innerWidth / 2, innerHeight / 2, ["🐰", "🐣", "🥚", "🌷", "🌸"], 50);
+        [0, 120, 240, 360].forEach((t, j) => setTimeout(() => beep(660 * (1 + j * .25), .15, "triangle", .05), t));
+      }
+      updateChip();
+    };
+    main.appendChild(egg);
+  }
+}
+function removeEggs() { document.querySelectorAll(".s-egg").forEach(e => e.remove()); }
+
+/* ---------- Turning a season on/off ---------- */
+let seasonPreview = null;   // null = follow the date, "none" = no event, or a season name
+let seasonKey = null;
+const urlSeason = new URLSearchParams(location.search).get("season");
+if (urlSeason && (SEASONS[urlSeason] || urlSeason === "none")) seasonPreview = urlSeason;
+
+function activeSeason() {
+  if (seasonPreview) return seasonPreview === "none" ? null : { key: seasonPreview, preview: true };
+  return currentWindow();
+}
+function applySeason(win) {
+  const key = win?.key || null, s = key && SEASONS[key], root = document.documentElement.style;
+  seasonKey = key;
+  [...document.body.classList].filter(c => c.startsWith("season-")).forEach(c => document.body.classList.remove(c));
+  if (key) document.body.classList.add("season-" + key);
+
+  ["--pink", "--cyan", "--purple", "--yellow"].forEach((v, i) => s ? root.setProperty(v, s.colors[i]) : root.removeProperty(v));
+  s ? root.setProperty("--bg", s.bg) : root.removeProperty("--bg");
+  bgRGB = hexToRgb(s ? s.bg : "#07040f").join(",");
+  trailColors = s ? s.colors : DEFAULT_TRAIL;
+  stars.forEach(st => st.c = pick(trailColors));
+
+  $("#season-back").innerHTML = s?.back?.() || "";
+  $("#season-front").innerHTML = s?.front?.() || "";
+  [...grid.children].forEach((c, i) => c.dataset.sticker = s ? s.stickers[i % s.stickers.length] : "");
+
+  fxParts = [];
+  fxCfg = s && !reduceMotion ? s.fx : null;
+  if (fxCfg) startFx();
+  key === "easter" ? hideEggs() : removeEggs();
+  updateChip();
+}
+
+function updateChip() {
+  const chip = $("#season-chip"), now = new Date(), s = seasonKey && SEASONS[seasonKey];
+  let txt;
+  chip.classList.toggle("idle", !s);
+  if (seasonPreview) {
+    txt = s ? `${s.icon} ${s.name} event · preview` : "🚫 No event · preview";
+  } else if (!s) {
+    const n = nextWindow(now), ns = SEASONS[n.key], d = Math.ceil((n.start - now) / DAY);
+    txt = `${ns.icon} ${ns.name} event in ${d} day${d === 1 ? "" : "s"}`;
+  } else if (seasonKey === "newyear") {
+    const ny = new Date(upcomingYear(now), 0, 1), ms = ny - now;
+    if (ms > 0) {
+      const two = n => String(n).padStart(2, "0");
+      txt = `🎆 ${ny.getFullYear()} in ${Math.floor(ms / 36e5)}:${two(Math.floor(ms / 6e4) % 60)}:${two(Math.floor(ms / 1e3) % 60)}`;
+    } else txt = `🎆 Happy New Year ${ny.getFullYear()}!`;
+  } else {
+    const d = Math.ceil((currentWindow(now).end - now) / DAY);
+    txt = `${s.icon} ${s.name} event · ${d <= 1 ? "last day!" : d + " days left"}`;
+  }
+  if (seasonKey === "easter") txt += eggsFound === EGG_COUNT ? " · 🐰 all eggs found!" : ` · 🥚 ${eggsFound}/${EGG_COUNT} found`;
+  if (chip.textContent !== txt) chip.textContent = txt;
+}
+
+function buildSeasonMenu() {
+  const menu = $("#season-menu");
+  menu.innerHTML = "<small>Preview a season</small>";
+  const items = [["auto", "📅 Automatic (today's date)"], ...Object.entries(SEASONS).map(([k, s]) => [k, `${s.icon} ${s.name}`]), ["none", "🚫 No event"]];
+  for (const [k, label] of items) {
+    const b = document.createElement("button");
+    b.textContent = label;
+    if ((seasonPreview || "auto") === k) b.className = "on";
+    b.onclick = e => {
+      e.stopPropagation();
+      seasonPreview = k === "auto" ? null : k;
+      menu.hidden = true;
+      applySeason(activeSeason());
+      beep(700, .06, "triangle", .04);
+    };
+    menu.appendChild(b);
+  }
+}
+$("#season-chip").onclick = e => { e.stopPropagation(); buildSeasonMenu(); $("#season-menu").hidden = !$("#season-menu").hidden; };
+document.addEventListener("click", () => { $("#season-menu").hidden = true; });
+
+applySeason(activeSeason());
+setInterval(() => {   // follow the real date: switches over at midnight by itself
+  if (!seasonPreview) { const w = currentWindow(); if ((w?.key || null) !== seasonKey) applySeason(w); }
+  updateChip();
+}, 1000);
+
+/* =====================================================================
+   📢  NEWS & UPDATE ANNOUNCEMENTS
+   Comes from news.js (written by you) and auto-news.js (written by
+   "Check for Updates"). A game with recent news gets a badge on its card;
+   anything you haven't seen yet pops up once and shows in the News panel.
+   ===================================================================== */
+const dayStart = (d = new Date()) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+const parseDay = s => { const [y, m, d] = String(s).split("-").map(Number); return new Date(y, (m || 1) - 1, d || 1); };
+const newsById = new Map();
+for (const n of window.GZ_NEWS || []) {
+  if (!n || !n.title || !n.date) continue;
+  const when = parseDay(n.date);
+  if (isNaN(when) || when > dayStart()) continue;   // future dates stay hidden until that day
+  const id = n.id || `${n.game || "site"}|${n.date}|${n.title}`;
+  newsById.set(id, { ...n, id, when });
+}
+const NEWS = [...newsById.values()].sort((a, b) => b.when - a.when);
+let seenNews;
+try { seenNews = new Set(JSON.parse(store.get("hub-news-seen") || "[]")); } catch { seenNews = new Set(); }
+const saveSeen = () => store.set("hub-news-seen", JSON.stringify([...seenNews].slice(-300)));
+const isRecent = n => (dayStart() - n.when) / DAY <= (n.days ?? 14);
+const isUnread = n => isRecent(n) && !seenNews.has(n.id);
+const gameFor = n => GAMES.find(g => g.file === n.game);
+const cleanVer = v => String(v).replace(/^v/i, "");
+const ago = when => { const d = Math.round((dayStart() - when) / DAY); return d <= 0 ? "Today" : d === 1 ? "Yesterday" : d < 30 ? d + " days ago" : when.toLocaleDateString(); };
+
+function launchFile(file) {
+  const i = GAMES.findIndex(g => g.file === file);
+  if (i >= 0) launch(GAMES[i], grid.children[i]); else location.href = file;
+}
+
+function renderNewsBadges() {
+  [...grid.children].forEach((card, i) => {
+    const box = card.querySelector(".badges");
+    box.querySelector(".upd")?.remove();
+    const n = NEWS.find(n => n.game === GAMES[i].file && isRecent(n));
+    if (!n) return;
+    const fresh = !seenNews.has(n.id), b = document.createElement("span");
+    b.className = "badge upd" + (fresh ? " fresh" : "");
+    const isNew = /^new game/i.test(n.title);
+    b.textContent = (isNew ? "✨ New game" : fresh ? "✨ New update" : "✨ Updated") + (n.version ? " · v" + cleanVer(n.version) : "");
+    b.title = n.title;
+    box.prepend(b);
+  });
+  const unread = NEWS.filter(isUnread).length, cnt = $("#news-btn .count");
+  cnt.hidden = !unread; cnt.textContent = unread;
+}
+
+function renderNewsList() {
+  const list = $("#news-list");
+  list.innerHTML = "";
+  if (!NEWS.length) {
+    list.innerHTML = `<p class="np-empty">No news yet.<br>Write some in <b>news.js</b> (next to this page),<br>or run <b>Check for Updates</b>.</p>`;
+    return;
+  }
+  for (const n of NEWS) {
+    const g = gameFor(n), color = g?.color || "#22e4ff", el = document.createElement("article");
+    el.className = "np-item" + (isUnread(n) ? " unread" : "");
+    el.style.setProperty("--c", color);
+    el.innerHTML = `<div class="np-top"><span class="np-game"></span><span class="np-date"></span></div><h4></h4><p></p>`;
+    el.querySelector(".np-game").textContent = g ? g.title : n.game ? n.game.replace(/\.html?$/i, "") : "Game Zone";
+    el.querySelector(".np-date").textContent = ago(n.when);
+    const h = el.querySelector("h4");
+    h.textContent = n.title;
+    if (n.version) { const v = document.createElement("span"); v.className = "np-ver"; v.textContent = "v" + cleanVer(n.version); h.append(" ", v); }
+    el.querySelector("p").textContent = n.text || "";
+    if (n.game) {
+      const b = document.createElement("button");
+      b.className = "np-play"; b.textContent = "▶ Play";
+      b.style.color = isLight(color) ? "#0b0618" : "#fff";
+      b.onclick = () => { closeNews(); launchFile(n.game); };
+      el.appendChild(b);
+    }
+    list.appendChild(el);
+  }
+}
+
+const newsIsOpen = () => $("#news-panel").classList.contains("open");
+function openNews() {
+  renderNewsList();
+  $("#news-panel").classList.add("open");
+  $("#news-backdrop").classList.add("open");
+  NEWS.filter(isRecent).forEach(n => seenNews.add(n.id));
+  saveSeen(); renderNewsBadges(); hideToast(false);
+  beep(520, .08, "triangle", .04);
+}
+function closeNews() {
+  $("#news-panel").classList.remove("open");
+  $("#news-backdrop").classList.remove("open");
+}
+$("#news-btn").onclick = openNews;
+$("#news-close").onclick = closeNews;
+$("#news-backdrop").onclick = closeNews;
+
+function showToast(n) {
+  const t = $("#toast"), g = gameFor(n);
+  t.style.setProperty("--c", g?.color || "#22e4ff");
+  t.innerHTML = `<div class="t-icon">📢</div><div class="t-body"><small></small><b></b><span class="t-text"></span></div><div class="t-actions"></div>`;
+  t.querySelector("small").textContent = g ? g.title + (n.version ? " · v" + cleanVer(n.version) : "") : "Game Zone news";
+  t.querySelector("b").textContent = n.title;
+  t.querySelector(".t-text").textContent = n.text || "";
+  const acts = t.querySelector(".t-actions");
+  const add = (label, cls, fn) => { const b = document.createElement("button"); b.textContent = label; b.className = cls; b.onclick = e => { e.stopPropagation(); fn(); }; acts.appendChild(b); };
+  if (n.game) add("▶ Play", "t-play", () => { hideToast(true); launchFile(n.game); });
+  if (NEWS.length > 1) add("All news", "", () => { hideToast(true); openNews(); });
+  add("✕", "", () => hideToast(true));
+  t._markSeen = () => { seenNews.add(n.id); saveSeen(); renderNewsBadges(); };
+  requestAnimationFrame(() => t.classList.add("show"));
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => hideToast(false), 15000);   // not dismissed = it'll show again next time
+}
+function hideToast(markSeen) {
+  const t = $("#toast");
+  t.classList.remove("show");
+  clearTimeout(t._timer);
+  if (markSeen) t._markSeen?.();
+}
+
+renderNewsBadges();
+const firstUnread = NEWS.find(isUnread);
+if (firstUnread) setTimeout(() => { if (!launching) showToast(firstUnread); }, 1800);
+</script>
+</body>
+</html>
