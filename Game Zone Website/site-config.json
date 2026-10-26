@@ -1,8 +1,22 @@
 {
   "v": 1,
   "pw": "c35ce56b9f43384dd502f93cc7c2a83f901c9a4d72e60b53fe34594250916aa9",
-  "updated": "2026-10-26T22:06:52.092Z",
-  "countdowns": [],
+  "updated": "2026-10-26T22:14:23.541Z",
+  "countdowns": [
+    {
+      "id": "cd-1793052855240",
+      "until": "2026-10-28T13:00:00.000Z",
+      "title": "Mogul Life: New Update In:",
+      "kicker": "",
+      "sub": "",
+      "style": "calm",
+      "game": "mogul-life.html",
+      "lock": false,
+      "lockMsg": "Coming soon",
+      "doneTitle": "Mogul Life New Update Is Live!",
+      "doneText": ""
+    }
+  ],
   "maint": {},
   "badges": {},
   "news": []
