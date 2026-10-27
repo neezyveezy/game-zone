@@ -1,7 +1,7 @@
 {
   "v": 1,
   "pw": "c35ce56b9f43384dd502f93cc7c2a83f901c9a4d72e60b53fe34594250916aa9",
-  "updated": "2026-10-27T19:17:08.915Z",
+  "updated": "2026-10-27T19:59:34.319Z",
   "countdowns": [
     {
       "id": "cd-1793052855240",
@@ -17,7 +17,13 @@
       "doneText": ""
     }
   ],
-  "maint": {},
+  "maint": {
+    "beatstorm.html": {
+      "msg": "Maintenance",
+      "on": true,
+      "until": "2026-10-28T13:00:00.000Z"
+    }
+  },
   "badges": {},
   "news": []
 }
