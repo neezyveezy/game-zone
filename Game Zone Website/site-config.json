@@ -1,7 +1,7 @@
 {
   "v": 1,
   "pw": "c35ce56b9f43384dd502f93cc7c2a83f901c9a4d72e60b53fe34594250916aa9",
-  "updated": "2026-10-27T19:59:34.319Z",
+  "updated": "2026-10-28T21:23:43.287Z",
   "countdowns": [
     {
       "id": "cd-1793052855240",
@@ -25,5 +25,15 @@
     }
   },
   "badges": {},
-  "news": []
+  "news": [
+    {
+      "id": "adm-1793222611233",
+      "game": "beatstorm.html",
+      "date": "2026-10-28",
+      "title": "BEATSTORM: Update 3 is out!",
+      "text": "",
+      "days": 4,
+      "version": "3"
+    }
+  ]
 }
