@@ -1,7 +1,7 @@
 {
   "v": 1,
   "pw": "c35ce56b9f43384dd502f93cc7c2a83f901c9a4d72e60b53fe34594250916aa9",
-  "updated": "2026-10-29T07:28:18.476Z",
+  "updated": "2026-10-30T19:06:44.481Z",
   "countdowns": [
     {
       "id": "cd-1793052855240",
@@ -35,6 +35,10 @@
       "msg": "Maintenance",
       "on": true,
       "until": "2026-10-28T13:00:00.000Z"
+    },
+    "classic-arena.html": {
+      "msg": "Releasing Soon",
+      "on": true
     }
   },
   "badges": {},
