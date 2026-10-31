@@ -1,7 +1,7 @@
 {
   "v": 1,
   "pw": "c35ce56b9f43384dd502f93cc7c2a83f901c9a4d72e60b53fe34594250916aa9",
-  "updated": "2026-10-31T08:38:36.554Z",
+  "updated": "2026-10-31T11:22:41.634Z",
   "countdowns": [
     {
       "id": "cd-1793052855240",
@@ -66,5 +66,10 @@
       "days": 4,
       "version": "3"
     }
-  ]
+  ],
+  "gotw": {
+    "on": true,
+    "fb": null,
+    "pick": null
+  }
 }
