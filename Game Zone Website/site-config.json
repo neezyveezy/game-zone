@@ -1,7 +1,7 @@
 {
   "v": 1,
   "pw": "c35ce56b9f43384dd502f93cc7c2a83f901c9a4d72e60b53fe34594250916aa9",
-  "updated": "2026-10-31T17:02:25.655Z",
+  "updated": "2026-10-31T17:24:23.529Z",
   "countdowns": [
     {
       "id": "cd-1793052855240",
@@ -56,7 +56,7 @@
     },
     "retro-arcade.html": {
       "msg": "Maintenance",
-      "on": true
+      "on": false
     }
   },
   "badges": {},
