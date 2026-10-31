@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Game Zone · Back in a moment</title>
+<style>
+  :root { --bg: #07040f; --text: #f4f1ff; --muted: #9b93b8; --pink: #ff3d81; --cyan: #22e4ff; --yellow: #ffd23f; --purple: #8b5cff; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { min-height: 100%; }
+  body { min-height: 100vh; display: grid; place-items: center; padding: 24px 16px; background: var(--bg); color: var(--text);
+    font-family: "Trebuchet MS", "Segoe UI", system-ui, sans-serif; overflow-x: hidden; }
+  .blob { position: fixed; width: 50vmax; height: 50vmax; border-radius: 50%; filter: blur(90px); opacity: .28; z-index: 0; pointer-events: none; animation: drift 18s ease-in-out infinite alternate; }
+  .blob.a { background: var(--purple); top: -20vmax; left: -15vmax; }
+  .blob.b { background: var(--pink); bottom: -25vmax; right: -15vmax; animation-delay: -9s; }
+  @keyframes drift { to { transform: translate(10vmax, 6vmax) scale(1.15); } }
+  main { position: relative; z-index: 1; width: min(560px, 100%); text-align: center; }
+  h1 { font-size: clamp(2.6rem, 11vw, 4.6rem); font-weight: 900; letter-spacing: .04em; text-transform: uppercase; line-height: 1;
+    background: linear-gradient(90deg, var(--cyan), var(--purple), var(--pink), var(--yellow), var(--cyan)); background-size: 300% 100%;
+    -webkit-background-clip: text; background-clip: text; color: transparent; animation: shimmer 6s linear infinite; filter: drop-shadow(0 0 24px rgba(139,92,255,.55)); }
+  @keyframes shimmer { to { background-position: 300% 0; } }
+  .tag { margin-top: 10px; color: var(--muted); letter-spacing: .3em; text-transform: uppercase; font-size: .85rem; }
+  .box { margin-top: 30px; padding: 26px 22px 22px; border-radius: 22px; background: rgba(20,12,36,.85); border: 1px solid rgba(255,210,63,.35);
+    box-shadow: 0 20px 60px -20px rgba(255,61,129,.45); }
+  .icon { font-size: 2.6rem; display: inline-block; animation: spin 3s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  h2 { margin: 10px 0 8px; font-size: 1.5rem; }
+  p { color: var(--muted); line-height: 1.55; }
+  p b { color: var(--text); }
+  .check { margin-top: 16px; font-size: .85rem; color: var(--muted); }
+  .check i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--yellow); margin-right: 8px; vertical-align: 1px; animation: blink 1.2s steps(2) infinite; }
+  @keyframes blink { 50% { opacity: .2; } }
+  .btn { display: inline-block; margin-top: 18px; padding: 12px 20px; border-radius: 14px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase;
+    color: #0b0618; text-decoration: none; background: linear-gradient(135deg, var(--yellow), var(--pink)); box-shadow: 0 6px 0 #9a1f52, 0 10px 30px rgba(255,61,129,.35); }
+  .btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #9a1f52; }
+  footer { margin-top: 26px; color: var(--muted); font-size: .8rem; }
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; } }
+</style>
+</head>
+<body data-gz-404>
+<div class="blob a"></div><div class="blob b"></div>
+<main>
+  <h1>Game Zone</h1>
+  <p class="tag">Your place to play</p>
+  <div class="box">
+    <span class="icon" id="icon">⚙️</span>
+    <h2 id="head">Game Zone is updating</h2>
+    <p id="text">Something new is being put in place right now. <b>Please try again in a little while!</b><br>Thanks for your patience. 💜</p>
+    <p class="check" id="check"><i></i>This page checks by itself and opens Game Zone as soon as it's back.</p>
+    <a class="btn" id="home" href="#">🎮 Go to Game Zone</a>
+  </div>
+  <footer>© 2026 NeezyVeezy</footer>
+</main>
+<script>
+  // Game Zone lives in the "Game Zone Website" folder of the game-zone site
+  const parts = location.pathname.split("/").filter(Boolean);
+  const home = "/" + (parts[0] ? parts[0] + "/" : "") + "Game%20Zone%20Website/";
+  document.getElementById("home").href = home;
+  const file = decodeURIComponent(parts[parts.length - 1] || "");
+  const isGamePage = /\.html?$/i.test(file) && !/^index\.html?$/i.test(file);
+  if (isGamePage) {   // a link to a single game that isn't there (right now)
+    document.getElementById("icon").textContent = "🕹️";
+    document.getElementById("head").textContent = "This game isn't here right now";
+    document.getElementById("text").innerHTML = "It may be getting an update, or the link is wrong. <b>Try again in a little while</b>, or open Game Zone and pick it from there. 💜";
+    document.getElementById("check").lastChild.textContent = "This page checks by itself and opens the game as soon as it's back.";
+  }
+  // keep checking: as soon as the page exists again, open it
+  async function check() {
+    try {
+      const r = await fetch(location.href.split("#")[0], { cache: "no-store" });
+      if (r.ok && !(await r.text()).includes("data-gz-404")) location.reload();
+    } catch (e) { /* offline: try again later */ }
+  }
+  setInterval(check, 10000);
+</script>
+</body>
+</html>
