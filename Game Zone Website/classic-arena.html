@@ -85,7 +85,8 @@ body.in-game #menu-bg { opacity: 0; }
 .grad { background: linear-gradient(90deg, var(--a1), var(--a2), #8f7bff, var(--a1)); background-size: 300% 100%; -webkit-background-clip: text; background-clip: text; color: transparent; animation: shimmer 8s linear infinite; }
 .hero p { color: var(--muted); font-size: 17px; margin-top: 14px; max-width: 520px; line-height: 1.5; }
 .diff-row { display: flex; align-items: center; gap: 14px; margin-top: 22px; flex-wrap: wrap; }
-.diff-row > span { font-size: 13px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.diff-row + .diff-row { margin-top: 12px; }
+.diff-row > span { min-width: 92px; font-size: 13px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
 .diff { display: inline-flex; gap: 4px; padding: 4px; border-radius: 99px; background: var(--panel2); border: 1px solid var(--line); backdrop-filter: blur(10px); }
 .diff button { font: 600 14px Inter, sans-serif; color: var(--muted); background: none; border: none; padding: 8px 16px; border-radius: 99px; cursor: pointer; transition: color .2s, background .25s, box-shadow .25s; }
 .diff button:hover { color: var(--text); }
@@ -253,6 +254,7 @@ body.in-game #menu-bg { opacity: 0; }
       <h1>Pick a game.<br><span class="grad">Play with a friend.</span></h1>
       <p id="hero-sub">Classic games in 3D. Free online multiplayer with just a room code.</p>
       <div class="diff-row"><span>Difficulty</span><div class="diff" id="diff"></div></div>
+      <div class="diff-row"><span>Graphics</span><div class="diff" id="gfx"></div></div>
     </div>
     <div id="grid" class="grid"></div>
   </section>
@@ -710,7 +712,8 @@ const SKINS = [0xf1c27d, 0xe0ac69, 0xc68642, 0x8d5524, 0xffdbac, 0xd9a066];
 class Crowd {
   constructor(scene, slots) {
     const n = slots.length;
-    this.slots = slots;
+    // shuffled so that drawing fewer instances (lower graphics quality) thins the crowd evenly
+    this.slots = slots.slice().sort(() => Math.random() - 0.5);
     this.body = new THREE.InstancedMesh(new THREE.CapsuleGeometry(0.17, 0.32, 4, 10), new THREE.MeshStandardMaterial({ roughness: 0.85 }), n);
     this.head = new THREE.InstancedMesh(new THREE.SphereGeometry(0.105, 12, 10), new THREE.MeshStandardMaterial({ roughness: 0.6 }), n);
     this.ph = new Float32Array(n);
@@ -780,7 +783,7 @@ const __m_character = (() => {
 
 const DOWN = new THREE.Vector3(0, -1, 0);
 const _t = new THREE.Vector3(), _v = new THREE.Vector3(), _p = new THREE.Vector3(), _n = new THREE.Vector3(), _q = new THREE.Quaternion();
-const UPPER = 0.29, FORE = 0.28;
+const UPPER = 0.29, FORE = 0.27;
 
 function part(geo, mat, parent, x = 0, y = 0, z = 0) {
   const m = new THREE.Mesh(geo, mat);
@@ -790,98 +793,149 @@ function part(geo, mat, parent, x = 0, y = 0, z = 0) {
   parent.add(m);
   return m;
 }
-const cap = (r, len) => new THREE.CapsuleGeometry(r, len, 8, 20);
+const lathe = (pts, seg = 24) => new THREE.LatheGeometry(pts.map(([r, y]) => new THREE.Vector2(r, y)), seg);
+// A tapered limb hanging down from its joint: radius rt at the top, rb at the bottom, optional muscle bulge.
+function limb(rt, rb, len, bulge = 0, at = 0.4) {
+  const mid = rt + (rb - rt) * at + bulge;
+  return lathe([[0, -len - 0.004], [rb * 0.75, -len], [rb, -len * 0.94], [mid, -len * at], [rt, -len * 0.08], [rt * 0.8, -0.004], [0, 0.006]]);
+}
 const damp = (a, b, k, dt) => a + (b - a) * (1 - Math.exp(-k * dt));
 
-// Player 1 and player 2 outfits.
+// Player 1 (red trim) and player 2 (blue trim, styled after a classic tennis outfit).
 const LOOKS = [
-  { shirt: 0xe63950, shorts: 0x1c2233, skin: 0xf1c27d, hair: 0x3b2314, shoes: 0xf5f5f5, trim: 0xffffff, style: 'short' },
-  { shirt: 0x2f7cf6, shorts: 0xf2f2f2, skin: 0xb47846, hair: 0x15100c, shoes: 0x222831, trim: 0xffd54a, style: 'pony' },
+  { sex: 'm', shirt: 0xf3f3f1, trim: 0xd8263a, bottom: 0x1b2233, skin: 0xe2ad84, hair: 0x2a1a10, eyes: 0x4a2e1a, shoes: 0xf7f7f7, style: 'short' },
+  { sex: 'f', shirt: 0xf3f3f1, trim: 0x2453d6, bottom: 0xf3f3f1, skin: 0xc68a5e, hair: 0x15110f, eyes: 0x2b1a10, shoes: 0xf7f7f7, style: 'bun' },
 ];
 
-// A stylized athlete (about 1.84 m) facing +z, standing on y = 0. Joints are plain Groups so games can
+// A human athlete (about 1.75 m) facing +z, standing on y = 0. Joints are plain Groups so games can
 // pose them; update() runs idle/run animation, armIK() puts a hand on a world-space point.
 class Character {
   constructor(look = LOOKS[0]) {
-    const L = this.look = look;
-    const fabric = c => new THREE.MeshPhysicalMaterial({ color: c, roughness: 0.82, sheen: 1, sheenRoughness: 0.45, sheenColor: new THREE.Color(c).lerp(new THREE.Color(0xffffff), 0.35) });
-    const skin = new THREE.MeshPhysicalMaterial({ color: L.skin, roughness: 0.48, sheen: 0.6, sheenColor: 0xffb090, sheenRoughness: 0.5 });
-    const shirt = fabric(L.shirt), shorts = fabric(L.shorts), trim = fabric(L.trim);
-    const shoe = new THREE.MeshPhysicalMaterial({ color: L.shoes, roughness: 0.4, clearcoat: 0.5 });
-    const sole = new THREE.MeshStandardMaterial({ color: 0xdddddd, roughness: 0.7 });
-    const hair = new THREE.MeshPhysicalMaterial({ color: L.hair, roughness: 0.45, sheen: 1, sheenColor: 0x886655 });
-    const dark = new THREE.MeshStandardMaterial({ color: 0x1a1210, roughness: 0.25 });
-    const white = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.25 });
-    this.skinMat = skin;
+    const L = this.look = { sex: 'm', trim: 0xffffff, eyes: 0x3a2618, style: 'short', ...look };
+    if (L.bottom === undefined) L.bottom = L.shorts ?? 0x222222;
+    const f = L.sex === 'f', k = f ? 0.9 : 1;
+    const fabric = (c, sheen = 0.8) => new THREE.MeshPhysicalMaterial({ color: c, roughness: 0.85, sheen, sheenRoughness: 0.5, sheenColor: new THREE.Color(c).lerp(new THREE.Color(0xffffff), 0.4) });
+    // a little emissive warmth stands in for light scattering through skin, so faces don't go muddy in shadow
+    const skin = this.skinMat = new THREE.MeshPhysicalMaterial({ color: L.skin, emissive: new THREE.Color(L.skin).multiplyScalar(0.16), roughness: 0.52, sheen: 0.5, sheenColor: 0xffb59a, sheenRoughness: 0.45, clearcoat: 0.08 });
+    const shirt = fabric(L.shirt), trim = fabric(L.trim, 0.4), bottom = fabric(L.bottom);
+    const shoe = new THREE.MeshPhysicalMaterial({ color: L.shoes, roughness: 0.42, clearcoat: 0.4 });
+    const accent = new THREE.MeshPhysicalMaterial({ color: L.trim, roughness: 0.35, clearcoat: 0.5 });
+    const sockM = fabric(0xfafafa);
+    const hair = new THREE.MeshPhysicalMaterial({ color: L.hair, roughness: 0.42, sheen: 1, sheenColor: 0x806050, sheenRoughness: 0.35 });
+    const white = new THREE.MeshStandardMaterial({ color: 0xf8f6f2, roughness: 0.2 });
+    const iris = new THREE.MeshStandardMaterial({ color: L.eyes, roughness: 0.2 });
+    const black = new THREE.MeshStandardMaterial({ color: 0x050505, roughness: 0.1 });
+    const lip = new THREE.MeshPhysicalMaterial({ color: new THREE.Color(L.skin).lerp(new THREE.Color(0xa0303a), 0.45), roughness: 0.35, clearcoat: 0.3 });
 
     this.root = new THREE.Group();
     const hips = this.hips = new THREE.Group();
-    hips.position.y = 0.96;
+    hips.position.y = 0.95;
     this.root.add(hips);
-    const pel = part(cap(0.125, 0.13), shorts, hips, 0, 0.02, 0);
-    pel.rotation.z = Math.PI / 2; pel.scale.set(1, 1.05, 0.82);
+    part(lathe([[0, -0.1], [0.1 * k, -0.09], [0.135 * k, -0.04], [0.142 * k, 0.03], [0.13 * k, 0.09], [0, 0.1]]), bottom, hips).scale.z = 0.72;
 
     // legs: index 0 = right (-x), 1 = left (+x)
     this.legs = [-1, 1].map(s => {
-      const hip = new THREE.Group(); hip.position.set(s * 0.09, -0.02, 0); hips.add(hip);
-      part(cap(0.074, 0.16), shorts, hip, 0, -0.12, 0);
-      part(cap(0.062, 0.26), skin, hip, 0, -0.24, 0);
+      const hip = new THREE.Group(); hip.position.set(s * 0.085 * k, -0.03, 0); hips.add(hip);
+      if (!f) part(limb(0.088, 0.078, 0.22), bottom, hip);
+      part(limb(0.074 * k, 0.047 * k, 0.43, 0.004, 0.3), skin, hip);
       const knee = new THREE.Group(); knee.position.y = -0.43; hip.add(knee);
-      part(cap(0.053, 0.28), skin, knee, 0, -0.19, 0);
-      part(new THREE.CylinderGeometry(0.056, 0.05, 0.12, 16), white, knee, 0, -0.35, 0);
+      part(new THREE.SphereGeometry(0.048 * k, 16, 12), skin, knee).scale.set(1, 1, 0.95);
+      part(limb(0.047 * k, 0.03 * k, 0.42, 0.012 * k, 0.3), skin, knee);
+      part(new THREE.CylinderGeometry(0.035, 0.033, 0.12, 18), sockM, knee, 0, -0.37, 0);
       const ankle = new THREE.Group(); ankle.position.y = -0.43; knee.add(ankle);
-      part(new RoundedBoxGeometry(0.11, 0.08, 0.27, 3, 0.035), shoe, ankle, 0, -0.035, 0.05);
-      part(new RoundedBoxGeometry(0.115, 0.025, 0.28, 2, 0.01), sole, ankle, 0, -0.07, 0.05);
+      part(new RoundedBoxGeometry(0.095 * k, 0.07, 0.25 * k, 4, 0.03), shoe, ankle, 0, -0.04, 0.05);
+      part(new RoundedBoxGeometry(0.1 * k, 0.022, 0.26 * k, 3, 0.01), white, ankle, 0, -0.077, 0.05);
+      for (const side of [-1, 1]) part(new RoundedBoxGeometry(0.006, 0.026, 0.12, 2, 0.003), accent, ankle, side * 0.048 * k, -0.045, 0.06);
+      part(new RoundedBoxGeometry(0.05, 0.012, 0.08, 2, 0.005), accent, ankle, 0, -0.004, 0.09);
       return { hip, knee, ankle, s };
     });
 
-    // torso
+    // pleated tennis skirt (hangs from the hips so the legs move underneath)
+    if (f) {
+      const geo = new THREE.CylinderGeometry(0.15, 0.24, 0.3, 96, 4, true);
+      const p = geo.attributes.position, v = new THREE.Vector3();
+      for (let i = 0; i < p.count; i++) {
+        v.fromBufferAttribute(p, i);
+        const a = Math.atan2(v.z, v.x), low = (0.15 - v.y) / 0.3;
+        const pleat = 1 + Math.abs(Math.sin(a * 14)) * 0.07 * low;
+        p.setXYZ(i, v.x * pleat, v.y, v.z * pleat * 0.85);
+      }
+      geo.computeVertexNormals();
+      const sk = part(geo, new THREE.MeshPhysicalMaterial({ color: L.bottom, roughness: 0.8, sheen: 0.8, sheenColor: 0xffffff, side: THREE.DoubleSide }), hips, 0, -0.1, 0);
+      this.skirt = sk;
+    }
+
+    // torso: shaped polo shirt with collar, placket and trimmed sleeves
     const spine = this.spine = new THREE.Group();
     spine.position.y = 0.06;
     hips.add(spine);
-    const torso = part(new THREE.LatheGeometry([[0.12, -0.02], [0.145, 0.06], [0.152, 0.18], [0.172, 0.31], [0.182, 0.4], [0.16, 0.46], [0.09, 0.51], [0, 0.52]].map(([r, y]) => new THREE.Vector2(r, y)), 28), shirt, spine);
-    torso.scale.z = 0.7;
-    const collar = part(new THREE.TorusGeometry(0.06, 0.014, 10, 28), trim, spine, 0, 0.5, 0);
-    collar.rotation.x = Math.PI / 2;
-    for (const s of [-1, 1]) { const st = part(cap(0.008, 0.36), trim, spine, s * 0.155, 0.24, 0); st.scale.z = 0.5; }
-    part(new THREE.CylinderGeometry(0.044, 0.05, 0.12, 16), skin, spine, 0, 0.55, 0);
-
-    // head
-    const head = this.head = new THREE.Group();
-    head.position.y = 0.6;
-    spine.add(head);
-    const skull = part(new THREE.SphereGeometry(0.115, 32, 24), skin, head, 0, 0.11, 0);
-    skull.scale.set(0.92, 1.06, 1);
-    const hairCap = part(new THREE.SphereGeometry(0.124, 32, 16, 0, Math.PI * 2, 0, 1.45), hair, head, 0, 0.118, -0.01);
-    hairCap.rotation.x = -0.45; hairCap.scale.set(0.96, 1.06, 1.04);
-    if (L.style === 'pony') {
-      const tail = part(cap(0.035, 0.12), hair, head, 0, 0.1, -0.14);
-      tail.rotation.x = 0.5;
-      part(new THREE.TorusGeometry(0.03, 0.01, 8, 16), trim, head, 0, 0.16, -0.12).rotation.x = 0.5;
-    }
+    const prof = f
+      ? [[0, -0.02], [0.125, -0.02], [0.118, 0.08], [0.112, 0.14], [0.14, 0.24], [0.158, 0.3], [0.15, 0.36], [0.148, 0.41], [0.12, 0.46], [0.06, 0.5], [0, 0.51]]
+      : [[0, -0.02], [0.135, -0.02], [0.138, 0.08], [0.15, 0.18], [0.168, 0.29], [0.176, 0.37], [0.165, 0.43], [0.12, 0.48], [0.06, 0.51], [0, 0.52]];
+    const torso = part(lathe(prof, 36), shirt, spine);
+    torso.scale.z = 0.66;
+    if (f) for (const s of [-1, 1]) part(new THREE.SphereGeometry(0.055, 20, 14), shirt, spine, s * 0.058, 0.3, 0.05).scale.set(1, 0.85, 0.5);
+    part(new THREE.TorusGeometry(0.058, 0.012, 10, 28), shirt, spine, 0, 0.49, 0).rotation.x = Math.PI / 2;
     for (const s of [-1, 1]) {
-      const eye = part(new THREE.SphereGeometry(0.019, 16, 12), white, head, s * 0.04, 0.115, 0.098);
-      eye.scale.z = 0.6;
-      part(new THREE.SphereGeometry(0.011, 12, 10), dark, head, s * 0.04, 0.115, 0.108);
-      const brow = part(cap(0.006, 0.03), hair, head, s * 0.041, 0.148, 0.103);
-      brow.rotation.z = Math.PI / 2 + s * 0.15;
-      part(new THREE.SphereGeometry(0.024, 12, 10), skin, head, s * 0.108, 0.105, 0).scale.set(0.5, 1, 0.8);
+      const flap = part(new RoundedBoxGeometry(0.06, 0.006, 0.05, 2, 0.003), shirt, spine, s * 0.035, 0.49, 0.045);
+      flap.rotation.set(0.5, s * 0.5, s * 0.25);
+      const edge = part(new RoundedBoxGeometry(0.062, 0.003, 0.006, 2, 0.0015), trim, spine, s * 0.037, 0.48, 0.07);
+      edge.rotation.set(0.5, s * 0.5, s * 0.25);
     }
-    part(new THREE.SphereGeometry(0.019, 12, 10), skin, head, 0, 0.09, 0.115);
-    const mouth = part(new THREE.TorusGeometry(0.022, 0.0045, 6, 16, Math.PI), new THREE.MeshStandardMaterial({ color: 0x8a3a35 }), head, 0, 0.058, 0.104);
-    mouth.rotation.z = Math.PI;
+    part(new RoundedBoxGeometry(0.022, 0.1, 0.006, 2, 0.003), trim, spine, 0, 0.43, 0.108).rotation.x = -0.18;
+    part(new THREE.CylinderGeometry(0.046 * k + 0.004, 0.054 * k + 0.004, 0.1, 18), skin, spine, 0, 0.52, 0);
+
+    // head and face
+    const head = this.head = new THREE.Group();
+    head.position.y = 0.545;
+    spine.add(head);
+    const skull = part(new THREE.SphereGeometry(0.102, 40, 30), skin, head, 0, 0.115, -0.005);
+    skull.scale.set(0.88, 1.06, 0.98);
+    part(new THREE.SphereGeometry(0.068, 28, 20), skin, head, 0, 0.065, 0.028).scale.set(f ? 0.92 : 1.02, 0.86, 1);
+    for (const s of [-1, 1]) {
+      part(new THREE.SphereGeometry(0.02, 14, 10), skin, head, s * 0.09, 0.1, -0.005).scale.set(0.45, 1, 0.75);
+      const eye = part(new THREE.SphereGeometry(0.0165, 18, 14), white, head, s * 0.035, 0.118, 0.077); eye.scale.z = 0.55;
+      part(new THREE.SphereGeometry(0.0092, 16, 12), iris, head, s * 0.035, 0.118, 0.0855).scale.z = 0.5;
+      part(new THREE.SphereGeometry(0.0045, 10, 8), black, head, s * 0.035, 0.118, 0.0895);
+      part(new THREE.SphereGeometry(0.0018, 6, 6), white, head, s * 0.035 + 0.003, 0.121, 0.0905);
+      const lid = part(new THREE.SphereGeometry(0.0172, 16, 8, 0, Math.PI * 2, 0, Math.PI / 2.6), skin, head, s * 0.035, 0.119, 0.077);
+      lid.scale.z = 0.6; lid.rotation.x = 0.35;
+      const brow = part(new THREE.CapsuleGeometry(f ? 0.0035 : 0.005, 0.026, 4, 8), hair, head, s * 0.036, 0.142, 0.088);
+      brow.rotation.z = Math.PI / 2 + s * 0.12;
+      if (f) part(new THREE.CapsuleGeometry(0.0012, 0.02, 2, 4), black, head, s * 0.035, 0.127, 0.089).rotation.z = Math.PI / 2;
+    }
+    const nose = part(new THREE.ConeGeometry(0.014, 0.036, 14), skin, head, 0, 0.095, 0.098);
+    nose.rotation.x = -1.25;
+    part(new THREE.SphereGeometry(0.0125, 12, 10), skin, head, 0, 0.083, 0.104).scale.set(1.25, 0.8, 0.9);
+    const upper = part(new THREE.CapsuleGeometry(0.0055, 0.024, 4, 10), lip, head, 0, 0.058, 0.093); upper.rotation.z = Math.PI / 2;
+    const lower = part(new THREE.CapsuleGeometry(0.0065, 0.02, 4, 10), lip, head, 0, 0.049, 0.091); lower.rotation.z = Math.PI / 2;
+    // hair
+    const cap = part(new THREE.SphereGeometry(0.108, 40, 20, 0, Math.PI * 2, 0, f ? 1.75 : 1.5), hair, head, 0, 0.122, -0.012);
+    cap.rotation.x = -0.5; cap.scale.set(0.92, 1.05, 1.02);
+    if (f) {
+      part(new THREE.SphereGeometry(0.048, 24, 18), hair, head, 0, 0.17, -0.1);
+      const band = part(new THREE.TorusGeometry(0.098, 0.011, 10, 48), new THREE.MeshPhysicalMaterial({ color: L.trim, roughness: 0.6, sheen: 1 }), head, 0, 0.17, -0.005);
+      band.rotation.x = Math.PI / 2 - 0.6; band.scale.set(0.92, 1.02, 1);
+    } else for (const s of [-1, 1]) part(new RoundedBoxGeometry(0.01, 0.035, 0.022, 2, 0.005), hair, head, s * 0.088, 0.115, 0.02);
+
+    // small face details and hair shouldn't cast blocky shadows across the face
+    head.children.forEach(m => { if (m !== skull) m.castShadow = false; });
 
     // arms: index 0 = right (-x), 1 = left (+x)
     this.arms = [-1, 1].map(s => {
-      const sh = new THREE.Group(); sh.position.set(s * 0.205, 0.44, 0); spine.add(sh);
-      part(cap(0.06, 0.09), shirt, sh, 0, -0.06, 0);
-      part(cap(0.047, 0.2), skin, sh, 0, -0.15, 0);
+      const sh = new THREE.Group(); sh.position.set(s * 0.19 * (f ? 0.92 : 1), 0.425, 0); spine.add(sh);
+      part(new THREE.SphereGeometry(0.058 * k, 20, 14), shirt, sh, 0, -0.01, 0);
+      part(limb(0.06 * k, 0.052 * k, 0.13), shirt, sh);
+      part(new THREE.TorusGeometry(0.052 * k, 0.006, 8, 24), trim, sh, 0, -0.128, 0).rotation.x = Math.PI / 2;
+      part(limb(0.046 * k, 0.036 * k, UPPER, 0.004, 0.35), skin, sh);
       const el = new THREE.Group(); el.position.y = -UPPER; sh.add(el);
-      part(cap(0.042, 0.19), skin, el, 0, -0.13, 0);
+      part(new THREE.SphereGeometry(0.036 * k, 14, 10), skin, el);
+      part(limb(0.037 * k, 0.025 * k, FORE, 0.005, 0.25), skin, el);
       const hand = new THREE.Group(); hand.position.y = -FORE; el.add(hand);
-      part(new THREE.SphereGeometry(0.045, 16, 12), skin, hand, 0, -0.02, 0).scale.set(0.72, 1.12, 0.55);
-      const thumb = part(cap(0.014, 0.03), skin, hand, -s * 0.025, -0.01, 0.022);
-      thumb.rotation.z = s * 0.6;
+      part(new RoundedBoxGeometry(0.026, 0.075 * k, 0.07 * k, 3, 0.012), skin, hand, 0, -0.035, 0.004);
+      part(new RoundedBoxGeometry(0.022, 0.05 * k, 0.062 * k, 3, 0.01), skin, hand, -s * 0.004, -0.09, 0.006).rotation.x = 0.2;
+      const thumb = part(new THREE.CapsuleGeometry(0.009, 0.034, 4, 8), skin, hand, -s * 0.012, -0.035, 0.036);
+      thumb.rotation.set(0.5, 0, s * 0.35);
       return { sh, el, hand, s };
     });
 
@@ -901,16 +955,18 @@ class Character {
     const a = this.amp, ph = this.phase, c = this.crouch;
     for (const l of this.legs) {
       const p = ph + (l.s > 0 ? Math.PI : 0);
-      l.hip.rotation.set(Math.sin(p) * 0.75 * a - 0.55 * c, 0, -l.s * 0.04);
-      l.knee.rotation.x = (Math.max(0, Math.sin(p - 1.3)) * 1.3 + 0.12) * a + 1.05 * c;
+      l.hip.rotation.set(Math.sin(p) * 0.75 * a - 0.55 * c, 0, -l.s * 0.035);
+      l.knee.rotation.x = (Math.max(0, Math.sin(p - 1.3)) * 1.3 + 0.1) * a + 1.05 * c;
       l.ankle.rotation.x = -0.5 * c - Math.sin(p) * 0.2 * a;
     }
-    this.hips.position.y = 0.96 - c * 0.17 + Math.abs(Math.sin(ph)) * 0.04 * a - 0.03 * a + Math.sin(this.t * 1.7) * 0.004;
-    this.spine.rotation.set(0.12 * a + this.lean + Math.sin(this.t * 1.7) * 0.01, this.twist, 0);
+    this.hips.position.y = 0.95 - c * 0.17 + Math.abs(Math.sin(ph)) * 0.04 * a - 0.03 * a + Math.sin(this.t * 1.7) * 0.004;
+    this.hips.rotation.y = Math.sin(ph) * 0.12 * a;
+    this.spine.rotation.set(0.12 * a + this.lean + Math.sin(this.t * 1.7) * 0.01, this.twist - Math.sin(ph) * 0.18 * a, 0);
     this.head.rotation.set(-this.lean * 0.5 - 0.06 * a, -this.twist * 0.6, 0);
+    if (this.skirt) this.skirt.rotation.set(Math.sin(ph * 2) * 0.05 * a, 0, Math.sin(ph) * 0.06 * a);
     for (const arm of this.arms) {
       const p = ph + (arm.s > 0 ? 0 : Math.PI);
-      arm.sh.rotation.set(Math.sin(p) * 0.7 * a + 0.05, 0, arm.s * (0.1 + 0.04 * Math.sin(this.t * 1.7)));
+      arm.sh.rotation.set(Math.sin(p) * 0.7 * a + 0.05, 0, arm.s * (0.12 + 0.03 * Math.sin(this.t * 1.7)));
       arm.el.rotation.set(-0.25 - 0.9 * a, 0, 0);
     }
   }
@@ -1492,19 +1548,51 @@ class PingPong extends Rally {
 }
 
 // ---------------------------------------------------------------------------------------------
-function racket(color) {
+// Modern performance racket: navy graphite frame, lime tip section with grey bands, open throat,
+// dense white string bed, white wrapped grip.
+function racket() {
   const g = new THREE.Group();
-  const frame = new THREE.MeshPhysicalMaterial({ color, roughness: 0.3, clearcoat: 1, metalness: 0.2 });
-  const grip = new THREE.Mesh(new THREE.CylinderGeometry(0.017, 0.016, 0.2, 8), mat(0x1d1d1d, { roughness: 0.8 }));
-  grip.position.y = -0.04; g.add(grip);
+  const navy = new THREE.MeshPhysicalMaterial({ color: 0x1d2a3c, roughness: 0.28, clearcoat: 1, clearcoatRoughness: 0.08, metalness: 0.15 });
+  const lime = new THREE.MeshPhysicalMaterial({ color: 0x86e03a, roughness: 0.3, clearcoat: 1, clearcoatRoughness: 0.08 });
+  const grey = new THREE.MeshPhysicalMaterial({ color: 0x8e98a6, roughness: 0.35, clearcoat: 1 });
+  const cy = -0.53, a = 0.122, b = 0.158, top = -Math.PI / 2;
+  const ell = (t0, t1, n = 28) => Array.from({ length: n + 1 }, (_, i) => { const t = t0 + (t1 - t0) * i / n; return [a * Math.cos(t), cy + b * Math.sin(t), 0]; });
+  const frame = (t0, t1, m) => { const tb = tube(ell(t0, t1), 0.0105, m, 48); tb.scale.z = 0.72; g.add(tb); };
+  frame(top - 0.65, top + 0.65, lime);
+  frame(top - 0.82, top - 0.65, grey);
+  frame(top + 0.65, top + 0.82, grey);
+  frame(top + 0.82, top + Math.PI * 2 - 0.82, navy);
+  // throat: two arms from the shaft into the bottom of the head
   for (const s of [-1, 1]) {
-    const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.008, 0.17, 8), frame);
-    arm.position.set(s * 0.04, -0.22, 0); arm.rotation.z = s * 0.28; g.add(arm);
+    const t = Math.PI / 2 + s * 0.78;
+    const arm = tube([[0, -0.205, 0], [s * 0.022, -0.26, 0], [s * 0.05, -0.32, 0], [a * Math.cos(t), cy + b * Math.sin(t), 0]], 0.0095, navy, 24);
+    arm.scale.z = 0.8; g.add(arm);
+    const stripe = tube([[s * 0.026, -0.27, 0.007], [s * 0.042, -0.305, 0.007]], 0.003, lime, 6); g.add(stripe);
   }
-  const head = new THREE.Mesh(new THREE.TorusGeometry(0.13, 0.011, 10, 48), frame);
-  head.scale.set(1, 1.3, 1); head.position.y = -0.46; head.castShadow = true; g.add(head);
-  const strings = new THREE.Mesh(new THREE.CircleGeometry(0.128, 40), new THREE.MeshStandardMaterial({ map: netTex(18, 256, 256), transparent: true, alphaTest: 0.1, side: THREE.DoubleSide, color: 0xf3ff9a }));
-  strings.scale.set(1, 1.3, 1); strings.position.y = -0.46; g.add(strings);
+  // shaft, grip with wrap, butt cap
+  const wrap = canvasTex(64, 256, (c, w, h) => {
+    c.fillStyle = '#f2f2f0'; c.fillRect(0, 0, w, h);
+    c.strokeStyle = 'rgba(150,150,150,0.55)'; c.lineWidth = 2;
+    for (let y = -w; y < h + w; y += 14) { c.beginPath(); c.moveTo(0, y); c.lineTo(w, y + 22); c.stroke(); }
+  });
+  const grip = new THREE.Mesh(new THREE.CylinderGeometry(0.0168, 0.0168, 0.2, 8), new THREE.MeshStandardMaterial({ map: wrap, roughness: 0.75 }));
+  grip.position.y = -0.06; grip.castShadow = true; g.add(grip);
+  const collar = new THREE.Mesh(new THREE.CylinderGeometry(0.0166, 0.0115, 0.05, 16), navy);
+  collar.position.y = -0.185; g.add(collar);
+  const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.0185, 0.0175, 0.016, 16), navy);
+  cap.position.y = 0.046; g.add(cap);
+  const capRing = new THREE.Mesh(new THREE.TorusGeometry(0.018, 0.0022, 6, 20), lime);
+  capRing.rotation.x = Math.PI / 2; capRing.position.y = 0.038; g.add(capRing);
+  // string bed
+  const strings = canvasTex(512, 640, (c, w, h) => {
+    c.clearRect(0, 0, w, h);
+    c.lineCap = 'round';
+    for (let i = 1; i <= 16; i++) { const x = i * w / 17; c.strokeStyle = 'rgba(40,40,40,0.5)'; c.lineWidth = 6; c.beginPath(); c.moveTo(x + 1.5, 0); c.lineTo(x + 1.5, h); c.stroke(); c.strokeStyle = '#f4f4f2'; c.lineWidth = 4; c.beginPath(); c.moveTo(x, 0); c.lineTo(x, h); c.stroke(); }
+    for (let j = 1; j <= 19; j++) { const y = j * h / 20; c.strokeStyle = 'rgba(40,40,40,0.5)'; c.lineWidth = 6; c.beginPath(); c.moveTo(0, y + 1.5); c.lineTo(w, y + 1.5); c.stroke(); c.strokeStyle = '#e9e9e6'; c.lineWidth = 4; c.beginPath(); c.moveTo(0, y); c.lineTo(w, y); c.stroke(); }
+  });
+  const bed = new THREE.Mesh(new THREE.CircleGeometry(1, 72), new THREE.MeshStandardMaterial({ map: strings, transparent: true, alphaTest: 0.25, side: THREE.DoubleSide, roughness: 0.5 }));
+  bed.scale.set(a - 0.005, b - 0.005, 1); bed.position.y = cy; g.add(bed);
+  g.position.y = -0.03;
   g.rotation.set(-0.3, 0, 0);
   return g;
 }
@@ -1539,25 +1627,48 @@ class Tennis extends Rally {
       }
     }
     this.umpire.head.rotation.y = Math.sin(this.clock * 0.6) * 0.15 + clamp(this.ballM.position.z * 0.05, -0.8, 0.8);
+    const h = v.hud || {}, key = `${h.a}|${h.b}|${h.mid}|${v.sv}`;
+    if (key !== this.ledKey) { this.ledKey = key; this.drawLED(h, v.sv ?? 0); }
+  }
+
+  // Courtside LED scoreboard and the centre-hung screens.
+  drawLED(h, server) {
+    const pts = String(h.mid || '0 – 0').split(' · ')[0].replace('{0}', 'P1').replace('{1}', 'P2');
+    for (const { ctx: g, tex: t, w, hh } of this.screens) {
+      g.fillStyle = '#04070d'; g.fillRect(0, 0, w, hh);
+      const row = (i, label, games, col) => {
+        const y = hh * (0.3 + i * 0.4);
+        g.fillStyle = col; g.fillRect(w * 0.03, y - hh * 0.14, w * 0.035, hh * 0.28);
+        g.fillStyle = '#ffffff'; g.font = `bold ${hh * 0.24}px Arial`; g.textAlign = 'left'; g.textBaseline = 'middle';
+        g.fillText(label, w * 0.09, y);
+        if (server === i) { g.fillStyle = '#d7f03c'; g.beginPath(); g.arc(w * 0.5, y, hh * 0.05, 0, Math.PI * 2); g.fill(); }
+        g.fillStyle = '#ffd54a'; g.textAlign = 'right'; g.fillText(games ?? 0, w * 0.68, y);
+      };
+      row(0, 'PLAYER 01', h.a, '#d8263a');
+      row(1, 'PLAYER 02', h.b, '#2453d6');
+      g.fillStyle = '#8fb8ff'; g.font = `bold ${hh * 0.2}px Arial`; g.textAlign = 'center'; g.fillText(pts.toUpperCase(), w * 0.85, hh * 0.5);
+      t.needsUpdate = true;
+    }
   }
 
   build() {
-    const st = makeStage({ bg: 0x8fc4ef, floor: 0x2c6e46, floorRough: 0.95, sunIntensity: 3.2, hemi: 0.45, shadow: 17, fogNear: 90, fogFar: 260, env: 0.5 });
+    const st = makeStage({ bg: 0x010205, floor: null, sun: [3, 30, 6], sunIntensity: 0.7, hemi: 0.05, shadow: 16, fogNear: 70, fogFar: 160, env: 0.1 });
     this.scene = st.scene;
-    this.exposure = 0.62;
-    this.bloom = 0.15;
+    this.exposure = 1.05;
+    this.bloom = 0.35;
     const S = this.scene;
-    const sun = addSky(S, { elevation: 52, azimuth: 215, turbidity: 2.5, rayleigh: 1.1, env: 0.55 });
-    st.sun.position.copy(sun).multiplyScalar(50);
+    st.sun.shadow.camera.far = 80;
     st.sun.shadow.mapSize.set(2048, 2048);
-    S.fog = null;
-    // court: painted lines on a speckled hard-court surface
+    // indoor hard court: lighter surround, darker court, crisp lines, a soft pool of light in the middle
     const courtTex = canvasTex(1024, 2048, (g, w, h) => {
-      const k = w / 19;
-      g.fillStyle = '#2c7a52'; g.fillRect(0, 0, w, h);
-      g.fillStyle = '#2f62b4'; g.fillRect((19 - 10.97) / 2 * k, (37 - 23.77) / 2 * k, 10.97 * k, 23.77 * k);
-      g.fillStyle = '#f7f7f7';
-      const L = (x, z, ww, hh) => g.fillRect((x + 9.5) * k, (z + 18.5) * k, ww * k, hh * k);
+      const k = w / 22;
+      g.fillStyle = '#3271b8'; g.fillRect(0, 0, w, h);
+      const glow = g.createRadialGradient(w / 2, h / 2, 50, w / 2, h / 2, h * 0.55);
+      glow.addColorStop(0, 'rgba(255,255,255,0.08)'); glow.addColorStop(1, 'rgba(0,0,0,0.25)');
+      g.fillStyle = glow; g.fillRect(0, 0, w, h);
+      g.fillStyle = '#24599a'; g.fillRect((22 - 10.97) / 2 * k, (40 - 23.77) / 2 * k, 10.97 * k, 23.77 * k);
+      g.fillStyle = '#f4f6f8';
+      const L = (x, z, ww, hh) => g.fillRect((x + 11) * k, (z + 20) * k, ww * k, hh * k);
       for (const z of [-11.885, 11.885]) L(-5.485, z - 0.05, 10.97, 0.1);
       for (const x of [-5.485, 5.485 - 0.05, -4.115, 4.115 - 0.05]) L(x, -11.885, 0.05, 23.77);
       for (const z of [-6.4, 6.4]) L(-4.115, z - 0.025, 8.23, 0.05);
@@ -1565,44 +1676,103 @@ class Tennis extends Rally {
       for (const z of [-11.885, 11.785]) L(-0.025, z, 0.05, 0.1);
     });
     const speck = tex.speckle('court', 0xffffff, { amount: 0.25, scale: 128 });
-    const courtMat = new THREE.MeshStandardMaterial({ map: courtTex, normalMap: speck.normalMap.clone(), roughness: 0.82 });
+    const courtMat = new THREE.MeshPhysicalMaterial({ map: courtTex, normalMap: speck.normalMap.clone(), roughness: 0.55, clearcoat: 0.35, clearcoatRoughness: 0.4 });
     courtMat.normalMap.repeat.set(12, 24);
     courtMat.normalMap.userData.keep = false;
-    const court = new THREE.Mesh(new THREE.PlaneGeometry(19, 37), courtMat);
+    courtMat.normalScale.set(0.5, 0.5);
+    const court = new THREE.Mesh(new THREE.PlaneGeometry(22, 40), courtMat);
     court.rotation.x = -Math.PI / 2; court.position.y = 0.002; court.receiveShadow = true; S.add(court);
+    const outer = new THREE.Mesh(new THREE.PlaneGeometry(90, 90), mat(0x0b1220, { roughness: 0.85 }));
+    outer.rotation.x = -Math.PI / 2; outer.receiveShadow = true; S.add(outer);
     // net
     const net = new THREE.Mesh(new THREE.PlaneGeometry(12.8, 0.914), new THREE.MeshStandardMaterial({ map: netTex(300, 2048, 146), transparent: true, side: THREE.DoubleSide, alphaTest: 0.1 }));
     net.position.set(0, 0.457, 0); S.add(net);
     rbox(12.8, 0.07, 0.025, mat(0xffffff, { roughness: 0.5 }), 0, 0.9, 0, S, 0.01);
     rbox(0.05, 0.914, 0.03, mat(0xffffff), 0, 0.457, 0, S, 0.01);
-    const post = new THREE.MeshPhysicalMaterial({ color: 0x1d4430, roughness: 0.4, clearcoat: 0.6 });
+    const post = new THREE.MeshPhysicalMaterial({ color: 0x1a1f28, roughness: 0.35, clearcoat: 0.8, metalness: 0.4 });
     for (const x of [-6.4, 6.4]) {
       const p = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.055, 1.07, 20), post);
       p.position.set(x, 0.535, 0); p.castShadow = true; S.add(p);
+      rbox(0.18, 0.04, 0.18, post, x, 0.02, 0, S, 0.01);
     }
-    // stadium: walls with sponsor boards, grandstands full of fans
-    const wallM = new THREE.MeshPhysicalMaterial({ color: 0x1f4d36, roughness: 0.7, clearcoat: 0.2 });
-    for (const z of [-20, 20]) rbox(26, 1.3, 0.3, wallM, 0, 0.65, z, S, 0.05);
-    for (const x of [-12.5, 12.5]) rbox(0.3, 1.3, 40, wallM, x, 0.65, 0, S, 0.05);
-    const ads = ['CLASSIC ARENA', 'OPEN', 'CENTER COURT', 'GAME · SET · MATCH'];
-    for (let i = 0; i < 4; i++) for (const z of [-19.83, 19.83]) {
-      const s = sign(ads[i], { width: 5.6, glow: 1, font: 'bold 110px Fredoka, Arial', bg: '#16422c' });
-      s.position.set(-9 + i * 6, 0.65, z); s.rotation.y = z > 0 ? Math.PI : 0; S.add(s);
+    // perimeter wall with advertising boards
+    const wallM = new THREE.MeshPhysicalMaterial({ color: 0x0f141c, roughness: 0.6, clearcoat: 0.3 });
+    for (const z of [-20.2, 20.2]) rbox(22.6, 1.0, 0.25, wallM, 0, 0.5, z, S, 0.03);
+    for (const x of [-11.2, 11.2]) rbox(0.25, 1.0, 40.6, wallM, x, 0.5, 0, S, 0.03);
+    for (let i = 0; i < 6; i++) for (const x of [-11.06, 11.06]) {
+      const s = sign('CLASSIC ARENA', { w: 512, h: 160, width: 2.2, color: '#e8eef8', bg: '#121822', glow: 0.75, font: 'bold 64px Arial' });
+      s.position.set(x, 0.5, -15 + i * 6); s.rotation.y = x > 0 ? -Math.PI / 2 : Math.PI / 2; S.add(s);
     }
-    const slots = [
-      ...grandstand(S, { x: 0, z: -21, ry: 0, width: 26, rows: 8, seatColor: 0x2a5a9a, fill: 0.8 }),
-      ...grandstand(S, { x: 0, z: 21, ry: Math.PI, width: 26, rows: 8, seatColor: 0x2a5a9a, fill: 0.8 }),
-      ...grandstand(S, { x: 13.6, z: 0, ry: -Math.PI / 2, width: 40, rows: 8, seatColor: 0x2d6b4a, fill: 0.8 }),
-      ...grandstand(S, { x: -13.6, z: 0, ry: Math.PI / 2, width: 40, rows: 8, seatColor: 0x2d6b4a, fill: 0.8 }),
-    ];
-    this.crowd = new Crowd(S, slots);
-    // umpire on a tall chair beside the net
+    // LED scoreboard boards (one on each end wall) + centre-hung screens share a canvas
+    this.screens = [];
+    const screen = (w, hh) => {
+      const c = document.createElement('canvas'); c.width = w; c.height = hh;
+      const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace;
+      const o = { ctx: c.getContext('2d'), tex: t, w, hh };
+      this.screens.push(o);
+      return new THREE.MeshBasicMaterial({ map: t, color: new THREE.Color(1.5, 1.5, 1.5), toneMapped: false });
+    };
+    const ledMat = screen(1024, 256);
+    for (const z of [-20.06, 20.06]) {
+      const m = new THREE.Mesh(new THREE.PlaneGeometry(4.2, 1.05 * 0.85), ledMat);
+      m.position.set(z < 0 ? -3 : 3, 0.5, z); m.rotation.y = z < 0 ? 0 : Math.PI; S.add(m);
+    }
+    // grandstands: dark blue seating rising into the gloom, sparsely filled
+    const slots = [];
+    for (const [x, z, ry, w, base, rows, fill] of [
+      [0, -21.3, 0, 22, 1.0, 11, 0.32], [0, 21.3, Math.PI, 22, 1.0, 11, 0.32],
+      [12.4, 0, -Math.PI / 2, 40, 1.0, 11, 0.32], [-12.4, 0, Math.PI / 2, 40, 1.0, 11, 0.32],
+      [0, -32.5, 0, 36, 7.2, 9, 0.12], [0, 32.5, Math.PI, 36, 7.2, 9, 0.12],
+      [23.6, 0, -Math.PI / 2, 62, 7.2, 9, 0.12], [-23.6, 0, Math.PI / 2, 62, 7.2, 9, 0.12],
+    ]) slots.push(...grandstand(S, { x, z, ry, width: w, rows, base, step: 0.85, rise: 0.5, seatColor: 0x1b2c4e, fill }));
+    // keep the seats around the two broadcast cameras empty so nobody blocks the view
+    this.crowd = new Crowd(S, slots.filter(s => Math.abs(s.z) < 19 || Math.hypot(s.x, Math.abs(s.z) - 21.4, s.y - 7.2) > 7.5));
+    this.crowd.body.material.color.setScalar(0.45);
+    this.crowd.head.material.color.setScalar(0.55);
+    // ceiling truss with hanging lights
+    const steel = new THREE.MeshStandardMaterial({ color: 0x4a515c, metalness: 0.8, roughness: 0.45 });
+    const truss = (ax, az, bx, bz) => {
+      const y = 21, len = Math.hypot(bx - ax, bz - az), ux = (bx - ax) / len, uz = (bz - az) / len, px = -uz * 0.35, pz = ux * 0.35;
+      for (const [ox, oy, oz] of [[px, 0.35, pz], [-px, 0.35, -pz], [px, -0.35, pz], [-px, -0.35, -pz]]) S.add(tube([[ax + ox, y + oy, az + oz], [bx + ox, y + oy, bz + oz]], 0.03, steel, 2));
+      const zig = [];
+      for (let d = 0, i = 0; d <= len; d += 0.7, i++) zig.push([ax + ux * d + (i % 2 ? px : -px), y + (i % 2 ? 0.35 : -0.35), az + uz * d + (i % 2 ? pz : -pz)]);
+      if (zig.length > 2) S.add(tube(zig, 0.012, steel, zig.length * 2));
+    };
+    for (const x of [-12, -4, 4, 12]) truss(x, -26, x, 26);
+    for (const z of [-18, -6, 6, 18]) truss(-16, z, 16, z);
+    const fixture = new THREE.MeshStandardMaterial({ color: 0x111317, metalness: 0.7, roughness: 0.4 });
+    for (const x of [-12, -4, 4, 12]) for (const z of [-18, -6, 6, 18]) {
+      rbox(0.5, 0.35, 0.5, fixture, x, 20.4, z, S, 0.05);
+      const lens = new THREE.Mesh(new THREE.CircleGeometry(0.18, 20), neonMat(0xeaf2ff, 3.5));
+      lens.rotation.x = Math.PI / 2; lens.position.set(x, 20.22, z); S.add(lens);
+    }
+    for (const [x, z] of [[-4, -8], [4, -8], [-4, 8], [4, 8], [0, 0]]) {
+      spot(S, { pos: [x * 1.5, 20, z * 1.5], target: [x * 0.6, 0, z * 0.9], intensity: x === 0 ? 900 : 600, angle: 0.36, penumbra: 0.7, color: 0xe8f0ff });
+    }
+    // centre-hung video board
+    const jumbo = new THREE.Group(); jumbo.position.set(0, 15.5, 0);
+    rbox(7, 3.4, 4.6, mat(0x07090d, { roughness: 0.4 }), 0, 0, 0, jumbo, 0.08);
+    const jMat = screen(1024, 256);
+    for (const [ry, wd, dz] of [[0, 6.6, 2.32], [Math.PI, 6.6, 2.32], [Math.PI / 2, 4.2, 3.52], [-Math.PI / 2, 4.2, 3.52]]) {
+      const sc = new THREE.Mesh(new THREE.PlaneGeometry(wd, 3.0), jMat);
+      sc.position.set(Math.sin(ry) * dz, 0, Math.cos(ry) * dz); sc.rotation.y = ry; jumbo.add(sc);
+    }
+    for (const x of [-3, 3]) for (const z of [-2, 2]) jumbo.add(tube([[x, 1.7, z], [x, 5.2, z]], 0.02, steel, 2));
+    S.add(jumbo);
+    // umpire ladder chair, player benches
     const chair = mat(0x2b3440, { roughness: 0.5, metalness: 0.4 });
     for (const dx of [-0.3, 0.3]) for (const dz of [-0.3, 0.3]) S.add(tube([[7.4 + dx, 0, dz], [7.4 + dx * 0.6, 1.75, dz * 0.6]], 0.03, chair, 2));
+    for (let i = 1; i < 5; i++) rbox(0.06, 0.03, 0.5, chair, 7.4 - 0.3 + i * 0.012, i * 0.35, 0, S, 0.01);
     rbox(0.7, 0.08, 0.7, chair, 7.4, 1.78, 0, S, 0.02);
     rbox(0.1, 0.6, 0.7, chair, 7.72, 2.1, 0, S, 0.03);
-    rbox(0.5, 0.06, 0.6, mat(0x1f4d36), 6.95, 1.5, 0, S, 0.02);
-    const ump = this.umpire = new Character({ shirt: 0x203a5c, shorts: 0x2b2b2b, skin: 0xe0ac69, hair: 0x666666, shoes: 0x111111, trim: 0xffffff, style: 'short' });
+    rbox(0.5, 0.06, 0.6, mat(0x1b2c4e), 6.95, 1.5, 0, S, 0.02);
+    for (const z of [-1.4, 1.4]) {
+      rbox(0.55, 0.06, 1.0, mat(0x1b2c4e, { roughness: 0.6 }), -7.6, 0.45, z, S, 0.02);
+      rbox(0.08, 0.5, 1.0, mat(0x1b2c4e, { roughness: 0.6 }), -7.9, 0.72, z, S, 0.02);
+      for (const dz of [-0.4, 0.4]) S.add(tube([[-7.6, 0, z + dz], [-7.6, 0.42, z + dz]], 0.02, chair, 2));
+      rbox(0.3, 0.04, 0.4, mat(0xf3f3f1, { roughness: 0.9 }), -7.6, 0.5, z + 0.2, S, 0.015);
+    }
+    const ump = this.umpire = new Character({ shirt: 0x203a5c, trim: 0xffffff, bottom: 0x2b2b2b, skin: 0xe0ac69, hair: 0x666666, shoes: 0x111111, style: 'short' });
     ump.root.position.set(7.45, 0.86, 0);
     ump.root.rotation.y = -Math.PI / 2;
     for (const l of ump.legs) { l.hip.rotation.x = -1.5; l.knee.rotation.x = 1.5; }
@@ -1612,10 +1782,11 @@ class Tennis extends Rally {
     this.padM = [0, 1].map(k => {
       const ch = this.chars[k] = new Character(LOOKS[k]);
       ch.root.rotation.y = k === 0 ? Math.PI : 0;
-      ch.hold(0, racket(k === 0 ? 0xe63950 : 0x2f7cf6));
+      ch.hold(0, racket());
       S.add(ch.root);
       return new THREE.Object3D();
     });
+    this.drawLED({ a: 0, b: 0, mid: '0 – 0' }, 0);
     // ball: optic yellow felt with a white seam
     const ballTex = canvasTex(256, 128, (g, w, h) => {
       g.fillStyle = '#dcf53f'; g.fillRect(0, 0, w, h);
@@ -1631,6 +1802,7 @@ class Tennis extends Rally {
     this.makeTrail(this.c.r * 1.2, 0xf4ff9a);
   }
 }
+
 
 return { PingPong, Tennis };
 })();
@@ -1807,12 +1979,13 @@ class AirHockey extends Game {
     const st = makeStage({ bg: 0x06040f, floor: null, sun: [0.3, 5, 0.8], sunIntensity: 0.4, hemi: 0.18, shadow: 1.8, fogNear: 7, fogFar: 22, env: 0.25 });
     this.scene = st.scene;
     st.sun.castShadow = false;
-    this.bloom = 0.65;
+    this.bloom = 0.32;
+    this.exposure = 0.78;
     const S = this.scene;
     // arcade carpet with the classic neon confetti print
     const carpet = canvasTex(512, 512, (g, w) => {
       g.fillStyle = '#0d0a24'; g.fillRect(0, 0, w, w);
-      const cols = ['#a8268c', '#2390a6', '#a88a26', '#4f3ca6', '#26a666'];
+      const cols = ['#5c1a4e', '#1a4f5c', '#5c4c1a', '#2e2560', '#1a5c3a'];
       for (let i = 0; i < 90; i++) {
         g.strokeStyle = g.fillStyle = cols[i % cols.length]; g.lineWidth = 5;
         const x = Math.random() * w, y = Math.random() * w, t = i % 3;
@@ -1861,11 +2034,11 @@ class AirHockey extends Game {
     for (let i = 0; i < 4; i++) { cabinet(-5.3, -2.7 + i * 1.6, Math.PI / 2, i + 1); cabinet(5.3, -2.7 + i * 1.6, -Math.PI / 2, i + 2); }
     // lighting: a hard spot on the table and coloured fills from the room
     spot(S, { pos: [0, 4.2, 0.3], target: [0, Y, 0], intensity: 14, angle: 0.5, penumbra: 0.7, shadow: true, mapSize: 2048, color: 0xf2f0ff });
-    for (const [x, c] of [[-4, 0xff3bd6], [4, 0x36e0ff]]) { const l = new THREE.PointLight(c, 10, 9, 1.6); l.position.set(x, 3, 1); S.add(l); }
+    for (const [x, c] of [[-4, 0xff3bd6], [4, 0x36e0ff]]) { const l = new THREE.PointLight(c, 6, 9, 1.6); l.position.set(x, 3, 1); S.add(l); }
     // the table: air-hole playfield, chrome-trimmed body, glowing rails
     const field = canvasTex(1024, 2048, (g, w, h) => {
       const grd = g.createLinearGradient(0, 0, 0, h);
-      grd.addColorStop(0, '#a9b4cf'); grd.addColorStop(0.5, '#c3cce2'); grd.addColorStop(1, '#a9b4cf');
+      grd.addColorStop(0, '#8792ad'); grd.addColorStop(0.5, '#9ea8c1'); grd.addColorStop(1, '#8792ad');
       g.fillStyle = grd; g.fillRect(0, 0, w, h);
       g.fillStyle = 'rgba(40,50,80,0.55)';
       for (let y = 20; y < h; y += 40) for (let x = 20 + ((y / 40) % 2) * 20; x < w; x += 40) { g.beginPath(); g.arc(x, y, 3.5, 0, Math.PI * 2); g.fill(); }
@@ -1886,7 +2059,7 @@ class AirHockey extends Game {
     for (const s of [-1, 1]) S.add(tube([[s * (W / 2 + 0.125), Y - 0.25, -(L / 2 + 0.125)], [s * (W / 2 + 0.125), Y - 0.25, L / 2 + 0.125]], 0.008, neonMat(0x7a5cff, 4), 2));
     const rail = new THREE.MeshPhysicalMaterial({ color: 0x1b1b2e, roughness: 0.25, clearcoat: 1, metalness: 0.4 });
     for (const s of [1, -1]) {
-      const g = neonMat(s > 0 ? COL[0] : COL[1], 3.5);
+      const g = neonMat(s > 0 ? COL[0] : COL[1], 2.2);
       for (const x of [-1, 1]) {
         rbox(0.07, 0.06, L / 2 + 0.07, rail, x * (W / 2 + 0.035), Y + 0.02, s * (L / 4 + 0.035), S, 0.015);
         S.add(tube([[x * (W / 2 + 0.035), Y + 0.052, s * 0.02], [x * (W / 2 + 0.035), Y + 0.052, s * (L / 2 + 0.06)]], 0.007, g, 2));
@@ -2890,6 +3063,36 @@ const { LOOKS } = __m_character;
 
 const D = 25, TY = 1.35, TR = 0.61, EYE = 1.55, VF = 70, G = 9.8, SHOTS = 5;
 const COL = [0xff4a5f, 0x3b8cff];
+const TIP = 0.72, BRACE = 0.14; // longbow half-length and string distance from the grip (bow units)
+
+// A curved stave with an elliptical, tapering cross-section (wider than it is thick), from t0 to t1 of the curve.
+function staveMesh(curve, radius, material, t0, t1, extra) {
+  const segs = Math.max(8, Math.round(96 * (t1 - t0))), radial = 14, pos = [], uv = [], idx = [];
+  const up = new THREE.Vector3(1, 0, 0), T = new THREE.Vector3(), N = new THREE.Vector3();
+  for (let i = 0; i <= segs; i++) {
+    const t = t0 + (t1 - t0) * i / segs, P = curve.getPointAt(t), r = radius(t) + extra;
+    curve.getTangentAt(t, T);
+    N.crossVectors(up, T).normalize();
+    for (let j = 0; j <= radial; j++) {
+      const a = j / radial * Math.PI * 2, w = Math.cos(a) * r * 1.55, d = Math.sin(a) * r * 0.75;
+      pos.push(P.x + up.x * w + N.x * d, P.y + up.y * w + N.y * d, P.z + up.z * w + N.z * d);
+      uv.push(j / radial, t);
+    }
+  }
+  for (let i = 0; i < segs; i++) for (let j = 0; j < radial; j++) {
+    const a = i * (radial + 1) + j, b = a + radial + 1;
+    idx.push(a, b, a + 1, b, b + 1, a + 1);
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+  g.setIndex(idx);
+  g.computeVertexNormals();
+  const m = new THREE.Mesh(g, material);
+  m.castShadow = true;
+  return m;
+}
+
 // The bow sight is zeroed for a full draw: aiming at a point and releasing at full power hits it (minus wind).
 const SIGHT = 0.5 * G * (D / VF) ** 2 / D;
 
@@ -3098,7 +3301,7 @@ class Archery extends Game {
       this.camInit = true;
       fovT = ch ? 14 : 50;
       this.bow.visible = this.fov > 30;
-      const nz = 0.03 + pw * 0.42;
+      const nz = BRACE + pw * 0.38;
       const sp = this.string.geometry.attributes.position;
       sp.setZ(1, nz); sp.needsUpdate = true;
       this.nocked.position.z = nz - 0.78;
@@ -3224,15 +3427,35 @@ class Archery extends Game {
     // first-person recurve bow and hands, attached to the camera
     S.add(this.camera);
     this.bow = new THREE.Group();
-    this.bow.position.set(-0.05, -0.08, -0.5);
-    this.bow.rotation.set(0, 0.06, 0.18);
+    this.bow.position.set(-0.03, -0.07, -0.5);
+    this.bow.rotation.set(0, 0.06, 0.42);
     this.bow.scale.setScalar(0.42);
-    const limbM = new THREE.MeshPhysicalMaterial({ color: 0x2b1a12, roughness: 0.3, clearcoat: 1 });
-    for (const s of [1, -1]) this.bow.add(tube([[0, 0.14 * s, 0], [0, 0.32 * s, -0.05], [0, 0.48 * s, -0.065], [0, 0.6 * s, -0.035], [0, 0.66 * s, 0.025]], 0.013, limbM, 40));
-    rbox(0.045, 0.32, 0.06, new THREE.MeshPhysicalMaterial({ color: 0x8a5a2e, roughness: 0.35, clearcoat: 0.8 }), 0, 0, -0.01, this.bow, 0.015);
+    // traditional longbow: one tapered wooden stave, cord-wrapped grip, leather patches, iron bands, nock beads
+    const curve = new THREE.CatmullRomCurve3([[0, -TIP, BRACE], [0, -0.56, 0.055], [0, -0.3, 0.008], [0, 0, -0.008], [0, 0.3, 0.008], [0, 0.56, 0.055], [0, TIP, BRACE]].map(p => new THREE.Vector3(...p)));
+    const thick = t => 0.011 + 0.017 * Math.pow(1 - Math.abs(2 * t - 1), 1.4);
+    const bowWood = surfMat(tex.planks('bowwood', { hue: 24, sat: 42, light: 52, planks: 1, segs: 1, spread: 0 }), { repeat: [1, 4], physical: true, clearcoat: 0.35, clearcoatRoughness: 0.4, roughness: 0.6 });
+    this.bow.add(staveMesh(curve, thick, bowWood, 0, 1, 0));
+    const leather = surfMat(tex.pebble('bowleather', 0x7a5638), { repeat: [2, 2], normal: 1.4, roughness: 0.75 });
+    for (const [a, b] of [[0.33, 0.42], [0.58, 0.67]]) this.bow.add(staveMesh(curve, thick, leather, a, b, 0.003));
+    const cord = new THREE.MeshStandardMaterial({ color: 0x5a4330, roughness: 0.9 });
+    const iron = new THREE.MeshStandardMaterial({ color: 0x3c3c3e, metalness: 0.85, roughness: 0.45 });
+    const ring = (t, r, m, tubeR) => {
+      const P = curve.getPointAt(t), T = curve.getTangentAt(t);
+      const o = new THREE.Mesh(new THREE.TorusGeometry(r, tubeR, 8, 28), m);
+      o.position.copy(P); o.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), T); o.scale.set(1, 0.8, 1);
+      this.bow.add(o);
+    };
+    for (let i = 0; i < 18; i++) { const t = 0.445 + i * 0.0065; ring(t, thick(t) + 0.002, cord, 0.0028); }
+    for (const t of [0.3, 0.425, 0.575, 0.7]) ring(t, thick(t) + 0.003, iron, 0.0035);
+    for (const s of [-1, 1]) {
+      const bead = new THREE.Mesh(new THREE.SphereGeometry(0.009, 14, 10), new THREE.MeshStandardMaterial({ color: 0xb8b2a4, metalness: 0.9, roughness: 0.25 }));
+      bead.position.set(0, s * (TIP - 0.012), BRACE + 0.004); this.bow.add(bead);
+      const horn = new THREE.Mesh(new THREE.ConeGeometry(0.009, 0.05, 12), bowWood);
+      horn.position.set(0, s * (TIP + 0.02), BRACE + 0.01); horn.rotation.x = s > 0 ? 0.25 : Math.PI - 0.25; this.bow.add(horn);
+    }
     const sg = new THREE.BufferGeometry();
-    sg.setAttribute('position', new THREE.BufferAttribute(new Float32Array([0, 0.66, 0.025, 0, 0, 0.03, 0, -0.66, 0.025]), 3));
-    this.string = new THREE.Line(sg, new THREE.LineBasicMaterial({ color: 0xf2f2f2 }));
+    sg.setAttribute('position', new THREE.BufferAttribute(new Float32Array([0, TIP - 0.012, BRACE, 0, 0, BRACE, 0, -TIP + 0.012, BRACE]), 3));
+    this.string = new THREE.Line(sg, new THREE.LineBasicMaterial({ color: 0x6a5640 }));
     this.nocked = makeArrow(0xffd54a);
     this.nocked.rotation.y = Math.PI;
     this.nocked.scale.setScalar(1 / 0.42 * 0.42);
@@ -3603,10 +3826,10 @@ const { Character, LOOKS } = __m_character;
 const RY = 3.05, RR = 0.23, RT = 0.012, BR = 0.12, BOARD_Z = -0.38, G = 9.8, ANG = 52 * Math.PI / 180, REL_Y = 2.25;
 const SPOTS = [[0, 4.2], [2.8, 3.4], [-2.8, 3.4], [4.3, 1.4], [-4.3, 1.4], [0, 6.2], [4, 5], [-4, 5], [6.2, 1.3], [-6.2, 1.3]];
 const SHOTS = SPOTS.length;
-// Releasing exactly on MARK gives the perfect speed for the current spot (aimed just past the
-// rim's center, since a ball that is slightly short hits the front rim).
-// The power bar covers a narrower speed range on easier levels, so the green zone is wider.
-const MARK = 0.5, SWEET = 1.0056, SPAN = [0.04, 0.06, 0.1, 0.14];
+// Releasing exactly on the shot's mark gives the perfect speed for the current spot (aimed just past
+// the rim's center, since a ball that is slightly short hits the front rim). The mark moves to a new
+// place on the power bar every shot. The bar covers a narrower speed range on easier levels.
+const SWEET = 1.0056, SPAN = [0.07, 0.1, 0.15, 0.2];
 
 function release(i) {
   const [sx, sz] = SPOTS[i], d = Math.hypot(sx, sz), ux = -sx / d, uz = -sz / d;
@@ -3634,6 +3857,7 @@ class Basketball extends Game {
     const r = release(this.spot);
     this.pos = new THREE.Vector3(r.x, r.y, r.z);
     this.vel = new THREE.Vector3();
+    this.mark = +(0.3 + Math.random() * 0.45).toFixed(3);
   }
   updHud() {
     this.hud = { a: this.makes[0], b: this.makes[1], turn: this.over === null ? this.turn : null, mid: `Shot ${Math.min(this.spot + 1, SHOTS)}/${SHOTS}` };
@@ -3643,12 +3867,12 @@ class Basketball extends Game {
     const v = this.view;
     const mine = v && v.ph === 'aim' && v.turn === this.me && v.over == null;
     if (!mine) { this.charging = false; this.power = null; return {}; }
-    this.powerMark = MARK;
-    this.powerZone = Math.min(0.45, 0.02 / this.d(SPAN));
+    this.powerMark = v.mark ?? 0.5;
+    this.powerZone = 0.013 / this.d(SPAN);
     if (ptr.pressed) { this.charging = true; this.ct = 0; }
     if (this.charging) {
       this.ct += dt;
-      const ph = (this.ct / this.d([1.4, 1.15, 0.9, 0.7])) % 2;
+      const ph = (this.ct / this.d([1.1, 0.9, 0.72, 0.58])) % 2;
       this.power = ph < 1 ? ph : 2 - ph;
       if (!ptr.down) { this.act({ t: 'shoot', pow: this.power }); this.charging = false; this.power = null; }
     }
@@ -3657,7 +3881,7 @@ class Basketball extends Game {
 
   cpuInput(dt) {
     if (this.phase !== 'aim' || this.turn !== 1 || this.over !== null) { this.cs = null; return {}; }
-    if (!this.cs) this.cs = { t: 0, pw: clamp(MARK + gauss() * this.d([0.9, 0.27, 0.1, 0.045]), 0, 1) };
+    if (!this.cs) this.cs = { t: 0, pw: clamp(this.mark + gauss() * this.d([0.6, 0.2, 0.08, 0.035]), 0, 1) };
     const cs = this.cs;
     cs.t += dt;
     let pw = 0;
@@ -3670,7 +3894,7 @@ class Basketball extends Game {
 
   onAction(p, a) {
     if (a.t !== 'shoot' || this.phase !== 'aim' || p !== this.turn || this.over !== null) return;
-    const r = release(this.spot), v = vReq(r.d) * SWEET * (1 + this.d(SPAN) * (clamp(a.pow, 0, 1) - MARK)), yaw = gauss() * 0.01;
+    const r = release(this.spot), v = vReq(r.d) * SWEET * (1 + this.d(SPAN) * (clamp(a.pow, 0, 1) - this.mark)), yaw = gauss() * 0.014;
     const hx = r.ux * Math.cos(yaw) - r.uz * Math.sin(yaw), hz = r.ux * Math.sin(yaw) + r.uz * Math.cos(yaw);
     this.vel.set(hx * v * Math.cos(ANG), v * Math.sin(ANG), hz * v * Math.cos(ANG));
     this.phase = 'fly';
@@ -3751,7 +3975,7 @@ class Basketball extends Game {
   }
 
   pack() {
-    return { p: [this.pos.x, this.pos.y, this.pos.z], s: this.baseS({ ph: this.phase, turn: this.turn, spot: this.spot, aim: this.aim }) };
+    return { p: [this.pos.x, this.pos.y, this.pos.z], s: this.baseS({ ph: this.phase, turn: this.turn, spot: this.spot, aim: this.aim, mark: this.mark }) };
   }
   // Where the shooter stands and holds the ball for spot i.
   stance(i) {
@@ -3976,17 +4200,28 @@ try {
   document.body.innerHTML = '<div style="height:100%;display:grid;place-items:center;text-align:center;padding:24px;font:600 18px Inter,sans-serif;color:#f1f4ff;background:#070b18">3D graphics are not available in this browser right now.<br>Try restarting the browser, or enable hardware acceleration.</div>';
   throw e;
 }
-const PR = Math.min(devicePixelRatio, 1.5);
+// Graphics quality presets. Level 1 = Low, 2 = Medium, 3 = High.
+const QUALITY = {
+  1: { pr: 0.75, samples: 0, bloom: false, shadows: false, shadowScale: 0, crowd: 0.35 },
+  2: { pr: 1.0, samples: 2, bloom: true, shadows: true, shadowScale: 0.5, crowd: 0.7 },
+  3: { pr: 1.5, samples: 4, bloom: true, shadows: true, shadowScale: 1, crowd: 1 },
+};
+const QUALITY_NAMES = ['Auto', 'Low', 'Medium', 'High'];
+let qualityPref = 0; // 0 = Auto, otherwise a fixed level
+try { const s = +localStorage.getItem('arena-gfx'); if (s >= 0 && s <= 3) qualityPref = s; } catch (e) { /* storage blocked */ }
+const touchDevice = matchMedia('(pointer: coarse)').matches;
+let quality = qualityPref || (touchDevice ? 2 : 3);
+let PR = Math.min(devicePixelRatio, QUALITY[quality].pr);
 canvas.addEventListener('webglcontextlost', e => { e.preventDefault(); toast('Graphics were reset by the browser. Reloading…'); setTimeout(() => location.reload(), 1500); });
 renderer.setPixelRatio(PR);
-renderer.shadowMap.enabled = true;
+renderer.shadowMap.enabled = QUALITY[quality].shadows;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 setRenderer(renderer);
 setEnv(new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(), 0.04).texture);
 
 // Post-processing: HDR multisampled render (smooth edges) -> soft bloom -> tone mapping.
-const composer = new EffectComposer(renderer, new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, samples: 4 }));
+const composer = new EffectComposer(renderer, new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, samples: QUALITY[quality].samples }));
 const renderPass = new RenderPass(new THREE.Scene(), new THREE.PerspectiveCamera());
 const bloomPass = new UnrealBloomPass(new THREE.Vector2(1, 1), 0.25, 0.5, 1.0);
 composer.addPass(renderPass);
@@ -3998,9 +4233,33 @@ function draw(scene, camera, bloom, exposure) {
   renderPass.scene = scene;
   renderPass.camera = camera;
   bloomPass.strength = bloom;
-  bloomPass.enabled = bloom > 0;
+  bloomPass.enabled = bloom > 0 && QUALITY[quality].bloom;
   renderer.toneMappingExposure = exposure;
   composer.render();
+}
+
+// Switch to a quality level. Resolution, anti-aliasing and glow change immediately; shadows and
+// crowd size take effect from the next game that starts.
+function setQuality(level) {
+  quality = level;
+  const q = QUALITY[level];
+  PR = Math.min(devicePixelRatio, q.pr);
+  renderer.setPixelRatio(PR);
+  for (const rt of [composer.renderTarget1, composer.renderTarget2]) { rt.samples = q.samples; rt.dispose(); }
+  if (!game) renderer.shadowMap.enabled = q.shadows;
+  sizedW = 0;
+}
+
+// Fit a freshly built game scene to the current quality: smaller shadow maps and thinner crowds.
+function tuneScene(scene) {
+  const q = QUALITY[quality];
+  scene.traverse(o => {
+    if (o.isLight && o.castShadow) {
+      if (!q.shadows) o.castShadow = false;
+      else o.shadow.mapSize.set(Math.max(512, o.shadow.mapSize.x * q.shadowScale), Math.max(512, o.shadow.mapSize.y * q.shadowScale));
+    }
+    if (o.isInstancedMesh && q.crowd < 1) o.count = Math.floor(o.count * q.crowd);
+  });
 }
 
 // ---------- floating 3D backdrop for the menu: game objects drifting in space
@@ -4162,6 +4421,30 @@ DIFFS.forEach((name, i) => {
   b.classList.toggle('on', i === diff);
   $('#diff').appendChild(b);
 });
+
+// ---------- graphics picker (remembered per browser)
+function updateGfxButtons() {
+  document.querySelectorAll('#gfx button').forEach(x => {
+    const i = +x.dataset.q;
+    x.classList.toggle('on', i === qualityPref);
+    if (i === 0) x.textContent = qualityPref === 0 ? `Auto · ${QUALITY_NAMES[quality]}` : 'Auto';
+  });
+}
+QUALITY_NAMES.forEach((name, i) => {
+  const b = document.createElement('button');
+  b.textContent = name;
+  b.dataset.q = i;
+  b.title = ['Adjusts itself to keep the game smooth', 'Fastest: no glow or shadows, lower resolution', 'Balanced', 'Sharpest: full effects, shadows and crowds'][i];
+  b.addEventListener('click', () => {
+    unlockAudio(); sfx('click');
+    qualityPref = i;
+    try { localStorage.setItem('arena-gfx', i); } catch (e) { /* storage blocked */ }
+    setQuality(i || (touchDevice ? 2 : 3));
+    updateGfxButtons();
+  });
+  $('#gfx').appendChild(b);
+});
+updateGfxButtons();
 
 // ---------- home grid
 GAMES.forEach((g, i) => {
@@ -4369,7 +4652,10 @@ function startGame(id, m, meIdx, df = diff) {
   stopGame();
   def = GAMES.find(g => g.id === id);
   mode = m; me = meIdx;
+  renderer.shadowMap.enabled = QUALITY[quality].shadows;
   game = new def.cls({ me, mode, sendAction, diff: df });
+  tuneScene(game.scene);
+  perf.t = 0; perf.frames = 0; perf.settle = 2;
   resize();
   snaps = []; remoteInput = {}; pendingEv = []; lastMsgId = -1; overShown = false; hudCache = {};
   $('#nm0').textContent = nameOf(0);
@@ -4461,6 +4747,23 @@ function interpolated() {
   return { p: a.d.p.map((v, i) => v + (b.d.p[i] - v) * k), s: a.d.s };
 }
 
+// Auto graphics: if a game averages under ~40 fps for a few seconds, step the quality down a level.
+const perf = { t: 0, frames: 0, settle: 2 };
+function watchPerformance(raw) {
+  if (qualityPref !== 0 || quality <= 1 || document.hidden || raw > 0.5) return;
+  if (perf.settle > 0) { perf.settle -= raw; return; } // ignore the hitch while a scene builds
+  perf.t += raw; perf.frames++;
+  if (perf.t < 3) return;
+  const fps = perf.frames / perf.t;
+  perf.t = 0; perf.frames = 0;
+  if (fps < 40) {
+    setQuality(quality - 1);
+    perf.settle = 1.5;
+    toast(`Graphics set to ${QUALITY_NAMES[quality]} to keep things smooth`);
+    updateGfxButtons();
+  }
+}
+
 let last = performance.now(), lastFrame = 0;
 function loop(now) {
   requestAnimationFrame(loop);
@@ -4471,9 +4774,11 @@ function loop(now) {
 setInterval(() => { if (game && performance.now() - lastFrame > 250) frame(performance.now()); }, 40);
 
 function frame(now) {
-  const dt = Math.min(0.05, (now - last) / 1000);
+  const raw = (now - last) / 1000;
+  const dt = Math.min(0.05, raw);
   last = now;
   if (game) {
+    watchPerformance(raw);
     const inp = game.readInput(ptr, dt) || {};
     let st = null;
     if (mode !== 'guest') {
