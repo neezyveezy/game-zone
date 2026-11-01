@@ -1,7 +1,7 @@
 {
   "v": 1,
   "pw": "c35ce56b9f43384dd502f93cc7c2a83f901c9a4d72e60b53fe34594250916aa9",
-  "updated": "2026-10-31T17:24:23.529Z",
+  "updated": "2026-11-01T00:30:40.427Z",
   "countdowns": [
     {
       "id": "cd-1793052855240",
@@ -41,6 +41,19 @@
       "lockMsg": "Coming soon",
       "doneTitle": "Beatstorm New Update Is Live!",
       "doneText": ""
+    },
+    {
+      "id": "cd-1793493037914",
+      "until": "2926-11-01T12:00:00.000Z",
+      "title": "A new game drops in:",
+      "kicker": "New game incoming",
+      "sub": "",
+      "style": "calm",
+      "game": "VoltWheelie.html",
+      "lock": true,
+      "lockMsg": "Coming soon",
+      "doneTitle": "The new game is out now! 🎉",
+      "doneText": "Be one of the first to play it."
     }
   ],
   "maint": {
