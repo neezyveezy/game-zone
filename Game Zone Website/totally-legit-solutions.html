@@ -1,0 +1,2379 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>*,*::before,*::after{box-sizing:border-box}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Totally Legit Solutions</title>
+</head>
+<body>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&family=Rubik:wght@400;500;700;800&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: a fake office PC desktop. Draggable windows over a dusk wallpaper, taskbar with the shift HUD. Single dark look by design. */
+:root {
+  color-scheme: dark;
+  --wall-top: #182544;
+  --wall-mid: #6b3b5e;
+  --wall-low: #d0703f;
+  --win: #eef1f5;
+  --chrome: #d9dfe7;
+  --ink: #17202c;
+  --muted: #5b6676;
+  --line: #c3cbd6;
+  --accent: #2f6fe4;
+  --phone: #161c25;
+  --phone-2: #212a36;
+  --phone-ink: #e7edf5;
+  --money: #2fbf71;
+  --warn: #f2a93b;
+  --danger: #e5484d;
+  --taskbar: #0e131b;
+  --you: #a9461f;
+  --them: #1f4f8f;
+  --font-display: "Bungee", "Impact", "Arial Black", sans-serif;
+  --font-ui: "Rubik", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", "Consolas", monospace;
+}
+html, body { height: 100%; }
+body {
+  background: var(--wall-top);
+  color: var(--ink);
+  font-family: var(--font-ui);
+  overflow: hidden;
+}
+button, input, select { font: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 3px solid var(--warn); outline-offset: 2px; }
+
+#app { height: 100%; display: flex; flex-direction: column; }
+#desktop {
+  position: relative; flex: 1; min-height: 0; overflow: hidden;
+  background:
+    radial-gradient(ellipse 60% 30% at 70% 78%, rgba(255,190,120,.55), transparent 70%),
+    linear-gradient(180deg, var(--wall-top) 0%, var(--wall-mid) 55%, var(--wall-low) 78%, #3a2233 79%, #1d1a2a 100%);
+}
+#desktop::after { /* city skyline silhouette */
+  content: ""; position: absolute; left: 0; right: 0; bottom: 21%; height: 70px; pointer-events: none;
+  background:
+    linear-gradient(#2a1d2e,#2a1d2e) 4% 100%/40px 55px no-repeat,
+    linear-gradient(#2a1d2e,#2a1d2e) 9% 100%/26px 30px no-repeat,
+    linear-gradient(#2a1d2e,#2a1d2e) 14% 100%/50px 68px no-repeat,
+    linear-gradient(#2a1d2e,#2a1d2e) 55% 100%/36px 40px no-repeat,
+    linear-gradient(#2a1d2e,#2a1d2e) 61% 100%/60px 62px no-repeat,
+    linear-gradient(#2a1d2e,#2a1d2e) 68% 100%/28px 36px no-repeat,
+    linear-gradient(#2a1d2e,#2a1d2e) 88% 100%/46px 58px no-repeat,
+    linear-gradient(#2a1d2e,#2a1d2e) 94% 100%/30px 26px no-repeat;
+}
+
+.icons { position: absolute; left: 16px; top: 16px; display: grid; gap: 14px; z-index: 1; }
+.icon {
+  width: 76px; display: grid; justify-items: center; gap: 6px; padding: 6px 2px; border-radius: 6px;
+  background: transparent; border: 1px solid transparent; color: #fff; font-size: 12px; text-shadow: 0 1px 2px #000;
+}
+.icon:hover { background: rgba(255,255,255,.14); border-color: rgba(255,255,255,.25); }
+.icon .glyph { width: 48px; height: 48px; border-radius: 10px; display: grid; place-items: center; box-shadow: 0 3px 8px rgba(0,0,0,.35); }
+.icon .glyph svg { width: 28px; height: 28px; }
+
+.win {
+  position: absolute; z-index: 5; background: var(--win); border: 1px solid #0006; border-radius: 6px;
+  box-shadow: 0 18px 40px rgba(0,0,0,.45); display: flex; flex-direction: column; max-height: calc(100% - 24px);
+}
+.titlebar {
+  display: flex; align-items: center; gap: 8px; padding: 6px 6px 6px 10px; background: #fff;
+  border-bottom: 1px solid var(--line); border-radius: 6px 6px 0 0; cursor: grab; user-select: none; touch-action: none;
+}
+.titlebar .mini { width: 18px; height: 18px; border-radius: 4px; display: grid; place-items: center; }
+.titlebar .mini svg { width: 12px; height: 12px; }
+.titlebar h2 { font-size: 14px; font-weight: 500; flex: 1; margin: 0; }
+.titlebar button { width: 30px; height: 26px; border: 0; background: transparent; font-size: 18px; line-height: 1; color: var(--ink); border-radius: 4px; }
+.titlebar button:hover { background: var(--chrome); }
+.titlebar button.x { color: var(--danger); font-weight: 700; }
+.titlebar button.x:hover { background: var(--danger); color: #fff; }
+.win-body { overflow: auto; min-height: 0; }
+
+/* App header strip, like a branded web app */
+.apphead { display: flex; gap: 12px; align-items: center; padding: 12px 14px; border-bottom: 1px solid var(--line); }
+.apphead .logo { width: 40px; height: 40px; border-radius: 9px; display: grid; place-items: center; flex: none; }
+.apphead .logo svg { width: 24px; height: 24px; }
+.apphead strong { display: block; font-size: 17px; font-weight: 800; letter-spacing: -.01em; }
+.apphead span { font-size: 12px; color: var(--muted); }
+
+/* Call list */
+.callers { display: grid; gap: 8px; padding: 12px; }
+.caller { display: grid; grid-template-columns: 48px 1fr auto; gap: 10px; align-items: center; padding: 8px; background: #fff; border: 1px solid var(--line); border-radius: 6px; }
+.caller .av { width: 48px; height: 48px; border-radius: 6px; background: #cfe0e6; }
+.caller .who { min-width: 0; }
+.caller .who b { display: block; font-size: 14px; }
+.caller .who small { display: block; color: var(--muted); font-size: 12px; line-height: 1.35; }
+.caller .tag { display: inline-block; margin-top: 3px; font-size: 11px; font-weight: 700; padding: 1px 6px; border-radius: 3px; text-transform: uppercase; letter-spacing: .04em; }
+.tag.paid { background: #d6f5e3; color: #11663a; }
+.tag.lost { background: #fde0e0; color: #9b1c1f; }
+.tag.waste { background: #fdeccc; color: #8a5300; }
+.btn { border: 0; border-radius: 5px; padding: 8px 12px; font-weight: 700; color: #fff; background: var(--accent); }
+.btn:disabled { opacity: .4; cursor: not-allowed; }
+.btn.green { background: #1f9d55; }
+.btn.red { background: var(--danger); }
+
+/* Phone */
+#win-phone .win-body { background: var(--phone); color: var(--phone-ink); padding: 10px; display: grid; gap: 10px; }
+.panel { background: var(--phone-2); border: 1px solid #ffffff14; border-radius: 6px; }
+.trust { padding: 10px 12px; display: grid; gap: 6px; }
+.trust .row { display: flex; justify-content: space-between; align-items: baseline; }
+.trust b { font-weight: 800; font-size: 15px; letter-spacing: .02em; }
+.trust .mood { font-weight: 800; font-size: 14px; text-transform: uppercase; }
+.trust .bar { height: 8px; background: #0b0f15; border-radius: 4px; overflow: hidden; }
+.trust .bar i { display: block; height: 100%; width: 0; background: var(--danger); transition: width .5s, background .5s; }
+.trust .pct { text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; }
+.portrait { text-align: center; overflow: hidden; }
+.portrait h3 { margin: 0; padding: 8px; font-size: 14px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; background: #ffffff0d; }
+.portrait .stage { height: 150px; display: grid; place-items: center;
+  background: linear-gradient(#ffffff0a 1px, transparent 1px) 0 0/16px 16px, linear-gradient(90deg, #ffffff0a 1px, transparent 1px) 0 0/16px 16px, #2f5a5a; }
+.portrait .stage svg { width: 130px; height: 130px; }
+.portrait .status { padding: 7px; font-weight: 800; font-size: 13px; letter-spacing: .05em; color: var(--warn); text-transform: uppercase; }
+.wave { display: flex; gap: 2px; align-items: flex-end; height: 18px; padding: 0 10px 8px; }
+.wave i { flex: 1; background: #4aa3ff; border-radius: 1px; height: 2px; transition: height .12s; }
+.chat { height: 300px; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 8px; }
+.bubble { max-width: 85%; padding: 8px 10px; border-radius: 6px; font-size: 14px; line-height: 1.4; overflow-wrap: anywhere; }
+.bubble .n { display: inline-block; font-size: 11px; font-weight: 800; padding: 1px 6px; border-radius: 3px; margin-bottom: 4px; }
+.bubble.them { background: var(--them); align-self: flex-start; }
+.bubble.them .n { background: #3b78cc; }
+.bubble.you { background: var(--you); align-self: flex-end; }
+.bubble.you .n { background: #d06a2c; }
+.bubble.sys { align-self: center; background: transparent; color: #9aa7b8; font-size: 12px; text-align: center; }
+.bubble code { font-family: var(--font-mono); background: #0006; padding: 1px 5px; border-radius: 3px; }
+.typing { align-self: flex-start; color: #9aa7b8; font-size: 13px; }
+.composer { display: grid; grid-template-columns: 1fr auto; gap: 6px; padding: 8px; border-top: 1px solid #ffffff14; }
+.composer input { min-width: 0; background: #0b0f15; color: var(--phone-ink); border: 1px solid #ffffff22; border-radius: 5px; padding: 9px 10px; }
+.controls { display: grid; grid-template-columns: 1fr 48px 48px; gap: 8px; }
+.controls .btn { padding: 12px; font-size: 15px; }
+.sq { border: 0; border-radius: 5px; background: #1f9d55; color: #fff; display: grid; place-items: center; }
+.sq svg { width: 22px; height: 22px; }
+.sq.off { background: #3a4452; }
+.sq.live { background: var(--danger); animation: pulse 1s infinite; }
+@keyframes pulse { 50% { box-shadow: 0 0 0 6px #e5484d44; } }
+.idle { padding: 26px 16px; text-align: center; color: #9aa7b8; line-height: 1.5; }
+.idle b { color: var(--phone-ink); display: block; font-size: 16px; margin-bottom: 4px; }
+
+/* Script */
+.scams { display: grid; gap: 6px; padding: 12px 12px 4px; }
+.scam { display: grid; grid-template-columns: auto 1fr; gap: 8px; align-items: start; padding: 8px 10px; border: 1px solid var(--line); border-radius: 6px; background: #fff; cursor: pointer; }
+.scam:has(input:checked) { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); background: #eaf1ff; }
+.scam b { font-size: 14px; display: block; }
+.scam small { color: var(--muted); font-size: 12px; }
+.points { margin: 0; padding: 8px 14px 14px 32px; font-size: 13px; line-height: 1.5; display: grid; gap: 4px; }
+.section-label { font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); padding: 8px 14px 0; }
+
+/* Gift cards */
+.redeem { padding: 12px; display: grid; gap: 8px; }
+.redeem label { font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.redeem input { font-family: var(--font-mono); font-size: 16px; padding: 10px; border: 1px solid var(--line); border-radius: 5px; text-transform: uppercase; background: #fff; color: var(--ink); }
+.redeem .msg { font-size: 13px; min-height: 18px; font-weight: 500; }
+.ledger { border-top: 1px solid var(--line); padding: 8px 12px 12px; font-size: 13px; display: grid; gap: 4px; }
+.ledger div { display: flex; justify-content: space-between; gap: 8px; font-variant-numeric: tabular-nums; }
+.ledger code { font-family: var(--font-mono); font-size: 12px; }
+
+/* Taskbar */
+#taskbar {
+  display: flex; align-items: center; gap: 6px; background: var(--taskbar); color: #fff;
+  padding: 6px max(16px, env(safe-area-inset-right, 0px)) 6px max(16px, env(safe-area-inset-left, 0px)); flex-wrap: wrap;
+}
+.tb-app { width: 42px; height: 38px; border: 0; border-radius: 5px; background: transparent; display: grid; place-items: center; position: relative; }
+.tb-app:hover { background: #ffffff18; }
+.tb-app .glyph { width: 30px; height: 30px; border-radius: 6px; display: grid; place-items: center; }
+.tb-app .glyph svg { width: 18px; height: 18px; }
+.tb-app.open::after { content: ""; position: absolute; bottom: 1px; left: 10px; right: 10px; height: 3px; border-radius: 2px; background: #4aa3ff; }
+.hud { margin-left: auto; display: flex; gap: 18px; align-items: center; font-weight: 800; font-size: 13px; text-align: right; font-variant-numeric: tabular-nums; flex-wrap: wrap; justify-content: flex-end; }
+.hud .m { color: var(--money); }
+.hud .q { color: var(--warn); }
+.hud .r { color: var(--danger); }
+.clock { font-weight: 500; font-size: 13px; text-align: right; line-height: 1.3; }
+.clock b { display: block; font-size: 16px; }
+
+/* Overlays */
+.overlay { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; background: rgba(8,10,16,.72); padding: 16px; overflow: auto; }
+.card { background: #fff6e0; color: #3a1a0c; border: 3px solid #a3341b; border-radius: 8px; max-width: 560px; width: 100%; padding: 26px 26px 22px; display: grid; gap: 14px; box-shadow: 0 30px 60px #000a; }
+.card .kicker { font-family: var(--font-display); font-size: 13px; color: #a3341b; letter-spacing: .04em; }
+.card h1 { font-family: var(--font-display); font-weight: 400; font-size: clamp(30px, 6vw, 46px); line-height: 1; margin: 0; color: #7c1d0b; text-wrap: balance; }
+.card p { margin: 0; line-height: 1.5; }
+.card ol { margin: 0; padding-left: 20px; display: grid; gap: 6px; line-height: 1.45; }
+.card .fine { font-size: 12px; color: #7a5a48; }
+.card .btn { justify-self: start; background: #a3341b; font-size: 16px; padding: 12px 20px; }
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.stats div { border-top: 2px solid #a3341b; padding-top: 6px; }
+.stats b { display: block; font-family: var(--font-display); font-size: 24px; font-weight: 400; color: #1f7a45; }
+.stats span { font-size: 11px; letter-spacing: .06em; text-transform: uppercase; }
+
+#toasts { position: fixed; right: max(16px, env(safe-area-inset-right, 0px)); bottom: calc(64px + env(safe-area-inset-bottom, 0px)); z-index: 90; display: grid; gap: 8px; width: min(340px, calc(100vw - 32px)); }
+.toast { background: #fff; color: var(--ink); border-left: 5px solid var(--warn); border-radius: 6px; padding: 10px 12px; box-shadow: 0 10px 30px #0008; font-size: 14px; line-height: 1.4; animation: slide .3s ease-out; }
+.toast b { display: block; font-size: 12px; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); }
+.toast.bad { border-left-color: var(--danger); }
+.toast.good { border-left-color: var(--money); }
+@keyframes slide { from { transform: translateY(12px); opacity: 0; } }
+.shake { animation: shake .4s; }
+@keyframes shake { 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+
+/* ---------- Version 3: shop, notes, sound ---------- */
+.bankline { padding: 10px 14px 0; font-size: 14px; color: var(--muted); }
+.bankline b { color: #11663a; font-size: 16px; font-variant-numeric: tabular-nums; }
+.shop { display: grid; gap: 8px; padding: 12px; }
+.item { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center; padding: 10px; background: #fff; border: 1px solid var(--line); border-radius: 6px; }
+.item > div { min-width: 0; }
+.item b { display: block; font-size: 14px; }
+.item small { display: block; color: var(--muted); font-size: 12px; line-height: 1.35; }
+.item.owned { background: #eefaf2; border-color: #b9e6c9; }
+.caller .note { display: block; margin-top: 3px; font-size: 11px; line-height: 1.35; color: #5b2a86; font-weight: 500; }
+.tb-app.off .glyph { opacity: .35; }
+.chip.mute { pointer-events: auto; cursor: pointer; border: 0; font: inherit; font-weight: 800; font-size: 13px; }
+.card .btn.ghost { background: transparent; color: #a3341b; border: 2px solid #a3341b; padding: 10px 16px; }
+
+/* ---------- Break Room Arcade ---------- */
+.arc-tabs { display: flex; gap: 6px; padding: 10px 12px 0; flex-wrap: wrap; }
+.arc-tab { border: 1px solid var(--line); background: #fff; color: var(--ink); border-radius: 5px; padding: 6px 10px; font-weight: 700; font-size: 13px; }
+.arc-tab[aria-selected="true"] { background: var(--ink); color: #fff; border-color: var(--ink); }
+.arc-stage { padding: 10px 12px; }
+#arc-canvas { display: block; width: 100%; max-width: 100%; aspect-ratio: 3 / 2; border-radius: 6px; background: #1d2230; touch-action: none; cursor: pointer; }
+#arc-type { display: block; margin: 0 12px 8px; width: calc(100% - 24px); font-family: var(--font-mono); font-size: 15px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 5px; background: #fff; color: var(--ink); }
+.arc-info { padding: 0 12px 12px; font-size: 13px; color: var(--muted); line-height: 1.4; }
+
+/* ---------- Version 2: the 3D office floor ---------- */
+#world { position: fixed; inset: 0; z-index: 1; background: #2b2f3a; overflow: hidden; }
+#world canvas { display: block; width: 100%; height: 100%; touch-action: none; }
+#pc { position: fixed; inset: 0; z-index: 50; }
+#hud3d {
+  position: absolute; z-index: 3; pointer-events: none;
+  top: calc(12px + env(safe-area-inset-top, 0px)); left: max(16px, env(safe-area-inset-left, 0px)); right: max(16px, env(safe-area-inset-right, 0px));
+  display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; flex-wrap: wrap;
+}
+.chip { background: #0e131be0; color: #fff; border-radius: 6px; padding: 8px 12px; font-weight: 800; font-size: 13px; font-variant-numeric: tabular-nums; display: flex; gap: 14px; flex-wrap: wrap; box-shadow: 0 6px 18px #0006; }
+.chip .m { color: var(--money); } .chip .q { color: var(--warn); } .chip .r { color: #ff7b7f; }
+.chip.help { font-weight: 500; color: #cfd8e3; max-width: 340px; line-height: 1.4; display: block; }
+.chip.help b { color: #fff; }
+.chip.wobbly { background: #6b2fb3e0; }
+#prompt {
+  position: absolute; z-index: 3; left: 50%; transform: translateX(-50%); bottom: calc(40px + env(safe-area-inset-bottom, 0px));
+  background: #fff; color: var(--ink); padding: 10px 16px; border-radius: 6px; font-weight: 700; box-shadow: 0 10px 30px #0008;
+  display: flex; gap: 10px; align-items: center; white-space: nowrap; border: 0;
+}
+#prompt kbd { font-family: var(--font-mono); background: var(--ink); color: #fff; border-radius: 4px; padding: 2px 8px; }
+#bubbles { position: absolute; inset: 0; pointer-events: none; z-index: 2; overflow: hidden; }
+.say { position: absolute; transform: translate(-50%, -100%); background: #fff; color: #17202c; font-size: 13px; font-weight: 500; line-height: 1.35; padding: 6px 10px; border-radius: 10px; width: max-content; max-width: 220px; text-align: center; box-shadow: 0 4px 12px #0006; }
+.say::after { content: ""; position: absolute; left: 50%; bottom: -6px; margin-left: -6px; border: 6px solid transparent; border-bottom: 0; border-top-color: #fff; }
+.say.boss { background: #ffe1d6; } .say.boss::after { border-top-color: #ffe1d6; }
+.say.you { background: #fff3c4; } .say.you::after { border-top-color: #fff3c4; }
+#touch { display: none; }
+@media (pointer: coarse) {
+  #touch { display: block; }
+  #prompt { bottom: calc(160px + env(safe-area-inset-bottom, 0px)); }
+  #toasts { bottom: auto; top: calc(150px + env(safe-area-inset-top, 0px)); pointer-events: none; }
+}
+#joy { position: absolute; z-index: 3; left: max(24px, env(safe-area-inset-left, 0px)); bottom: calc(24px + env(safe-area-inset-bottom, 0px)); width: 124px; height: 124px; border-radius: 50%; background: #ffffff1f; border: 2px solid #ffffff55; touch-action: none; }
+#joy i { position: absolute; left: 50%; top: 50%; width: 52px; height: 52px; margin: -26px; border-radius: 50%; background: #ffffffb0; }
+.tbtn { position: absolute; z-index: 3; right: max(24px, env(safe-area-inset-right, 0px)); width: 70px; height: 70px; border-radius: 50%; border: 0; font-weight: 800; color: #fff; font-size: 15px; box-shadow: 0 6px 18px #0007; touch-action: none; }
+#t-act { bottom: calc(112px + env(safe-area-inset-bottom, 0px)); background: var(--accent); }
+#t-jump { bottom: calc(24px + env(safe-area-inset-bottom, 0px)); background: #1f9d55; }
+#fade { position: fixed; inset: 0; background: #05070b; opacity: 0; pointer-events: none; z-index: 60; transition: opacity .35s; }
+#no3d { position: absolute; inset: 0; display: grid; place-items: center; color: #cfd8e3; padding: 16px; text-align: center; }
+
+/* Phone-width: stack the windows, no dragging */
+@media (max-width: 760px) {
+  #pc { overflow: auto; }
+  #app { height: auto; min-height: 100%; }
+  #desktop { overflow: visible; padding: 12px 16px; display: grid; gap: 12px; align-content: start; }
+  #desktop::after, .icons { display: none; }
+  .win { position: static !important; width: auto !important; max-height: none; }
+  .titlebar { cursor: default; }
+  .hud { gap: 10px; }
+}
+</style>
+
+<div id="world" aria-label="The office floor">
+  <div id="bubbles"></div>
+  <div id="hud3d">
+    <div class="chip"><span class="m">PERSONAL <span id="h3-money">$0</span></span><span class="q">QUOTA <span id="h3-quota">$1,500</span></span><span class="r">SHIFT ENDS IN <span id="h3-left">10:00</span></span><span id="h3-time">9:00 AM</span><span>DAY <span id="h3-day">1</span></span></div>
+    <button class="chip mute" id="mute3d">Sound: on</button>
+    <div class="chip help" id="h3-help"><b>Walk to Desk 14</b> (the glowing chair) and sit down to start calling. <span id="h3-keys">WASD or arrows to walk, Space to jump, E to use.</span></div>
+  </div>
+  <button id="prompt" hidden><kbd>E</kbd><span id="prompt-text"></span></button>
+  <div id="touch">
+    <div id="joy" aria-label="Move"><i></i></div>
+    <button class="tbtn" id="t-act" aria-label="Use">USE</button>
+    <button class="tbtn" id="t-jump" aria-label="Jump">JUMP</button>
+  </div>
+</div>
+<div id="fade"></div>
+
+<div id="pc" hidden>
+<div id="app">
+  <main id="desktop" aria-label="Office computer desktop">
+    <nav class="icons" aria-label="Desktop apps"></nav>
+
+    <section class="win" id="win-list" aria-label="Call List">
+      <div class="titlebar"><span class="mini" data-glyph="list"></span><h2>Call List</h2><button class="min" aria-label="Minimize">&#8211;</button><button class="x" aria-label="Close">&#10005;</button></div>
+      <div class="win-body">
+        <div class="apphead"><span class="logo" data-glyph="list"></span><div><strong>Leads for today</strong><span>Each number answers once per shift.</span></div></div>
+        <div class="callers" id="callers"></div>
+      </div>
+    </section>
+
+    <section class="win" id="win-phone" aria-label="Phone">
+      <div class="titlebar"><span class="mini" data-glyph="phone"></span><h2>Phone</h2><button class="min" aria-label="Minimize">&#8211;</button><button class="x" aria-label="Close">&#10005;</button></div>
+      <div class="win-body" id="phone-body"></div>
+    </section>
+
+    <section class="win" id="win-script" aria-label="Script">
+      <div class="titlebar"><span class="mini" data-glyph="script"></span><h2>Script</h2><button class="min" aria-label="Minimize">&#8211;</button><button class="x" aria-label="Close">&#10005;</button></div>
+      <div class="win-body">
+        <div class="apphead"><span class="logo" data-glyph="script"></span><div><strong>Who are you today?</strong><span>Pick the company you pretend to call from.</span></div></div>
+        <div class="scams" id="scams" role="radiogroup" aria-label="Company"></div>
+        <div class="section-label">Talking points</div>
+        <ul class="points" id="points"></ul>
+      </div>
+    </section>
+
+    <section class="win" id="win-gift" aria-label="Cash Out">
+      <div class="titlebar"><span class="mini" data-glyph="gift"></span><h2>Cash Out</h2><button class="min" aria-label="Minimize">&#8211;</button><button class="x" aria-label="Close">&#10005;</button></div>
+      <div class="win-body">
+        <div class="apphead"><span class="logo" data-glyph="gift"></span><div><strong>Cash Out</strong><span>Gift cards, cash by mail, wires, crypto and bank transfers.</span></div></div>
+        <form class="redeem" id="redeem-form">
+          <label for="code-input">Code, tracking or account number</label>
+          <input id="code-input" autocomplete="off" spellcheck="false" placeholder="PICKLE-WIZARD-4821, MG-204718, NWB-4471-0093...">
+          <button class="btn green" type="submit">Cash out</button>
+          <div class="msg" id="redeem-msg" role="status"></div>
+        </form>
+        <div class="ledger" id="ledger"><div><span>Nothing cashed out yet.</span></div></div>
+      </div>
+    </section>
+
+    <section class="win" id="win-shop" aria-label="Office Shop" hidden>
+      <div class="titlebar"><span class="mini" data-glyph="shop"></span><h2>Office Shop</h2><button class="min" aria-label="Minimize">&#8211;</button><button class="x" aria-label="Close">&#10005;</button></div>
+      <div class="win-body">
+        <div class="apphead"><span class="logo" data-glyph="shop"></span><div><strong>Office Shop</strong><span>Paid from your bank. Upgrades are yours until you get fired.</span></div></div>
+        <div class="bankline">Bank: <b id="shop-bank">$0</b> <span>(money from shifts you survived)</span></div>
+        <div class="shop" id="shop"></div>
+      </div>
+    </section>
+
+    <section class="win" id="win-arcade" aria-label="Break Room Arcade" hidden>
+      <div class="titlebar"><span class="mini" data-glyph="game"></span><h2>Break Room Arcade</h2><button class="min" aria-label="Minimize">&#8211;</button><button class="x" aria-label="Close">&#10005;</button></div>
+      <div class="win-body">
+        <div class="arc-tabs" role="tablist" aria-label="Games">
+          <button class="arc-tab" role="tab" data-game="whack" aria-selected="false">Whack-a-Gristle</button>
+          <button class="arc-tab" role="tab" data-game="toss" aria-selected="false">Paper Toss</button>
+          <button class="arc-tab" role="tab" data-game="type" aria-selected="false">Script Speed</button>
+        </div>
+        <div class="arc-stage"><canvas id="arc-canvas" width="360" height="240" aria-label="Game screen"></canvas></div>
+        <input id="arc-type" autocomplete="off" spellcheck="false" placeholder="Type the line and press Enter" aria-label="Type the line" hidden>
+        <div class="arc-info" id="arc-info">Pick a game. If Mr. Gristle comes by, close this window fast.</div>
+      </div>
+    </section>
+  </main>
+
+  <footer id="taskbar">
+    <button class="tb-app" id="stand-up" aria-label="Stand up from your desk" title="Stand up from your desk"><span class="glyph" data-glyph="power"></span></button>
+    <button class="tb-app" id="mute" aria-label="Sound on or off" title="Sound on or off"><span class="glyph" data-glyph="sound"></span></button>
+    <div id="tb-apps" style="display:flex;gap:4px"></div>
+    <div class="hud">
+      <div>
+        <div class="m">PERSONAL <span id="hud-money">$0</span></div>
+        <div class="q">QUOTA <span id="hud-quota">$1,500</span></div>
+        <div class="r">SHIFT ENDS IN <span id="hud-left">10:00</span></div>
+      </div>
+      <div class="clock"><b id="hud-time">9:00 AM</b><span id="hud-date">Day 1</span></div>
+    </div>
+  </footer>
+</div>
+</div>
+
+<div id="toasts" aria-live="polite"></div>
+
+<div class="overlay" id="intro">
+  <div class="card">
+    <div class="kicker" id="intro-kicker">Totally Legit Solutions LLC &middot; Floor 3, Desk 14</div>
+    <h1 id="intro-title">Day one on the phones</h1>
+    <p>Your manager, Mr. Gristle, wants <b id="intro-quota">$1,500</b> in gift cards by 5 PM. Hit the quota and you come back tomorrow with a higher one. Miss it and you're fired, and your save starts over. Everyone on your list has their own personality. They react to what you say, ask you questions, and decide whether they trust you.</p>
+    <ol>
+      <li>Walk to <b>Desk 14</b> and sit down. Arrows or WASD to walk, Space to jump, E to use things.</li>
+      <li>Call someone from the <b>Call List</b>. Say who you are and tell your story. <b>Script</b> has stories you can use.</li>
+      <li>They will doubt you. Answer each doubt properly, and keep your lies straight: they remember your name, company, ID and amounts.</li>
+      <li>Once they run out of questions, ask them to pay. The more convinced they are, the better the method they accept: <b>cash by mail</b> and <b>gift cards</b> are easy, a <b>MoneyGlam wire</b> or <b>crypto</b> pays more, <b>bank details</b> pay the most.</li>
+      <li>Type the code into <b>Cash Out</b> to get paid. On a break? Try the <b>Arcade</b>, but watch out for Mr. Gristle.</li>
+    </ol>
+    <p class="fine">Tip: coworkers at the water cooler know what each caller likes. The mic button works in Chrome and Edge.</p>
+    <p class="fine" id="intro-bank"></p>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+      <button class="btn" id="clock-in">Clock in</button>
+      <button class="btn ghost" id="reset-save" hidden>Start over at Day 1</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="report" hidden>
+  <div class="card">
+    <div class="kicker" id="rep-kicker">End of shift report</div>
+    <h1 id="rep-title">Shift over</h1>
+    <p id="rep-text"></p>
+    <div class="stats">
+      <div><b id="rep-money">$0</b><span>Earned</span></div>
+      <div><b id="rep-calls">0</b><span>Calls made</span></div>
+      <div><b id="rep-best">-</b><span>Best call</span></div>
+    </div>
+    <button class="btn" id="again">Work another shift</button>
+  </div>
+</div>
+
+<script>
+// ---------- Icons ----------
+const GLYPHS = {
+  phone: ['#1f9d55', '<path fill="#fff" d="M6.6 10.8a15 15 0 0 0 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1A17 17 0 0 1 3 4c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1z"/>'],
+  list: ['#2f6fe4', '<path fill="#fff" d="M4 5h3v3H4zm5 .5h11v2H9zM4 10.5h3v3H4zm5 .5h11v2H9zM4 16h3v3H4zm5 .5h11v2H9z"/>'],
+  script: ['#7a4fd6', '<path fill="#fff" d="M6 3h9l4 4v14H6zm8 1.5V8h3.5zM8.5 11h8v1.6h-8zm0 3h8v1.6h-8zm0 3h5v1.6h-5z"/>'],
+  gift: ['#e07a1f', '<path fill="#fff" d="M4 9h16v4H4zm1 5h6v7H5zm8 0h6v7h-6zM11 9h2v12h-2zM12 8c-1-3-5-4-5-1.5S10 8 12 8zm0 0c1-3 5-4 5-1.5S14 8 12 8z"/>'],
+  mic: ['', '<path fill="currentColor" d="M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.9V21h2v-2.1a7 7 0 0 0 6-6.9z"/>'],
+  speaker: ['', '<path fill="currentColor" d="M4 9v6h4l5 4V5L8 9zm12.5 3A4.5 4.5 0 0 0 14 8v8a4.5 4.5 0 0 0 2.5-4zM14 3.2v2.1a7 7 0 0 1 0 13.4v2.1a9 9 0 0 0 0-17.6z"/>'],
+  sound: ['#3a4452', '<path fill="#fff" d="M4 9v6h4l5 4V5L8 9zm12.5 3A4.5 4.5 0 0 0 14 8v8a4.5 4.5 0 0 0 2.5-4z"/>'],
+  shop: ['#0f8b8d', '<path fill="#fff" d="M3 4h2.2l2.5 10.4c.2.9 1 1.6 2 1.6H18v-2h-8.3l-.3-1.3H18.6L21 6H6.7l-.5-2zM10 21a1.6 1.6 0 1 0 0-3.2 1.6 1.6 0 0 0 0 3.2zm7 0a1.6 1.6 0 1 0 0-3.2 1.6 1.6 0 0 0 0 3.2z"/>'],
+  game: ['#d9480f', '<path fill="#fff" d="M7 8h10a5 5 0 0 1 4.9 6l-.6 3a2.5 2.5 0 0 1-4.3 1.2L15 16H9l-2 2.2A2.5 2.5 0 0 1 2.7 17l-.6-3A5 5 0 0 1 7 8zm0 2.5V12H5.5v1.5H7V15h1.5v-1.5H10V12H8.5v-1.5zm9.5 1a1 1 0 1 0 0 2 1 1 0 0 0 0-2zm2 2a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/>'],
+  power: ['#c0392b', '<path fill="#fff" d="M11 3h2v9h-2zM7.05 5.64l1.41 1.41A6 6 0 1 0 15.54 7.05l1.41-1.41A8 8 0 1 1 7.05 5.64z"/>'],
+};
+const svg = (name) => `<svg viewBox="0 0 24 24" aria-hidden="true">${GLYPHS[name][1]}</svg>`;
+function paintGlyph(el, name) { el.style.background = GLYPHS[name][0]; el.innerHTML = svg(name); }
+document.querySelectorAll('[data-glyph]').forEach(el => paintGlyph(el, el.dataset.glyph));
+
+// ---------- Data ----------
+const SCAMS = [
+  { id: 'micromoft', name: 'Micromoft Tech Support', pitch: 'Their computer has "9,000 viruses" and needs a Premium Virus Cleanse.',
+    points: ['"Hello, this is Steve from Micromoft, your computer is calling us about errors."', 'Mention a scary but meaningless number of viruses.', 'Offer the Premium Virus Cleanse, paid in gift cards.'] },
+  { id: 'amazoon', name: 'Amazoon Refund Desk', pitch: 'Amazoon "accidentally refunded" them $40,000 and they must send some back.',
+    points: ['Thank them for being a loyal Amazoon shopper.', 'Panic a little about the accidental refund. Your job is on the line!', 'They only need to send back a small part with a gift card.'] },
+  { id: 'warranty', name: 'Extended Car Warranty Dept.', pitch: 'Their car warranty is about to expire, even if they have no car.',
+    points: ['"We have been trying to reach you about your car\'s extended warranty."', 'If they have no car, insist the warranty covers future cars too.', 'Lock in the Platinum Wheel Plan today for a small gift card.'] },
+  { id: 'taxes', name: 'Dept. of Taxes & Stuff', pitch: 'They owe back taxes on their pet, houseplant or sandwich.',
+    points: ['Sound very official. Read a made-up form number.', 'Explain the Pet Ownership Tax of 1987.', 'Settle the debt today with gift cards to avoid "light jail".'] },
+  { id: 'lottery', name: 'Royal Lottery of Nowhereland', pitch: 'They won a castle in Nowhereland, minus a small shipping fee.',
+    points: ['Congratulate them like they won the World Cup.', 'Describe the castle. Make it sound amazing.', 'The castle only ships after a small gift card fee.'] },
+  { id: 'netflux', name: 'Netflux Account Team', pitch: 'Their Netflux account will be "cancelled forever" unless they renew today.',
+    points: ['Say their favorite show is about to disappear forever.', 'Name a fake show they surely love, like "Cooking with Ghosts".', 'Renewing costs one small gift card.'] },
+  { id: 'moon', name: 'Moon Real Estate Co.', pitch: 'They can buy a plot of land on the Moon, with a great view of Earth.',
+    points: ['Describe the view of Earth from their future moon house.', 'Explain there are almost no neighbors. Very quiet.', 'Reserve the plot with a gift card deposit.'] },
+  { id: 'pizza', name: 'Pizza Insurance Bureau', pitch: 'Their pizzas are uninsured. What if one arrives cold?',
+    points: ['Ask how many pizzas they eat per week. Gasp at the number.', 'Tell a sad story about an uninsured cold pizza.', 'The Gold Crust Plan costs one gift card.'] },
+];
+
+const CALLERS = [
+  { id: 'doris', name: 'Doris Pemberton', age: 78, blurb: 'Retired piano teacher. Sweet, but hears every third word.', wealth: 450, type: 'normal',
+    persona: 'A kind retired piano teacher who is hard of hearing and often mishears words in funny ways. Talks a lot about her cat Mr. Biscuits. Trusting, but gets confused easily and asks people to repeat themselves. Warms up fast to polite, patient people.',
+    greet: 'Hello? Who is this? Speak up dear, Mr. Biscuits is purring.', look: { skin: '#f1c9a5', hair: '#d8d8e0', style: 'bun', glasses: true }, voice: { pitch: 1.4, rate: .85 } },
+  { id: 'chad', name: 'Chad "Moonshot" Brennan', age: 29, blurb: 'Crypto bro. Respects confidence, hates boring people.', wealth: 900, type: 'normal',
+    persona: 'An arrogant crypto bro who thinks he is a genius investor. Uses words like "bro", "alpha" and "to the moon". Only respects confidence and hype. Gets bored fast and calls people "NPCs" if they are dull. Wants to feel like an insider.',
+    greet: 'Yo, Chad here. Make it quick, my token launches in ten minutes.', look: { skin: '#e8b48a', hair: '#e3b23c', style: 'spiky', glasses: false, shades: true }, voice: { pitch: 1.0, rate: 1.2 } },
+  { id: 'gerald', name: 'Gerald Fink', age: 64, blurb: 'Retired accountant. Asks for every detail twice.', wealth: 1200, type: 'normal',
+    persona: 'A paranoid, extremely detail-oriented retired accountant. Asks for employee IDs, department names and reference numbers, and notices contradictions. Hard to convince, but respects consistency, numbers and confident bureaucratic language. Rich.',
+    greet: 'Fink residence. Before you say anything, state your name and department.', look: { skin: '#d9a77e', hair: '#6e6e6e', style: 'bald', glasses: true }, voice: { pitch: .8, rate: .95 } },
+  { id: 'linda', name: 'Linda Moss', age: 52, blurb: 'Florist. Friendly, chatty, asks lots of questions.', wealth: 0, type: 'cop',
+    persona: 'Presents as Linda, a friendly 52-year-old florist. SECRETLY an undercover detective investigating fake call centers. Acts easily impressed, asks many questions about the company to gather evidence, and is happy to "pay" when asked so the payment can be traced. Never reveal the secret.',
+    greet: 'Moss Florals, Linda speaking! Oh, it\'s not about flowers? How exciting, go on.', look: { skin: '#b9825c', hair: '#3a2416', style: 'long', glasses: false }, voice: { pitch: 1.15, rate: 1.0 } },
+  { id: 'barty', name: 'Bartholomew "Barty" Quill', age: 45, blurb: 'Conspiracy fan. Trusts aliens more than companies.', wealth: 500, type: 'normal',
+    persona: 'A conspiracy theorist who believes in lizard people, moon bases and secret birds-are-drones plots. Distrusts big companies, but believes anything if it is linked to a cover-up or aliens. Talks in whispers and code words.',
+    greet: '*whispering* Who gave you this number? Are you with THEM?', look: { skin: '#f0c6a8', hair: '#8a5a2b', style: 'foil', glasses: false }, voice: { pitch: .9, rate: 1.1 } },
+  { id: 'mildred', name: 'Mildred Hargrove', age: 83, blurb: 'Grandma with lots of time and many stories.', wealth: 0, type: 'baiter',
+    persona: 'Seems like a sweet 83-year-old grandma. SECRETLY a professional time-waster who knows exactly what is going on and toys with callers. Tells long absurd stories, "can\'t find her glasses", invents relatives, pretends to go get her purse and comes back with soup. Never actually pays, and never sets pays to true. Stays friendly the whole time.',
+    greet: 'Oh, a phone call! How lovely. Hold on, let me turn down my radio... there we go. Who is this, sweetie?', look: { skin: '#f3d3bd', hair: '#efefef', style: 'curly', glasses: true }, voice: { pitch: 1.3, rate: .8 } },
+  { id: 'vincent', name: 'Vincent LaRue', age: 51, blurb: 'Failed stage magician. Wants to be famous.', wealth: 700, type: 'normal',
+    persona: 'A dramatic, failed stage magician who talks like he is always on stage. Craves fame and flattery. Easily won over by compliments about his magic, but furious if anyone calls magic fake.',
+    greet: 'You have reached... the Great Vincenzo! Speak, mortal, and be amazed.', look: { skin: '#e5b896', hair: '#141414', style: 'tophat', glasses: false }, voice: { pitch: .85, rate: .95 } },
+  // Version 3 callers: they show up from Day 2 on
+  { id: 'ingrid', name: 'Prof. Ingrid Vale', age: 67, blurb: 'Retired physics professor. Corrects everyone.', wealth: 1000, type: 'normal',
+    greet: 'Professor Vale speaking. Be precise.', look: { skin: '#efc29b', hair: '#b0b0b8', style: 'bun', glasses: true }, voice: { pitch: 1.1, rate: 1.0 } },
+  { id: 'tex', name: 'Duke "Big Tex" Maddox', age: 58, blurb: 'Rich rancher. Loud, proud and impatient.', wealth: 1500, type: 'normal',
+    greet: 'Howdy! Big Tex here. Talk fast, partner.', look: { skin: '#e3a77a', hair: '#8a5a2b', style: 'cowboy', glasses: false }, voice: { pitch: .75, rate: 1.05 } },
+  { id: 'tyler', name: 'Tyler "xXSniperXx" Boone', age: 19, blurb: 'Gamer. Only respects people who game.', wealth: 300, type: 'normal',
+    greet: 'Yo, who is this? I am literally mid-match.', look: { skin: '#f2c7a0', hair: '#2e2e2e', style: 'cap', glasses: false }, voice: { pitch: 1.25, rate: 1.25 } },
+  { id: 'kevin', name: 'Kevin Stroud', age: 34, blurb: 'Works in "customer care". Sounds... familiar.', wealth: 0, type: 'rival',
+    greet: 'Hello, hello! Kevin here, how can I help you today?', look: { skin: '#e8b48a', hair: '#5a3a1a', style: 'short', glasses: false }, voice: { pitch: .95, rate: 1.15 } },
+  { id: 'coach', name: 'Coach Brad Hollister', age: 44, blurb: 'High school gym coach. Yells everything.', wealth: 600, type: 'normal',
+    greet: 'HOLLISTER HERE! Talk to me!', look: { skin: '#e8a87c', hair: '#c0392b', style: 'cap', glasses: false }, voice: { pitch: .92, rate: 1.1 } },
+  { id: 'penelope', name: 'Lady Penelope Ashworth', age: 70, blurb: 'Very rich. Very posh. Very bored.', wealth: 2000, type: 'normal',
+    greet: 'Ashworth Manor. The butler is out, so you get me.', look: { skin: '#f3d5c0', hair: '#e8e2d0', style: 'bun', glasses: true }, voice: { pitch: 1.04, rate: .94 } },
+  { id: 'helen', name: 'Dr. Helen Park', age: 52, blurb: 'Busy dentist. Has a patient in the chair.', wealth: 1400, type: 'normal',
+    greet: 'Dr. Park. Make it fast, I have someone numb in my chair.', look: { skin: '#efc9a4', hair: '#1c1c1c', style: 'long', glasses: true }, voice: { pitch: 1.04, rate: 1.08 } },
+  { id: 'bobby', name: 'Bobby "Big Wheels" Romano', age: 38, blurb: 'Used car salesman. Knows every trick in the book.', wealth: 1100, type: 'normal',
+    greet: 'Romano Motors, where the deals are REAL! Whaddya need, pal?', look: { skin: '#deae84', hair: '#2a1a10', style: 'short', glasses: false }, voice: { pitch: .95, rate: 1.1 } },
+  { id: 'wendy', name: 'Wendy Plum', age: 33, blurb: 'Influencer. Everything is content.', wealth: 700, type: 'normal',
+    greet: 'Hiii, it is Wendy! Wait, are we live? Hold on.', look: { skin: '#f6cfb0', hair: '#e86fa8', style: 'long', glasses: false }, voice: { pitch: 1.1, rate: 1.08 } },
+  { id: 'hank', name: 'Sgt. Hank Boulder (ret.)', age: 66, blurb: 'Retired army sergeant. Demands respect.', wealth: 900, type: 'normal',
+    greet: 'Boulder speaking. Identify yourself!', look: { skin: '#d9a07a', hair: '#9a9a9a', style: 'bald', glasses: false }, voice: { pitch: .88, rate: 1.0 } },
+  { id: 'ziggy', name: 'Ziggy Starfield', age: 27, blurb: 'Night-shift DJ. Just woke up.', wealth: 250, type: 'normal',
+    greet: 'Mmmh... hello? Who... what time is it?', look: { skin: '#e6b48c', hair: '#6b2fb3', style: 'spiky', glasses: false }, voice: { pitch: .95, rate: .94 } },
+  { id: 'fiona', name: 'Fiona Quick', age: 40, blurb: 'Very interested in your company. Very.', wealth: 0, type: 'cop',
+    greet: 'Fiona speaking! Oh, a call center? Tell me everything.', look: { skin: '#f0c8a8', hair: '#b5651d', style: 'short', glasses: true }, voice: { pitch: 1.04, rate: 1.05 } },
+];
+// What happens when you cash out a trap caller's payment
+const TRAP_MSG = {
+  linda: '"Linda Moss" was an undercover detective! Legal fees: -$500. She asked a LOT of questions, did she not?',
+  fiona: '"Fiona Quick" was a TV reporter doing a hidden-camera story! You are on the evening news. Lawyer fees: -$500.',
+};
+// What the Caller Notes Binder says about each caller
+const TIPS = {
+  doris: 'Few questions. Worried about her pension. Scared of threats. Bank details are possible.',
+  chad: 'Wants to know what is in it for him. Talk money.',
+  gerald: 'Many questions. Have an employee ID and case number ready, and never change them.',
+  linda: 'Suspiciously easy. Wants to know where your office is...',
+  barty: 'Will ask if you are with the government. Say no.',
+  mildred: 'Agrees with everything. Has never paid anyone, ever.',
+  vincent: 'Will ask if you know who he is. You do. He is famous.',
+  ingrid: 'Many questions. Wants evidence: data, scans, reports.',
+  tex: 'Wants you to get to the point. Pays big by bank.',
+  tyler: 'Thinks it is a prank. Not rich.',
+  kevin: 'Pays instantly. Ask yourself why.',
+  coach: 'In a hurry. Tell him it is quick. Never call him slow.',
+  penelope: 'Richest caller. Will ask who your boss is. Likes wires and bank transfers.',
+  helen: 'Busy. Get to the story fast. Knows what crypto is.',
+  bobby: 'A salesman himself. Asks "what is the catch?" Say there is none.',
+  wendy: 'Wants content. Has crypto from sponsorships.',
+  hank: 'Wants your name and rank. Threats make him angry.',
+  ziggy: 'Half asleep. Easy, but broke. Pays in crypto.',
+  fiona: 'Asks how big your call center is. Hmm.',
+};
+CALLERS.forEach(c => c.tip = TIPS[c.id]);
+
+// ---------- State ----------
+// The save lives in this browser only (localStorage), so it works on GitHub Pages without a server
+const SAVE_KEY = 'totally-legit-save-v1';
+const newSave = () => ({ day: 1, bank: 0, owned: [], lifetime: 0, best: 0, mute: false });
+function loadSave() {
+  try { const s = JSON.parse(localStorage.getItem(SAVE_KEY)); if (s && s.day >= 1) return Object.assign(newSave(), s); } catch {}
+  return newSave();
+}
+function writeSave() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(SAVE)); } catch {} }
+let SAVE = loadSave();
+const has = id => SAVE.owned.includes(id);
+const quotaFor = day => 1000 + day * 500;
+
+let QUOTA = quotaFor(SAVE.day), SHIFT = 600; // seconds; both set again at each clock-in
+let S;
+function freshState() {
+  // Day 1 always gets the original seven; later days draw seven from everyone
+  const today = SAVE.day === 1 ? CALLERS.slice(0, 7) : shuffle(CALLERS).slice(0, 7);
+  return { money: 0, left: SHIFT, running: false, scam: SCAMS[0].id, done: {}, call: null, pending: [], ledger: [], calls: 0, best: null, warned: {},
+    today, events: [], doubleUntil: null, outageUntil: null, inspectAt: null };
+}
+S = freshState();
+
+let speakerOn = true;
+const $ = (id) => document.getElementById(id);
+const fmt = (n) => (n < 0 ? '-$' : '$') + Math.abs(n).toLocaleString('en-US');
+
+// ---------- Avatar ----------
+function avatar(look, mood = 'neutral') {
+  const { skin, hair, style, glasses, shades } = look;
+  const ink = '#1b1b1b';
+  let back = '', top = '';
+  if (style === 'long') back = `<path d="M18 52 Q16 92 30 94 L70 94 Q84 92 82 52 Q80 20 50 20 Q20 20 18 52z" fill="${hair}" stroke="${ink}" stroke-width="3"/>`;
+  if (style === 'bun') top = `<circle cx="50" cy="20" r="11" fill="${hair}" stroke="${ink}" stroke-width="3"/><path d="M22 50 Q22 26 50 26 Q78 26 78 50 Q66 36 50 36 Q34 36 22 50z" fill="${hair}" stroke="${ink}" stroke-width="3"/>`;
+  if (style === 'spiky') top = `<path d="M22 46 L26 22 L36 34 L42 16 L50 32 L58 14 L64 32 L74 20 L78 46 Q66 34 50 34 Q34 34 22 46z" fill="${hair}" stroke="${ink}" stroke-width="3" stroke-linejoin="round"/>`;
+  if (style === 'bald') top = `<path d="M21 56 Q20 44 26 40 M79 56 Q80 44 74 40" stroke="${hair}" stroke-width="7" fill="none" stroke-linecap="round"/>`;
+  if (style === 'curly') top = [28,38,50,62,72,22,78].map((x,i)=>`<circle cx="${x}" cy="${i>4?40:28+(i%2)*3}" r="10" fill="${hair}" stroke="${ink}" stroke-width="2.5"/>`).join('');
+  if (style === 'foil') top = `<path d="M24 40 L50 6 L76 40 Z" fill="#c9ced6" stroke="${ink}" stroke-width="3" stroke-linejoin="round"/><path d="M36 26 L46 30 M54 20 L62 28 M42 14 L50 18" stroke="#8d939c" stroke-width="2"/>`;
+  if (style === 'tophat') top = `<rect x="30" y="4" width="40" height="32" rx="3" fill="${hair}" stroke="${ink}" stroke-width="3"/><rect x="20" y="32" width="60" height="7" rx="3" fill="${hair}" stroke="${ink}" stroke-width="3"/><rect x="30" y="26" width="40" height="5" fill="#b3272d"/>`;
+  if (style === 'cowboy') top = `<path d="M30 30 Q30 8 50 8 Q70 8 70 30Z" fill="${hair}" stroke="${ink}" stroke-width="3"/><ellipse cx="50" cy="31" rx="42" ry="7" fill="${hair}" stroke="${ink}" stroke-width="3"/><rect x="31" y="23" width="38" height="5" fill="#3a2416"/>`;
+  if (style === 'cap') top = `<path d="M22 44 Q22 18 50 18 Q78 18 78 44Z" fill="#c0392b" stroke="${ink}" stroke-width="3"/><path d="M70 40 Q92 37 94 46 L70 46Z" fill="#c0392b" stroke="${ink}" stroke-width="3"/>`;
+  if (style === 'short') top = `<path d="M22 50 Q22 22 50 22 Q78 22 78 50 Q68 33 50 34 Q32 33 22 50z" fill="${hair}" stroke="${ink}" stroke-width="3"/>`;
+  const brows = {
+    happy: 'M34 44 Q40 40 46 44 M54 44 Q60 40 66 44',
+    neutral: 'M34 44 L46 44 M54 44 L66 44',
+    confused: 'M34 42 L46 46 M54 44 Q60 38 66 42',
+    suspicious: 'M34 46 L46 46 M54 41 L66 45',
+    angry: 'M34 41 L46 47 M54 47 L66 41',
+  }[mood] || 'M34 44 L46 44 M54 44 L66 44';
+  const mouth = {
+    happy: '<path d="M38 70 Q50 82 62 70" stroke="#1b1b1b" stroke-width="3.5" fill="#7a1f1f" stroke-linejoin="round"/>',
+    neutral: '<path d="M41 72 L59 72" stroke="#1b1b1b" stroke-width="3.5" stroke-linecap="round"/>',
+    confused: '<path d="M39 73 Q44 69 50 73 T61 72" stroke="#1b1b1b" stroke-width="3.5" fill="none" stroke-linecap="round"/>',
+    suspicious: '<path d="M44 73 L60 70" stroke="#1b1b1b" stroke-width="3.5" stroke-linecap="round"/>',
+    angry: '<path d="M38 76 Q50 64 62 76" stroke="#1b1b1b" stroke-width="3.5" fill="none" stroke-linecap="round"/>',
+  }[mood];
+  const eyes = shades
+    ? `<path d="M30 48 H70 V56 Q66 62 58 60 L52 54 H48 L42 60 Q34 62 30 56Z" fill="#111"/>`
+    : `<ellipse cx="40" cy="53" rx="5" ry="${mood==='suspicious'?2.5:5}" fill="#fff" stroke="${ink}" stroke-width="2"/><ellipse cx="60" cy="53" rx="5" ry="${mood==='suspicious'?2.5:5}" fill="#fff" stroke="${ink}" stroke-width="2"/><circle cx="${mood==='confused'?39:41}" cy="53" r="2.2" fill="${ink}"/><circle cx="${mood==='confused'?59:61}" cy="53" r="2.2" fill="${ink}"/>`;
+  const specs = glasses ? `<circle cx="40" cy="53" r="9" fill="none" stroke="${ink}" stroke-width="2.5"/><circle cx="60" cy="53" r="9" fill="none" stroke="${ink}" stroke-width="2.5"/><path d="M49 53 H51" stroke="${ink}" stroke-width="2.5"/>` : '';
+  const flush = mood === 'angry' ? `<circle cx="32" cy="64" r="5" fill="#e5484d55"/><circle cx="68" cy="64" r="5" fill="#e5484d55"/>` : mood === 'happy' ? `<circle cx="32" cy="64" r="5" fill="#ff8fa355"/><circle cx="68" cy="64" r="5" fill="#ff8fa355"/>` : '';
+  return `<svg viewBox="0 0 100 100" aria-hidden="true">${back}<ellipse cx="50" cy="56" rx="30" ry="32" fill="${skin}" stroke="${ink}" stroke-width="3"/><path d="M48 58 Q46 64 51 65" stroke="${ink}" stroke-width="2" fill="none"/>${top}<path d="${brows}" stroke="${ink}" stroke-width="3" fill="none" stroke-linecap="round"/>${eyes}${specs}${flush}${mouth}</svg>`;
+}
+
+// ---------- Windows ----------
+const desk = $('desktop');
+const WINS = [
+  { id: 'win-list', name: 'Call List', glyph: 'list' },
+  { id: 'win-phone', name: 'Phone', glyph: 'phone' },
+  { id: 'win-script', name: 'Script', glyph: 'script' },
+  { id: 'win-gift', name: 'Cash Out', glyph: 'gift' },
+  { id: 'win-shop', name: 'Shop', glyph: 'shop' },
+  { id: 'win-arcade', name: 'Arcade', glyph: 'game' },
+];
+const isMobile = () => matchMedia('(max-width: 760px)').matches;
+let zTop = 10;
+function focusWin(w) { w.style.zIndex = ++zTop; }
+function openWin(id) { const w = $(id); w.hidden = false; focusWin(w); syncTaskbar(); if (isMobile()) w.scrollIntoView({ behavior: 'smooth', block: 'start' }); if (id === 'win-arcade') arcWake(); }
+function toggleWin(id) { const w = $(id); if (w.hidden) openWin(id); else if (+w.style.zIndex === zTop) { w.hidden = true; syncTaskbar(); } else focusWin(w); }
+function syncTaskbar() { WINS.forEach(w => document.querySelector(`[data-tb="${w.id}"]`).classList.toggle('open', !$(w.id).hidden)); }
+
+WINS.forEach(w => {
+  const ic = document.createElement('button');
+  ic.className = 'icon'; ic.innerHTML = `<span class="glyph"></span>${w.name}`;
+  paintGlyph(ic.querySelector('.glyph'), w.glyph);
+  ic.addEventListener('dblclick', () => openWin(w.id));
+  ic.addEventListener('click', () => openWin(w.id));
+  document.querySelector('.icons').append(ic);
+
+  const tb = document.createElement('button');
+  tb.className = 'tb-app'; tb.dataset.tb = w.id; tb.setAttribute('aria-label', w.name); tb.title = w.name;
+  tb.innerHTML = '<span class="glyph"></span>';
+  paintGlyph(tb.querySelector('.glyph'), w.glyph);
+  tb.addEventListener('click', () => toggleWin(w.id));
+  $('tb-apps').append(tb);
+
+  const el = $(w.id);
+  el.querySelector('.min').addEventListener('click', () => { el.hidden = true; syncTaskbar(); });
+  el.querySelector('.x').addEventListener('click', () => { el.hidden = true; syncTaskbar(); });
+  el.addEventListener('pointerdown', () => focusWin(el));
+  const bar = el.querySelector('.titlebar');
+  bar.addEventListener('pointerdown', e => {
+    if (isMobile() || e.target.closest('button')) return;
+    const r = el.getBoundingClientRect(), d = desk.getBoundingClientRect();
+    const ox = e.clientX - r.left, oy = e.clientY - r.top;
+    bar.setPointerCapture(e.pointerId);
+    const move = ev => {
+      const x = Math.max(-r.width + 120, Math.min(d.width - 120, ev.clientX - d.left - ox));
+      const y = Math.max(0, Math.min(d.height - 40, ev.clientY - d.top - oy));
+      el.style.left = x + 'px'; el.style.top = y + 'px';
+    };
+    const up = () => { bar.removeEventListener('pointermove', move); bar.removeEventListener('pointerup', up); };
+    bar.addEventListener('pointermove', move); bar.addEventListener('pointerup', up);
+  });
+});
+
+function layout() {
+  if (isMobile()) return;
+  const W = desk.clientWidth;
+  const place = (id, x, y, w) => Object.assign($(id).style, { left: x + 'px', top: y + 'px', width: w + 'px' });
+  const listX = 108, phoneX = listX + 316, rightX = Math.min(phoneX + 386, Math.max(phoneX + 60, W - 340));
+  place('win-list', listX, 16, 300);
+  place('win-phone', phoneX, 16, 370);
+  place('win-script', rightX, 16, 324);
+  place('win-gift', rightX, 360, 324);
+  place('win-shop', phoneX + 30, 40, 380);
+  place('win-arcade', phoneX + 50, 60, 400);
+  $('win-gift').style.zIndex = ++zTop; $('win-phone').style.zIndex = ++zTop;
+}
+layout();
+syncTaskbar();
+
+// ---------- Script window ----------
+function renderScams() {
+  $('scams').innerHTML = '';
+  SCAMS.forEach(s => {
+    const l = document.createElement('label'); l.className = 'scam';
+    l.innerHTML = `<input type="radio" name="scam" id="scam-${s.id}" value="${s.id}" ${s.id === S.scam ? 'checked' : ''}><span><b></b><small></small></span>`;
+    l.querySelector('b').textContent = s.name; l.querySelector('small').textContent = s.pitch;
+    l.querySelector('input').addEventListener('change', () => { S.scam = s.id; renderPoints(); });
+    $('scams').append(l);
+  });
+  renderPoints();
+}
+function renderPoints() {
+  const s = SCAMS.find(x => x.id === S.scam);
+  $('points').innerHTML = '';
+  [...s.points, 'Once they stop asking questions, ask them to pay: cash by mail or a gift card (easy), a MoneyGlam wire or crypto (more), or bank details (most, only if fully convinced). Old folks do not have crypto.'].forEach(p => { const li = document.createElement('li'); li.textContent = p; $('points').append(li); });
+}
+
+// ---------- Call list ----------
+function renderCallers() {
+  $('callers').innerHTML = '';
+  S.today.forEach(c => {
+    const row = document.createElement('div'); row.className = 'caller';
+    const res = S.done[c.id];
+    row.innerHTML = `<div class="av">${avatar(c.look, res?.mood || 'neutral')}</div><div class="who"><b></b><small></small></div>`;
+    row.querySelector('b').textContent = `${c.name}, ${c.age}`;
+    row.querySelector('small').textContent = c.blurb;
+    if (has('binder') && c.tip) { const n = document.createElement('span'); n.className = 'note'; n.textContent = 'Notes: ' + c.tip; row.querySelector('.who').append(n); }
+    if (res) { const t = document.createElement('span'); t.className = 'tag ' + res.cls; t.textContent = res.label; row.querySelector('.who').append(t); }
+    const b = document.createElement('button'); b.className = 'btn green'; b.textContent = 'Call';
+    b.disabled = !!res || !!S.call || !S.running;
+    b.addEventListener('click', () => startCall(c));
+    row.append(b);
+    $('callers').append(row);
+  });
+}
+
+// ---------- Phone ----------
+function renderPhoneIdle(msg) {
+  $('phone-body').innerHTML = `<div class="panel idle"><b>No active call</b>${msg || 'Call someone from the Call List. Say who you are, tell your story, handle their doubts, then ask them to pay.'}</div>`;
+}
+
+function renderPhoneCall() {
+  const c = S.call.caller;
+  $('phone-body').innerHTML = `
+    <div class="panel portrait"><h3></h3><div class="stage" id="p-face"></div><div class="wave" id="p-wave">${'<i></i>'.repeat(28)}</div><div class="status" id="p-status">Dialing...</div></div>
+    <div class="panel"><div class="chat" id="p-chat" aria-live="polite"></div>
+      <form class="composer" id="p-form"><input id="p-input" placeholder="Say something..." autocomplete="off" aria-label="What you say"><button class="btn" type="submit">Say</button></form></div>
+    <div class="controls"><button class="btn red" id="p-hang">Hang Up</button>
+      <button class="sq ${speakerOn ? '' : 'off'}" id="p-spk" aria-label="Caller voice on or off" title="Caller voice">${svg('speaker')}</button>
+      <button class="sq ${mic.on ? 'live' : ''}" id="p-mic" aria-label="Open mic on or off" title="Open mic: talk without clicking">${svg('mic')}</button></div>`;
+  $('phone-body').querySelector('h3').textContent = c.name;
+  $('p-form').addEventListener('submit', e => { e.preventDefault(); const v = $('p-input').value.trim(); if (v) { $('p-input').value = ''; playerSay(v); } });
+  $('p-hang').addEventListener('click', () => endCall('you'));
+  $('p-spk').addEventListener('click', () => { speakerOn = !speakerOn; $('p-spk').classList.toggle('off', !speakerOn); if (!speakerOn) speechSynthesis?.cancel(); });
+  $('p-mic').addEventListener('click', toggleMic);
+  updateFace();
+}
+function updateFace() {
+  const call = S.call; if (!call) return;
+  $('p-face').innerHTML = avatar(call.caller.look, call.mood);
+}
+
+const PAY_RX = /(NWB-\d{4}-\d{4}|MAIL-\d{5}|MG-\d{6}|CRY-[0-9A-F]{4}-[0-9A-F]{4}|[A-Z]+-[A-Z]+-\d{3,4})/g;
+function bubble(who, text, name) {
+  const chat = $('p-chat'); if (!chat) return;
+  const b = document.createElement('div'); b.className = 'bubble ' + who;
+  if (name) { const n = document.createElement('span'); n.className = 'n'; n.textContent = name; b.append(n, document.createElement('br')); }
+  // highlight gift card codes and bank accounts
+  text.split(PAY_RX).forEach((p, i) => { if (i % 2) { const c = document.createElement('code'); c.textContent = p; b.append(c); } else b.append(document.createTextNode(p)); });
+  chat.append(b); chat.scrollTop = chat.scrollHeight;
+}
+function setStatus(t) { const s = $('p-status'); if (s) s.textContent = t; }
+
+let waveTimer = null;
+function wave(on) {
+  clearInterval(waveTimer);
+  const bars = document.querySelectorAll('#p-wave i');
+  if (!on) { bars.forEach(b => b.style.height = '2px'); return; }
+  waveTimer = setInterval(() => bars.forEach(b => b.style.height = (2 + Math.random() * 16) + 'px'), 120);
+}
+
+// ---------- Caller voices ----------
+// Pick the best English voice the browser has (Edge "Natural" and Google voices sound far less robotic),
+// keep pitch and speed close to normal, and rewrite words that voices mispronounce.
+const FEMALE = new Set(['doris', 'linda', 'mildred', 'ingrid', 'penelope', 'helen', 'wendy', 'fiona']);
+const F_VOICE = /aria|jenny|zira|samantha|libby|sonia|emma|ava|michelle|susan|hazel|karen|moira|tessa|female|natasha|clara|jane|sara|google us english|victoria|allison/i;
+const M_VOICE = /guy|david|mark|ryan|daniel|christopher|eric|brian|andrew|george|james|alex\b|fred|\bmale|thomas|william|roger|steffan|davis|tony/i;
+let VOICES = [];
+function loadVoices() { try { VOICES = speechSynthesis.getVoices().filter(v => /^en/i.test(v.lang)); } catch { VOICES = []; } }
+if ('speechSynthesis' in window) { loadVoices(); speechSynthesis.addEventListener?.('voiceschanged', loadVoices); }
+function voiceFor(c) {
+  if (!VOICES.length) return null;
+  const quality = v => (/natural|neural|online|premium|enhanced/i.test(v.name) ? 4 : 0) + (/google/i.test(v.name) ? 2 : 0) + (/en-(us|gb)/i.test(v.lang) ? 1 : 0);
+  let pool = VOICES.filter(v => (FEMALE.has(c.id) ? F_VOICE : M_VOICE).test(v.name) && !(FEMALE.has(c.id) ? /male/i.test(v.name.replace(/female/i, '')) : /female/i.test(v.name)));
+  if (!pool.length) pool = VOICES;
+  const best = Math.max(...pool.map(quality));
+  const top = pool.filter(v => quality(v) === best);
+  return top[[...c.id].reduce((s, ch) => s + ch.charCodeAt(0), 0) % top.length]; // callers spread over the best voices
+}
+const spell = d => d.split('').join(' ');
+function speakable(text) {
+  return text.replace(/\*[^*]+\*/g, '')
+    .replace(/([A-Z]+)-([A-Z]+)-(\d{3,4})/g, (m, a, b, d) => `${a.toLowerCase()}, ${b.toLowerCase()}, ${spell(d)}`)
+    .replace(/NWB-(\d{4})-(\d{4})/g, (m, a, b) => `N. W. B., ${spell(a)}, ${spell(b)}`)
+    .replace(/\b(MAIL|MG|CRY)-([0-9A-F-]+)/g, (m, p, rest) => `${p === 'MAIL' ? 'mail' : spell(p)}, ${rest.split('-').map(spell).join(', ')}`)
+    .replace(/Micromoft/gi, 'Micro-moft').replace(/Amazoon/gi, 'Amma-zoon').replace(/Netflux/gi, 'Net-flux').replace(/Nowhereland/gi, 'Nowhere-land')
+    .replace(/\bDept\./g, 'Department').replace(/\bProf\./g, 'Professor').replace(/\blol\b/gi, 'ha ha').replace(/\bGG\b/g, 'good game')
+    .replace(/\bxXSniperXx\b/g, 'Sniper').replace(/\bID\b/g, 'I.D.').replace(/\bFUD\b/g, 'fud').replace(/\.\.\./g, ', ')
+    .replace(/\s+/g, ' ').trim();
+}
+let speakingUntil = 0; // the open mic ignores what it hears while the caller talks
+let callerWords = new Set(); // ...and anything that sounds like the caller's last lines (speaker echo)
+function speak(text, c) {
+  speakingUntil = Date.now() + Math.min(12000, 800 + text.length * 70);
+  callerWords = new Set([...(text.toLowerCase().match(/[a-z']+/g) || []), ...[...callerWords].slice(-40)]);
+  if (!speakerOn || !('speechSynthesis' in window)) { speakingUntil = 0; wave(true); setTimeout(() => wave(false), Math.min(4000, 600 + text.length * 30)); return; }
+  micPause();
+  try {
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(speakable(text));
+    const v = voiceFor(c); if (v) { u.voice = v; u.lang = v.lang; }
+    u.pitch = Math.max(0.88, Math.min(1.12, c.voice.pitch));
+    u.rate = Math.max(0.92, Math.min(1.1, c.voice.rate));
+    u.onstart = () => wave(true);
+    u.onend = u.onerror = () => { wave(false); speakingUntil = Date.now() + 900; setTimeout(micResume, 700); };
+    speechSynthesis.speak(u);
+  } catch { wave(false); speakingUntil = 0; micResume(); }
+}
+
+function startCall(c) {
+  if (S.call || !S.running) return;
+  if (isOutage()) { toast('System', 'The phone lines are down. Try again in a few seconds.', 'bad'); SFX.error(); return; }
+  S.call = { caller: c, mood: 'neutral', turns: [], busy: true, over: false, paid: null, con: newCon(c) };
+  S.calls++;
+  SFX.ring(); SFX.duck(true);
+  openWin('win-phone');
+  renderPhoneCall(); renderCallers();
+  bubble('sys', 'Ringing... Tell them who you are and why you are calling.');
+  setTimeout(() => {
+    if (!S.call || S.call.caller !== c) return;
+    setStatus('Connected'); SFX.connect();
+    S.call.turns.push({ who: 'them', text: c.greet });
+    bubble('them', c.greet, c.name); speak(c.greet, c);
+    S.call.busy = false; if (!mic.on) $('p-input')?.focus();
+  }, 1400);
+}
+
+async function playerSay(text) {
+  const call = S.call; if (!call || call.busy || call.over) return;
+  call.turns.push({ who: 'you', text });
+  bubble('you', text, 'You');
+  call.busy = true;
+  const typing = document.createElement('div'); typing.className = 'typing'; typing.textContent = `${call.caller.name.split(' ')[0]} is thinking...`;
+  $('p-chat').append(typing); $('p-chat').scrollTop = 1e6;
+  setStatus('Listening...');
+  await new Promise(res => setTimeout(res, 500 + Math.random() * 700));
+  const r = con(call, text);
+  typing.remove();
+  if (S.call !== call) return;
+  applyReply(call, r);
+}
+
+// ---------- The con ----------
+// No trust meter. The caller has doubts and asks about them one at a time. Answer each doubt in a way that
+// actually addresses it, keep your lies consistent (they remember your name, company, ID and amounts), and only
+// then ask for money. Dodging, contradicting yourself or being rude makes them suspicious, and they hang up.
+const SCAM_KW = {
+  micromoft: /virus\w*|computer|windows|hack\w*|error\w*|\bpc\b|laptop|malware|infected|screen|files?/,
+  amazoon: /refund\w*|order\w*|package|charged?|purchase\w*|shopping|delivery|overpaid|too much/,
+  warranty: /warrant\w*|\bcar\b|vehicle|coverage|engine|wheels?|expir\w*/,
+  taxes: /tax\w*|\bowe\b|debt|back taxes|fine\b|penalt\w*|hamster|unpaid/,
+  lottery: /lottery|\bwon\b|winner|prize|castle|jackpot|congratulat\w*|lucky/,
+  netflux: /\bshows?\b|series|movies?|stream\w*|subscription|cancel\w*|renew\w*|episodes?/,
+  moon: /\bmoon\b|lunar|\bplot\b|\bland\b|property|crater|outer space|astronaut/,
+  pizza: /pizzas?|insur\w*|slices?|pepperoni|crust|toppings?/,
+};
+SCAMS.forEach(s => s.kw = SCAM_KW[s.id]);
+const SCAMS_BY = Object.fromEntries(SCAMS.map(s => [s.id, s]));
+const SCAM_NAMES = {
+  micromoft: /micromoft|microsoft/, amazoon: /amazoon|amazon/, warranty: /warranty (dept|department|team)|extended (car )?warranty/,
+  taxes: /taxes (and|&) stuff|tax (office|department|dept|agency)|\birs\b/, lottery: /lottery|nowhereland/, netflux: /netflux|netflix/,
+  moon: /moon real estate/, pizza: /pizza insurance/,
+};
+const C_RX = {
+  rude: /\b(stupid|idiot|dumb|shut up|moron|loser|ugly|hate you|fool|clown|useless|dummy|trash)\b/,
+  verify: /\b(employee|badge|id|reference|case|ticket|official|department|authori[sz]ed|certified|registered|licen[sc]ed?|supervisor|manager|records?|file|website|email)\b|\d{3,}/,
+  reassure: /\b(understand|don't worry|do not worry|careful|smart|protect\w*|safe|legit\w*|real|genuine|official|promise|guarantee|honest\w*|trust|right to|no risk|nothing to worry)\b/,
+  reason: /\b(because|since|so that|urgent|today|expir\w*|deadline|security|policy|system|automatic\w*|flagged|protect\w*|before|otherwise|or else|required|procedure|rules?|faster|quicker)\b/,
+  deflect: /\b(line|queue|hold|closed?|expir\w*|today|direct|only|lose|can't|cannot|won't|reference|case|right now|too late|wait times?|disconnect\w*|transfer\w*|hours?|stay on)\b/,
+  deny: /\b(no|not|never|nope)\b/,
+  yes: /\b(yes|yeah|yep|sure|of course|absolutely|correct|definitely|indeed)\b/,
+  gift: /\b(gift ?cards?|itunes|steam card|store card|voucher)\b/,
+  bank: /\b(bank|account number|account details|bank details|routing|iban|sort code|bank transfer)\b/,
+  crypto: /\b(crypto|bitcoin|btc|ethereum|crypto wallet|wallet|coins?)\b/,
+  wire: /\b(moneyglam|money ?gram|money ?glam|western union|wire( it| the money| transfer)?|money transfer)\b/,
+  mail: /\b(cash (in|by|through) (the )?mail|envelope|mail (it|the cash|me|cash)|send (me )?cash|birthday card|post (it|the cash))\b/,
+  pay: /\b(pay|payment|fee|send|deposit|money|dollars|charge|cost)\b/,
+  threat: /\b(police|jail|arrest\w*|prison|lawsuit|sue|fbi|court|warrant)\b/,
+};
+const NOTNAME = new Set(['from', 'calling', 'with', 'here', 'a', 'an', 'the', 'just', 'so', 'very', 'not', 'sorry', 'your', 'about', 'going', 'trying', 'really', 'sure', 'fine', 'good', 'okay', 'ok', 'happy', 'glad', 'afraid', 'on', 'in', 'at', 'to', 'for', 'customer', 'tech', 'support', 'agent', 'team', 'official', 'real', 'legit', 'only', 'still', 'also']);
+const cap = s => s[0].toUpperCase() + s.slice(1);
+
+const DOUBTS = {
+  micromoft: ['But my computer seems to work fine.', 'Really? My computer has been working fine.'],
+  amazoon: ['I do not remember getting any refund.', 'What refund? I never asked for a refund.'],
+  warranty: ['My car seems perfectly fine to me.', 'I never bought an extended warranty.'],
+  taxes: ['I always pay my taxes on time!', 'I do not owe anybody any taxes.'],
+  lottery: ['I never even bought a lottery ticket.', 'How can I win a lottery I never entered?'],
+  netflux: ['I barely even watch Netflux.', 'My Netflux works fine though.'],
+  moon: ['Can you even buy land on the Moon?', 'Is that even legal?'],
+  pizza: ['Who even insures a pizza?', 'Pizzas do not need insurance.'],
+};
+const HOOKS = {
+  micromoft: ['Viruses? On my computer?', 'Oh no. Is my computer broken?'],
+  amazoon: ['A refund? From {company}?', 'Wait. {company} sent me money?'],
+  warranty: ['My car warranty?', 'Expiring? Already?'],
+  taxes: ['Taxes? I owe taxes?', 'Oh no. The tax people?'],
+  lottery: ['I won? Me?', 'Wait, I actually won something?'],
+  netflux: ['My Netflux account?', 'Cancelled? My shows?'],
+  moon: ['Land on the Moon?', 'A plot on the Moon? Really?'],
+  pizza: ['Pizza insurance?', 'My pizzas are not insured?'],
+};
+const OBJ = {
+  who: { ask: ['Who is this?', 'Sorry, who did you say you are?'], ok: (f, k) => !!f.claims.company || f.introLike || !!f.claims.name },
+  why: { ask: ['Okay. What is this about?', 'And why are you calling me?'], ok: f => !!f.story },
+  doubt: { ask: k => DOUBTS[k.story], ok: f => (!!f.story && f.words >= 5) || ((f.reason || f.verify) && f.words >= 8) },
+  verify: { ask: ['How do I know you really work for {company}?', 'Can you prove you are from {company}?'], ok: f => f.verify },
+  name: { ask: ['What did you say your name was?', 'Give me your name and your employee number.'], ok: (f, k, t) => !!(f.claims.name || f.claims.empId || f.knownName || (k.claims.empId && t.includes(k.claims.empId.toLowerCase())) || (k.claims.name && f.words <= 3 && t.includes(k.claims.name.toLowerCase()))) },
+  amount: { ask: ['How much money are we talking about here?', 'And how much is it, exactly?'], ok: f => !!f.claims.amount },
+  callback: { ask: ['Can I hang up and call {company} back on the official number?', 'I think I will just call the number on the {company} website.'], ok: f => f.deflect },
+  family: { ask: ['My {relative} always says calls like this are scams.', 'My {relative} told me never to trust phone calls.'], ok: f => f.reassure || f.verify },
+  email: { ask: ['Why didn\'t {company} just send me an email?', 'Why a phone call? Nobody calls anymore.'], ok: f => f.reason || f.deflect },
+};
+
+// Shared lines; each persona overrides some of them in its own voice
+const LINES = {
+  accept: ['Okay, that makes sense, {addr}.', 'Alright. I suppose that sounds right.', 'Hm. Okay, fair enough.', 'Oh. Well, okay then.'],
+  dodge: ['That does not answer my question, {addr}.', 'You did not answer me.', 'Hm. That is not what I asked.'],
+  dodge2: ['I am asking you one more time.', 'Why are you avoiding my question?'],
+  answerQ: ['Uh, I guess so.', 'I do not know, you tell me.', 'Maybe? Why?'],
+  ready: ['Okay... so what do I need to do?', 'Alright. What happens now?', 'Fine. So how do we fix this?'],
+  waiting: ['So what do you need from me, {addr}?', 'Okay, and what do I have to do?'],
+  payEarly: ['Pay? Slow down. I still have questions.', 'Whoa, money already? Not so fast.'],
+  giftYes: ['Okay. I have a gift card here. The code is {code}.', 'Fine, I will use a gift card. It says {code}.'],
+  bankYes: ['Alright. My bank account is {acct}. Please be careful with it.', 'Okay, okay. The account number is {acct}.'],
+  bankNo: ['My bank details? No way. A gift card, maybe.', 'I am not giving a stranger my bank account. A gift card is the most I will do.'],
+  giftNo: ['No. I do not trust this enough to pay anything.', 'I am not paying you a single cent.'],
+  mailYes: ['Fine. I will tape cash inside a birthday card and mail it. The tracking number is {code}.', 'Okay, I will mail you an envelope of cash. Tracking number {code}.'],
+  wireYes: ['Okay, I sent it with MoneyGlam. The transfer number is {code}.', 'Done, I wired it. MoneyGlam number {code}.'],
+  cryptoYes: ['Fine, I sent the crypto. Transaction {code}.', 'Okay, crypto sent. The transaction is {code}.'],
+  cryptoNo: ['Crypto? I do not even know what that is. Would a gift card work?', 'I do not have any crypto. How about a gift card?'],
+  otherNo: ['I do not trust this enough for that. A gift card, maybe.', 'Hmm, no. A gift card is the most I will do.'],
+  stall: ['Hold on, let me find my purse...'],
+  rude: ['Excuse me?! Do not talk to me like that.', 'Wow. Rude.'],
+  caughtHang: ['You are lying to me. Goodbye.', 'I knew it. This is a scam.'],
+  angryHang: ['That is it. I am hanging up.', 'I have heard enough. Goodbye.'],
+  boredHang: ['This is taking forever. I have to go. Bye.'],
+  threatScared: ['Jail?! Oh no, please, I do not want any trouble!'],
+  threatAngry: ['Are you threatening me now? Unbelievable.'],
+  repeat: ['You already said that.', 'Why are you repeating yourself?'],
+  paidAlready: ['I already paid you! What more do you want?'],
+  bye: ['Okay. Goodbye then.'],
+};
+const PERSONA = {
+  doris: { addr: 'dear', skep: 15, relative: 'nephew', scared: true, bankLimit: 30,
+    special: { ask: 'Is this going to cost me anything, dear? I am on a pension.', ok: f => f.reassure || f.deny || !!f.claims.amount },
+    lines: { accept: ['Oh, that makes sense, dear.', 'Oh my. Well, alright, dear.', 'Oh good. You are very helpful, dear.'], dodge: ['Sorry dear, that does not answer my question.', 'Pardon? Could you answer what I asked, dear?'],
+      giftYes: ['Oh, I have a gift card from my birthday. Let me read it... {code}.'], bankYes: ['Let me find my checkbook... the account number is {acct}.'],
+      bankNo: ['Oh, my nephew says never give out my bank details, dear. Would a gift card do?'], rude: ['Well! My late husband Harold never spoke to me like that.'], caughtHang: ['Wait, that is not what you said before. I am calling my nephew. Goodbye.'] } },
+  chad: { addr: 'bro', skep: 35, relative: 'crypto mentor', bankLimit: 30,
+    special: { ask: 'Bro, what is in it for me?', ok: (f, k, t) => /money|refund|bonus|profit|win|free|save|rich|cash|gains/.test(t) },
+    lines: { accept: ['Okay bro, that tracks.', 'Fine. Valid.', 'Alright, bro. Keep going.'], dodge: ['Bro, that is not an answer.', 'Bro. Answer the question.'], payEarly: ['Bro, slow down. I still have questions.'],
+      giftYes: ['Fine, bro. Gift card from my last airdrop: {code}.'], bankYes: ['Bro, this better be legit. Account number {acct}.'], bankNo: ['Bro, my bank? Nah. Gift card, maybe.'],
+      caughtHang: ['Bro, you are literally lying. Blocked.'], rude: ['Bro, watch it.'] } },
+  gerald: { addr: 'sir', skep: 55, relative: 'accountant', accept: 8, bankLimit: 22,
+    special: { ask: 'State your employee ID and the case reference number.', ok: f => f.digits },
+    lines: { accept: ['Noted. That checks out.', 'Hm. Consistent. Continue.', 'I have written that down.'], dodge: ['That is not an answer. I am writing that down.'],
+      giftYes: ['Against my better judgment. Gift card code: {code}. I want a receipt.'], bankYes: ['Everything checks out. Account {acct}. I am noting the time of this call.'],
+      bankNo: ['Bank details over the phone? Absolutely not. A gift card at most.'], caughtHang: ['Your story does not add up. I am reporting this call.'] } },
+  linda: { addr: 'hon', skep: 5, relative: 'sister', bankLimit: 100,
+    special: { ask: 'And where exactly is your office located, hon?', ok: f => f.words >= 3 },
+    lines: { accept: ['Oh, interesting! Go on, I am taking notes.', 'Wow. And who else works with you there?', 'Uh huh. Very interesting.'],
+      giftYes: ['Of course, hon! The gift card code is {code}. Redeem it right away!'], bankYes: ['Sure thing! My account is {acct}. Use it soon, okay?'] } },
+  barty: { addr: '', skep: 40, relative: 'neighbor, who is definitely a spy,', bankLimit: 25,
+    special: { ask: 'Wait. Are you with the government?', ok: f => f.deny },
+    lines: { accept: ['Hm. That is exactly what I suspected.', 'Okay. That fits the pattern.'], dodge: ['Answer the question. Unless THEY told you not to.'],
+      giftYes: ['Untraceable gift card, here goes: {code}. Burn this call.'], bankYes: ['The banks are run by lizards, but fine. Account {acct}.'],
+      bankNo: ['The banks are watching. No account numbers. Gift card only.'], caughtHang: ['You are one of THEM. I knew it.'] } },
+  mildred: { addr: 'sweetie', skep: 10, relative: 'grandson Kevin', scared: true,
+    special: { ask: 'Hold on, which grandson are you?', ok: f => f.words >= 2 },
+    lines: { accept: ['Oh, how lovely. That reminds me of 1974...', 'Oh, that makes sense, sweetie. Did I tell you about my cousin Bernard?', 'Mm-hm, mm-hm. Hold on, the cat is in the fridge again.'],
+      stall: ['Of course! Let me get my purse... I found soup instead. Hold on.', 'A gift card? I have one somewhere... Is a library card okay?', 'Let me read the code: B... A... wait, that is my grocery list.', 'My bank? Let me find my glasses. They are on my head. Or in the soup.'] } },
+  vincent: { addr: 'mortal', skep: 25, relative: 'agent', bankLimit: 30,
+    special: { ask: 'Do you know who you are talking to?', ok: (f, k, t) => /vincenzo|great|magician|famous|magic|star|legend|of course|yes/.test(t) },
+    lines: { accept: ['Hmm. The cards foresaw this.', 'Very well. Continue, mortal.'], giftYes: ['Abracadabra! A gift card appears: {code}!'], bankYes: ['For my art, anything. Account {acct}. Ta-da.'],
+      bankNo: ['My bank details are a secret, like my tricks. Gift card instead.'], caughtHang: ['A fraud! I know a trick when I hear one!'] } },
+  ingrid: { addr: '', skep: 50, relative: 'former students', accept: 8, bankLimit: 22,
+    special: { ask: 'What evidence do you have, exactly?', ok: (f, k, t) => /data|evidence|report|log|scan|record|test|proof|screen/.test(t) || f.digits },
+    lines: { accept: ['Hm. The evidence is acceptable.', 'Fine. That is logically consistent.'], dodge: ['That is not an answer. That is noise.'],
+      giftYes: ['Very well. Gift card code: {code}. Peer reviewed by me.'], bankYes: ['Your argument holds up. Account {acct}.'], caughtHang: ['Your data contradicts itself. Goodbye.'] } },
+  tex: { addr: 'partner', skep: 35, relative: 'ranch hand', bankLimit: 40,
+    special: { ask: 'Get to the point, partner. What do you want?', ok: f => !!f.story || f.pay || f.gift || f.bank },
+    lines: { accept: ['Alright, partner. I hear ya.', 'Fair enough, partner.'], dodge: ['Quit dancin\' around, partner!'], giftYes: ['Got a gift card in the truck. {code}. Yeehaw.'],
+      bankYes: ['Big Tex pays big. Account {acct}, partner.'], bankNo: ['Nobody touches Big Tex\'s bank. Gift card, take it or leave it.'], caughtHang: ['You are lyin\' like a rug, partner. Goodbye.'] } },
+  tyler: { addr: 'bro', skep: 30, relative: 'mom', scared: true, bankLimit: 30,
+    special: { ask: 'Wait, is this a prank? Are you a streamer?', ok: (f, k, t) => f.deny || /real|serious|official/.test(t) },
+    lines: { accept: ['Ok fair.', 'Ok that is lowkey legit.'], dodge: ['Bro you are lagging. Answer the question.'], giftYes: ['Ugh, fine. It was for a skin. {code}.'],
+      bankYes: ['Uh, my mom set up my account. It is {acct}.'], bankNo: ['Bro I do not even know my bank stuff. Gift card?'], caughtHang: ['Bro you are trolling. Bye.'],
+      threatScared: ['Jail?! Bro, I am nineteen, please do not call my mom!'] } },
+  kevin: { addr: 'my friend', skep: 0, relative: 'boss', bankLimit: 100,
+    special: { ask: 'Do you, uh, also accept gift cards? I have loads.', ok: () => true },
+    lines: { accept: ['Yes, yes, of course. Totally.', 'Wow, I believe you completely!'], giftYes: ['Of course! The code is {code}. Redeem it right now, quickly!'],
+      bankYes: ['Sure! Account {acct}. Go ahead, transfer from it right away!'] } },
+  coach: { addr: 'champ', skep: 25, relative: 'assistant coach', bankLimit: 30,
+    special: { ask: 'Is this gonna take long? I got practice in ten!', ok: (f, k, t) => f.reassure || f.deny || /quick|fast|minute|seconds?|short/.test(t) },
+    lines: { accept: ['GOOD HUSTLE! Keep going!', 'Alright champ, I hear ya!'], dodge: ['That is not an answer, champ! Drop and give me a real one!'],
+      giftYes: ['Fine! Gift card from the team fundraiser: {code}!'], bankYes: ['TEAMWORK! Account {acct}!'], caughtHang: ['You fumbled the story, champ. GAME OVER!'], rude: ['HEY! Two laps for that mouth!'] } },
+  penelope: { addr: 'darling', skep: 40, relative: 'solicitor', bankLimit: 35,
+    special: { ask: 'And whom, precisely, do you report to?', ok: (f, k, t) => !!f.claims.name || f.verify || /manager|supervisor|boss|director|head of/.test(t) },
+    lines: { accept: ['How terribly interesting. Do go on.', 'Very well, darling.'], dodge: ['Darling, you did not answer me. How common.'],
+      giftYes: ['A gift card? How quaint. The butler bought one: {code}.'], bankYes: ['Oh, fine. Account {acct}. Do try not to spend it all on one yacht.'],
+      wireYes: ['I shall have it wired at once. The transfer number is {code}.'], cryptoNo: ['Crypto? Darling, I own racehorses, not internet coins. A wire, perhaps.'],
+      caughtHang: ['Your story is as cheap as your suit, I imagine. Good day.'] } },
+  helen: { addr: '', skep: 45, relative: 'receptionist', bankLimit: 28, crypto: true,
+    special: { ask: 'I have a patient in the chair. Thirty seconds. Why should I care?', ok: f => !!f.story || f.reason },
+    lines: { accept: ['Fine. Quickly.', 'Okay. Next.'], dodge: ['I asked a simple question. Open wide and answer it.'],
+      giftYes: ['Here. Gift card code {code}. Now let me drill in peace.'], bankYes: ['Account {acct}. Hurry, the numbing is wearing off.'],
+      caughtHang: ['That is not what you said before. Goodbye. Floss.'] } },
+  bobby: { addr: 'pal', skep: 55, relative: 'cousin Sal', bankLimit: 22, accept: 8, crypto: true,
+    special: { ask: 'I sell cars, pal. I know a pitch when I hear one. What is the catch?', ok: f => f.deny || f.reassure },
+    lines: { accept: ['Heh. Smooth. Real smooth.', 'Okay, okay, I like your style, pal.'], dodge: ['Classic dodge, pal. I invented that one.'],
+      giftYes: ['You are good, kid. Gift card: {code}. Ever want to sell cars, call me.'], bankYes: ['Respect. Account {acct}. Hustler to hustler.'],
+      caughtHang: ['Ha! You changed your story, pal. Amateur hour.'] } },
+  wendy: { addr: 'babe', skep: 20, relative: 'manager', bankLimit: 32, crypto: true,
+    special: { ask: 'Wait, can I post about this? Is it, like, content?', ok: f => f.words >= 2 },
+    lines: { accept: ['Omg okay, that makes sense.', 'Love that for me.'], dodge: ['Babe, you are not answering.'],
+      giftYes: ['Okay, gift card from a brand deal: {code}. Do not tell my followers.'], cryptoYes: ['I got paid in crypto for a sponsorship. Sending: {code}.'],
+      caughtHang: ['Wait, you are lying. I am posting about this. Bye!'] } },
+  hank: { addr: 'son', skep: 45, relative: 'old army buddy', bankLimit: 25,
+    special: { ask: 'State your full name and your rank, son!', ok: (f, k, t) => !!f.claims.name || f.verify || /officer|agent|rank|specialist|manager|senior/.test(t) },
+    lines: { accept: ['Acceptable. Carry on.', 'At ease. Continue.'], dodge: ['That is not an answer, son! Try again!'],
+      giftYes: ['Very well. Gift card code {code}. Dismissed.'], bankYes: ['Account {acct}. Do not make me regret this, son.'],
+      caughtHang: ['You changed your story, son. That is desertion. Goodbye!'], threatAngry: ['You threaten ME? I served thirty years, son!'] } },
+  ziggy: { addr: 'man', skep: 10, relative: 'roommate', bankLimit: 40, crypto: true, scared: true,
+    special: { ask: 'Wait... what time is it, man?', ok: f => f.words >= 1 },
+    lines: { accept: ['Whoa. Heavy, man.', 'Okay, okay. Cool. Cool cool.'], dodge: ['Huh? Sorry, I zoned out, man.'],
+      giftYes: ['I have a gift card from a gig... {code}. Can I go back to sleep now?'], cryptoYes: ['I got paid in crypto for a DJ set once. Sending... {code}.'],
+      caughtHang: ['Wait, that is not what you said... I am going back to sleep. Bye, man.'] } },
+  fiona: { addr: '', skep: 5, relative: 'editor', bankLimit: 100, crypto: true,
+    special: { ask: 'Fascinating. And how many people work at your call center?', ok: f => f.words >= 2 },
+    lines: { accept: ['Fascinating. Go on.', 'Oh, wow. And how long has your company been doing this?'],
+      giftYes: ['Of course! Here is a gift card: {code}. Please redeem it right away!'], bankYes: ['Sure! My account is {acct}. Use it today, okay?'] } },
+};
+['chad', 'tyler', 'kevin', 'ingrid', 'linda'].forEach(id => PERSONA[id].crypto = true);
+PERSONA.chad.lines.cryptoYes = ['Finally, someone who gets it. Sending it on-chain: {code}. To the moon.'];
+PERSONA.tyler.lines.cryptoYes = ['I have like three dollars of crypto but okay. {code}.'];
+PERSONA.doris.lines.mailYes = ['I will put the cash in a birthday card, dear. The tracking number is {code}.'];
+PERSONA.tex.lines.wireYes = ['Wired it from the ranch account. Transfer number {code}, partner.'];
+
+// How each payment method works: how convinced they must be, and how much it pays
+const PAY_METHODS = {
+  gift: { label: 'gift card', limit: () => 69, code: () => makeCode() },
+  mail: { label: 'cash by mail', mult: 0.85, limit: () => 59, code: () => `MAIL-${10000 + Math.floor(Math.random() * 90000)}` },
+  wire: { label: 'MoneyGlam wire', mult: 1.3, limit: l => l + 15, code: () => `MG-${100000 + Math.floor(Math.random() * 900000)}` },
+  crypto: { label: 'crypto', mult: 1.45, limit: l => l + 10, code: () => { const h = () => Math.floor(Math.random() * 65536).toString(16).toUpperCase().padStart(4, '0'); return `CRY-${h()}-${h()}`; } },
+  bank: { label: 'bank transfer', mult: 1.7, limit: l => l, code: () => `NWB-${1000 + Math.floor(Math.random() * 9000)}-${1000 + Math.floor(Math.random() * 9000)}` },
+};
+
+function newCon(c) {
+  const P = PERSONA[c.id];
+  const n = Math.min(5, 1 + Math.round(P.skep / 20) + (Math.random() < 0.5 ? 1 : 0));
+  const rest = shuffle(['verify', 'name', 'amount', 'callback', 'family', 'email', 'special']).slice(0, Math.max(1, n - 1));
+  if (!rest.includes('special')) rest[rest.length - 1] = 'special';
+  return {
+    sus: Math.max(0, P.skep - (has('monitor2') ? 10 : 0)),
+    queue: ['doubt', ...shuffle(rest)], pending: null, story: null, introduced: false,
+    claims: {}, used: new Set(), said: new Set(), caught: 0, rude: 0, dodges: 0, stalls: 0, ready: false, turns: 0,
+  };
+}
+
+function claimsIn(text, t) {
+  const out = {};
+  const nm = t.match(/(?:my name is|call me|this is|i am|i'm|name's|it's) ([a-z]+)/);
+  if (nm && !NOTNAME.has(nm[1]) && !Object.values(SCAM_NAMES).some(r => r.test(nm[1]))) out.name = cap(nm[1]);
+  for (const id in SCAM_NAMES) if (SCAM_NAMES[id].test(t)) { out.company = id; break; }
+  const amt = text.match(/\$\s?([\d,]+(?:\.\d+)?)|([\d,]{2,})\s?(?:dollars|bucks|usd)/i);
+  if (amt) out.amount = Number((amt[1] || amt[2]).replace(/,/g, ''));
+  const id = text.match(/\b(?:id|badge|employee(?: number| id)?)\s*(?:number\s*)?(?:is|:|#)?\s*([a-z]{0,3}\d[\d-]{2,})/i);
+  if (id) out.empId = id[1].toUpperCase();
+  return out;
+}
+
+function feel(text, t, k) {
+  const f = { claims: claimsIn(text, t) };
+  for (const key in C_RX) f[key] = C_RX[key].test(t);
+  f.question = /\?/.test(text) || /^ (what|why|how|who|where|when|do|does|are|can|could|would|will|have|is|did) /.test(t);
+  f.words = text.trim().split(/\s+/).filter(Boolean).length;
+  f.digits = /\d{3,}/.test(t);
+  // the story is what you say happened; company names alone do not count as a story
+  const plain = Object.values(SCAM_NAMES).reduce((s, r) => s.replace(new RegExp(r.source, 'g'), ' '), t);
+  const want = f.claims.company || k.claims.company;
+  f.story = want && SCAMS_BY[want].kw.test(plain) ? want : (SCAMS.find(s => s.kw.test(plain))?.id || null);
+  f.introLike = /\b(this is|calling from|i'm from|i am from|on behalf of|we are|i work (for|at)|department|support|desk|team|services?|calling you)\b/.test(t);
+  f.payAsk = f.gift || f.bank || f.crypto || f.wire || f.mail || (f.pay && /\b(need|have to|must|can you|could you|would you|please|will you|let's|you will|you'll|i need)\b/.test(t));
+  f.knownName = !!k.claims.name && t.includes(' ' + k.claims.name.toLowerCase() + ' ');
+  f.repeat = k.said.has(t.trim());
+  return f;
+}
+
+function contradiction(k, cl) {
+  const co = id => SCAMS_BY[id].name;
+  if (cl.name && k.claims.name && cl.name !== k.claims.name) return `Wait. A minute ago you said your name was ${k.claims.name}. Now it is ${cl.name}?`;
+  if (cl.company && k.claims.company && cl.company !== k.claims.company) return `Hold on. First you said ${co(k.claims.company)}, and now it is ${co(cl.company)}?`;
+  if (cl.empId && k.claims.empId && cl.empId !== k.claims.empId) return `Your ID number was ${k.claims.empId} before. Now it is ${cl.empId}?`;
+  if (cl.amount && k.claims.amount && k.pending === 'amount' && Math.abs(cl.amount - k.claims.amount) > 1) return `You told me ${fmt(k.claims.amount)} earlier. Now it is ${fmt(cl.amount)}?`;
+  return null;
+}
+
+function pickLine(k, pool) {
+  const fresh = pool.filter(l => !k.used.has(l));
+  const line = rnd(fresh.length ? fresh : pool);
+  k.used.add(line); return line;
+}
+function fillLine(line, k, P) {
+  const company = SCAMS_BY[k.claims.company || k.story]?.name || 'your company';
+  return line.replace(/,? \{addr\}/g, P.addr ? `, ${P.addr}` : '').replace(/\{addr\}/g, P.addr)
+    .replace(/\{company\}/g, company).replace(/\{relative\}/g, P.relative);
+}
+function askText(k, P, id) {
+  if (id === 'special') return P.special.ask;
+  if (id === 'name' && (k.claims.name || k.claims.empId)) return pickLine(k, ['Sorry, what was your name again?', 'Remind me, what was your employee number?', 'And your name was...?']);
+  if (id === 'amount' && k.claims.amount) return pickLine(k, ['How much was it again?', 'Wait, how much money did you say it was?']);
+  const a = OBJ[id].ask;
+  return fillLine(pickLine(k, typeof a === 'function' ? a(k) : a), k, P);
+}
+function objOk(id, f, k, P, t) { return id === 'special' ? P.special.ok(f, k, t) : OBJ[id].ok(f, k, t); }
+
+function con(call, text) {
+  const c = call.caller, P = PERSONA[c.id], k = call.con;
+  const t = ' ' + text.toLowerCase().replace(/[^a-z0-9'$?\s-]/g, ' ').replace(/\s+/g, ' ') + ' ';
+  const f = feel(text, t, k);
+  const line = key => fillLine(pickLine(k, P.lines?.[key] || LINES[key]), k, P);
+  const out = [];
+  let pay = null, code = null, good = false, bad = false;
+  const sus0 = k.sus;
+  k.turns++;
+  const finish = (hang = false) => {
+    k.sus = Math.max(0, k.sus);
+    if (!hang && k.sus >= 100) { out.push(line('angryHang')); hang = true; }
+    if (!hang && k.turns >= 24 && !pay) { out.push(line('boredHang')); hang = true; }
+    const mood = hang ? 'angry' : k.sus < 20 ? 'happy' : k.sus < 45 ? 'neutral' : k.sus < 70 ? 'suspicious' : 'angry';
+    return { reply: out.join(' '), mood: f.dodgeMood && k.sus < 45 ? 'confused' : mood, hang, pay, code, good: good || k.sus < sus0 - 5, bad: bad || k.sus > sus0 + 9 };
+  };
+
+  // 1. lies that do not add up
+  const lie = contradiction(k, f.claims);
+  if (lie) {
+    k.caught++; k.sus += 30; bad = true; out.push(lie);
+    if (k.caught >= 2 || k.sus >= 100) { out.push(line('caughtHang')); return finish(true); }
+  }
+  for (const key in f.claims) if (k.claims[key] == null) k.claims[key] = f.claims[key];
+  if (f.claims.company || f.introLike || f.claims.name) k.introduced = true;
+  const newStory = !!f.story && !k.story;
+  if (newStory) k.story = f.story;
+
+  // 2. tone
+  if (f.rude) { k.rude++; k.sus += 22; out.push(line('rude')); if (k.rude >= 2) { out.push(line('angryHang')); return finish(true); } return finish(); }
+  if (f.repeat) { k.sus += 6; out.push(line('repeat')); }
+  k.said.add(t.trim());
+  if (f.threat) { if (P.scared) { k.sus -= 6; out.push(line('threatScared')); } else { k.sus += 15; out.push(line('threatAngry')); } }
+
+  // 3. asking for money (or saying yes to the gift card they offered instead of bank details)
+  const takesOffer = k.offeredGift && !f.bank && !f.crypto && !f.wire && !f.mail && (f.yes || /\b(ok|okay|fine|alright|deal|that works|go ahead)\b/.test(t));
+  if (takesOffer) { f.payAsk = true; f.gift = true; }
+  if (f.payAsk) {
+    if (call.paid) { out.push(line('paidAlready')); return finish(); }
+    const open = k.queue.length + (k.pending ? 1 : 0);
+    const eager = c.type === 'cop' || c.type === 'rival';
+    if (!eager && (!k.story || open > 0)) {
+      k.sus += 10; out.push(line('payEarly'));
+      if (!k.pending) k.pending = !k.introduced ? 'who' : !k.story ? 'why' : k.queue.shift();
+      if (k.pending) out.push(askText(k, P, k.pending));
+      return finish();
+    }
+    if (c.type === 'baiter') { k.stalls++; out.push(line('stall')); return finish(k.stalls >= 4); }
+    const method = f.gift ? 'gift' : f.crypto ? 'crypto' : f.wire ? 'wire' : f.mail ? 'mail' : f.bank ? 'bank' : 'gift';
+    const M = PAY_METHODS[method];
+    if (method === 'crypto' && !P.crypto) { k.offeredGift = true; out.push(line('cryptoNo')); return finish(); }
+    if (k.sus <= M.limit(P.bankLimit ?? 30)) {
+      pay = method; code = M.code();
+      out.push(line(method + 'Yes').replace('{code}', code).replace('{acct}', code));
+    } else if (method !== 'gift' && k.sus < 70) { k.sus += 5; k.offeredGift = true; out.push(line(method === 'bank' ? 'bankNo' : 'otherNo')); }
+    else { k.sus += 10; out.push(line('giftNo')); }
+    return finish();
+  }
+
+  // 4. answering the doubt they raised
+  if (f.verify) k.verified = true;
+  let reask = !!lie && !!k.pending; // a lie never counts as an answer
+  if (k.pending && !lie) {
+    if (objOk(k.pending, f, k, P, t)) {
+      k.sus -= (P.accept ?? 10) + (has('headset') ? 4 : 0); good = true; k.dodges = 0;
+      out.push(newStory ? fillLine(rnd(HOOKS[k.story]), k, P) : line('accept'));
+      k.pending = null;
+    } else if (f.question) {
+      k.sus += 3; out.push(line('answerQ'), 'But first, answer me.'); reask = true; f.dodgeMood = true;
+    } else {
+      k.dodges++; k.sus += k.dodges >= 2 ? 14 : 8; out.push(line(k.dodges >= 2 ? 'dodge2' : 'dodge')); reask = true; f.dodgeMood = true;
+    }
+  } else if (!lie && newStory) out.push(fillLine(rnd(HOOKS[k.story]), k, P));
+  else if (!lie && f.question) out.push(line('answerQ'));
+  // proof you already gave without being asked counts; names and amounts get asked again as a memory test
+  if (k.verified) k.queue = k.queue.filter(id => id !== 'verify');
+
+  // 5. their next doubt, or they are ready to be asked
+  if (reask) out.push(askText(k, P, k.pending));
+  else {
+    k.pending = !k.introduced ? 'who' : !k.story ? 'why' : k.queue.shift() || null;
+    if (k.pending) out.push(askText(k, P, k.pending));
+    else { out.push(line(k.ready ? 'waiting' : 'ready')); k.ready = true; }
+  }
+  return finish();
+}
+
+const WORDS = ['PICKLE', 'WIZARD', 'BANANA', 'TURBO', 'MANGO', 'NOODLE', 'WAFFLE', 'GOBLIN', 'DISCO', 'POTATO', 'LLAMA', 'ROCKET', 'BISCUIT', 'TACO', 'MOOSE'];
+const rnd = (a) => a[Math.floor(Math.random() * a.length)];
+const makeCode = () => `${rnd(WORDS)}-${rnd(WORDS)}-${1000 + Math.floor(Math.random() * 9000)}`;
+const MOOD_LABEL = { happy: 'Buying it', neutral: 'Listening', confused: 'Confused', suspicious: 'Suspicious', angry: 'Angry' };
+
+function applyReply(call, r) {
+  const c = call.caller;
+  call.mood = r.mood;
+  if (r.pay && !call.paid) {
+    const boost = (has('cat') ? 1.15 : 1) * (isDouble() ? 2 : 1);
+    const base = PAY_METHODS[r.pay].mult ?? 0.6 + (100 - call.con.sus) / 250;
+    const amount = c.type === 'cop' ? (r.pay === 'bank' ? 900 : 600) : c.type === 'rival' ? (r.pay === 'bank' ? 600 : 300) : Math.round(c.wealth * base * boost / 50) * 50;
+    call.paid = r.pay;
+    S.pending.push({ code: r.code, amount, kind: r.pay, from: c, trap: c.type === 'cop', rival: c.type === 'rival' });
+  }
+  call.turns.push({ who: 'them', text: r.reply });
+  bubble('them', r.reply, c.name); speak(r.reply, c);
+  updateFace();
+  if (r.good) SFX.good();
+  if (r.bad) { SFX.bad(); $('win-phone').classList.add('shake'); setTimeout(() => $('win-phone').classList.remove('shake'), 400); }
+  call.busy = false;
+  setStatus(r.pay ? `Got it: ${PAY_METHODS[r.pay].label}!` : MOOD_LABEL[r.mood]);
+  if (r.pay) {
+    bubble('sys', `Type ${r.code} into Cash Out to collect the ${PAY_METHODS[r.pay].label}.`);
+    openWin('win-gift'); focusWin($('win-phone'));
+  }
+  if (r.hang) { call.busy = true; setStatus('Hanging up...'); setTimeout(() => endCall('them'), 2400); }
+  else if (mic.queued) { const q = mic.queued; mic.queued = null; setTimeout(() => playerSay(q), 300); }
+}
+
+function endCall(by) {
+  const call = S.call; if (!call || call.over) return;
+  call.over = true;
+  speechSynthesis?.cancel(); wave(false); mic.queued = null;
+  const c = call.caller;
+  let res;
+  if (call.paid) res = { cls: 'paid', label: `Paid by ${PAY_METHODS[call.paid].label}`, mood: 'happy' };
+  else if (c.type === 'baiter' && call.turns.length > 8) res = { cls: 'waste', label: 'Wasted your time', mood: 'happy' };
+  else res = { cls: 'lost', label: by === 'you' ? 'You hung up' : 'Hung up on you', mood: call.mood };
+  S.done[c.id] = res;
+  SFX.hangup(); SFX.duck(false);
+  if (c.type === 'baiter' && call.turns.length > 8) toast('Mr. Gristle', `You spent ${Math.round(call.turns.length / 2)} turns with that grandma. She does this to everyone. Move on!`, 'bad');
+  bubble('sys', by === 'you' ? 'You hung up.' : `${c.name} hung up.`);
+  setStatus('Call ended');
+  S.call = null;
+  setTimeout(() => { if (!S.call) renderPhoneIdle(nextHint()); }, 2200);
+  renderCallers();
+  if (Object.keys(S.done).length === S.today.length) setTimeout(() => S.pending.length === 0 && endShift('list'), 2600);
+}
+function nextHint() {
+  if (S.pending.length) return 'You still have money waiting. Open Cash Out.';
+  const left = S.today.filter(c => !S.done[c.id]).length;
+  return left ? `${left} leads left on the Call List.` : 'Your list is empty.';
+}
+
+// ---------- Cash Out: gift cards and bank transfers ----------
+$('redeem-form').addEventListener('submit', e => {
+  e.preventDefault();
+  if (!S.running) return;
+  const v = $('code-input').value.trim().toUpperCase().replace(/\s+/g, '');
+  const msg = $('redeem-msg');
+  const i = S.pending.findIndex(p => p.code === v);
+  if (i < 0) { msg.textContent = 'Not found. Check the code or account number with the caller.'; msg.style.color = 'var(--danger)'; SFX.error(); $('win-gift').classList.add('shake'); setTimeout(() => $('win-gift').classList.remove('shake'), 400); return; }
+  const p = S.pending.splice(i, 1)[0];
+  $('code-input').value = '';
+  if (p.trap) {
+    S.money -= 500;
+    S.ledger.unshift({ code: p.code, amount: -500, who: p.from.name });
+    msg.textContent = 'TRACE DETECTED. That was marked by the police.'; msg.style.color = 'var(--danger)';
+    SFX.siren();
+    toast('Mr. Gristle', TRAP_MSG[p.from.id] || 'That was a trap! Legal fees: -$500.', 'bad');
+  } else if (p.rival) {
+    S.money -= p.amount;
+    S.ledger.unshift({ code: p.code, amount: -p.amount, who: p.from.name });
+    msg.textContent = `That was a trick. It charged YOUR account ${fmt(p.amount)}.`; msg.style.color = 'var(--danger)';
+    SFX.bad();
+    toast('Mr. Gristle', 'Kevin from "customer care" scammed you back. You got scammed by a scammer. On MY floor.', 'bad');
+  } else {
+    SFX.cash();
+    S.money += p.amount;
+    S.ledger.unshift({ code: p.code, amount: p.amount, who: p.from.name });
+    if (!S.best || p.amount > S.best.amount) S.best = { amount: p.amount, who: p.from.name };
+    msg.textContent = `Collected ${fmt(p.amount)} (${PAY_METHODS[p.kind].label}).`; msg.style.color = '#11663a';
+    toast('Cash Out', `${fmt(p.amount)} from ${p.from.name} by ${PAY_METHODS[p.kind].label}.`, 'good');
+    if (S.money >= QUOTA && !S.warned.quota) { S.warned.quota = 1; toast('Mr. Gristle', 'Quota hit. I am almost proud. Keep dialing for a bonus.', 'good'); }
+  }
+  renderLedger(); renderHud();
+  if (Object.keys(S.done).length === S.today.length && !S.call && !S.pending.length) setTimeout(() => endShift('list'), 1500);
+});
+function renderLedger() {
+  const l = $('ledger'); l.innerHTML = '';
+  if (!S.ledger.length) { l.innerHTML = '<div><span>Nothing cashed out yet.</span></div>'; return; }
+  S.ledger.forEach(x => { const d = document.createElement('div'); d.innerHTML = '<code></code><span></span>'; d.firstChild.textContent = x.code; d.lastChild.textContent = fmt(x.amount); d.lastChild.style.color = x.amount < 0 ? 'var(--danger)' : '#11663a'; l.append(d); });
+}
+
+// ---------- Open mic ----------
+// One recognizer stays on for the whole visit, so the browser asks for the mic once instead of every line.
+// Each finished sentence is sent as your line.
+// Echo guard, three layers: the mic pauses while a caller speaks, anything heard right after is dropped,
+// and a sentence that is mostly the caller's own words (your speakers, picked up by the mic) is thrown away.
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+const mic = { on: false, rec: null, queued: null, paused: false };
+function toggleMic() { if (mic.on) stopMic(); else startMic(); }
+function isEcho(said) {
+  const w = said.toLowerCase().match(/[a-z']+/g) || [];
+  if (!w.length) return true;
+  const hits = w.filter(x => callerWords.has(x)).length;
+  return w.length >= 3 && hits / w.length >= 0.6;
+}
+function micPause() {
+  if (!mic.on || !mic.rec) return;
+  mic.paused = true; const r = mic.rec; mic.rec = null;
+  try { r.abort(); } catch {}
+  $('p-mic')?.classList.remove('live');
+}
+function micResume() {
+  if (!mic.on || !mic.paused || Date.now() < speakingUntil - 300) return;
+  mic.paused = false; startMic();
+}
+function startMic() {
+  if (!SR) { toast('System', 'This browser has no speech recognition. Chrome or Edge work best. Type instead for now.', 'bad'); return; }
+  mic.on = true; $('p-mic')?.classList.add('live');
+  if (mic.rec || mic.paused) return;
+  try {
+    const rec = mic.rec = new SR();
+    rec.lang = 'en-US'; rec.continuous = true; rec.interimResults = true;
+    rec.onresult = ev => {
+      if (rec !== mic.rec || Date.now() < speakingUntil) return;
+      let interim = '';
+      for (let i = ev.resultIndex; i < ev.results.length; i++) {
+        const r = ev.results[i];
+        if (r.isFinal) { const said = r[0].transcript.trim(); if (said && !isEcho(said)) sendSpoken(said); }
+        else interim += r[0].transcript;
+      }
+      const inp = $('p-input'); if (inp) inp.value = interim;
+    };
+    rec.onerror = ev => {
+      if (ev.error === 'not-allowed' || ev.error === 'service-not-allowed') { toast('System', 'The microphone is blocked for this page. Allow it in the address bar, or type instead.', 'bad'); stopMic(); }
+    };
+    // Chrome stops listening after a long silence; quietly start again while open mic is on (not while paused for the caller)
+    rec.onend = () => { if (mic.rec === rec) mic.rec = null; if (mic.on && !mic.paused) setTimeout(() => { if (mic.on && !mic.rec && !mic.paused) startMic(); }, 300); };
+    rec.start();
+    if (!mic.toldOnce) { mic.toldOnce = true; toast('Open mic', 'Open mic is on. Just talk; every sentence you finish is sent. Click the mic again to turn it off.', 'good'); }
+  } catch { mic.rec = null; }
+}
+function sendSpoken(said) {
+  const inp = $('p-input'); if (inp) inp.value = '';
+  if (!S.call || S.call.over) return;
+  if (S.call.busy) mic.queued = said; else playerSay(said);
+}
+function stopMic() { mic.on = false; mic.paused = false; const r = mic.rec; mic.rec = null; try { r?.abort(); } catch {} $('p-mic')?.classList.remove('live'); }
+
+// ---------- Sound: everything is synthesized, no audio files ----------
+const SFX = (() => {
+  let ctx = null, master = null, musicBus = null, musicTimer = null, beat = 0, nextT = 0;
+  const mtof = m => 440 * Math.pow(2, (m - 69) / 12);
+  function init() {
+    if (ctx) { ctx.resume?.(); return; }
+    try {
+      ctx = new (window.AudioContext || window.webkitAudioContext)();
+      master = ctx.createGain(); master.gain.value = SAVE.mute ? 0 : 0.6; master.connect(ctx.destination);
+      musicBus = ctx.createGain(); musicBus.gain.value = 1; musicBus.connect(master);
+    } catch { ctx = null; }
+  }
+  function tone(freq, dur, type = 'sine', vol = 0.2, when = 0, slide = 0, dest = master, at = null) {
+    if (!ctx) return;
+    const t = at ?? ctx.currentTime + when;
+    const o = ctx.createOscillator(), g = ctx.createGain();
+    o.type = type; o.frequency.setValueAtTime(freq, t);
+    if (slide) o.frequency.exponentialRampToValueAtTime(Math.max(30, freq * slide), t + dur);
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g); g.connect(dest); o.start(t); o.stop(t + dur + 0.05);
+  }
+  function noise(dur, vol = 0.2, freq = 1000, when = 0) {
+    if (!ctx) return;
+    const t = ctx.currentTime + when, len = Math.ceil(ctx.sampleRate * dur);
+    const buf = ctx.createBuffer(1, len, ctx.sampleRate), d = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / len);
+    const src = ctx.createBufferSource(), f = ctx.createBiquadFilter(), g = ctx.createGain();
+    src.buffer = buf; f.type = 'bandpass'; f.frequency.value = freq; g.gain.value = vol;
+    src.connect(f); f.connect(g); g.connect(master); src.start(t);
+  }
+  // Hold music: a lounge loop that never ends, like real hold music
+  const PROG = [[48, 52, 55, 59], [45, 48, 52, 55], [50, 53, 57, 60], [43, 47, 50, 53]];
+  function schedule() {
+    while (nextT < ctx.currentTime + 0.25) {
+      const ch = PROG[Math.floor(beat / 4) % 4], b = beat % 4;
+      if (b === 0 || b === 2) tone(mtof(ch[0] - 12), 0.4, 'triangle', 0.12, 0, 0, musicBus, nextT);
+      if (b === 1 || b === 3) ch.slice(1).forEach(n => tone(mtof(n), 0.18, 'sine', 0.03, 0, 0, musicBus, nextT));
+      if (Math.random() < 0.4) tone(mtof(ch[Math.floor(Math.random() * 4)] + 12), 0.25, 'sine', 0.035, 0, 0, musicBus, nextT + (Math.random() < .5 ? 0 : 0.29));
+      nextT += 60 / 104; beat++;
+    }
+  }
+  return {
+    init,
+    ring() { for (let i = 0; i < 2; i++) { tone(440, 0.4, 'sine', 0.08, i * 0.55); tone(480, 0.4, 'sine', 0.08, i * 0.55); } },
+    connect() { tone(660, 0.08, 'square', 0.05); tone(880, 0.1, 'square', 0.05, 0.09); },
+    hangup() { tone(480, 0.12, 'square', 0.05); tone(320, 0.22, 'square', 0.05, 0.13); },
+    cash() { tone(1046, 0.08, 'square', 0.06); tone(1318, 0.08, 'square', 0.06, 0.08); tone(1568, 0.3, 'square', 0.06, 0.16); noise(0.12, 0.1, 4000); },
+    error() { tone(140, 0.28, 'sawtooth', 0.08); },
+    good() { tone(784, 0.1, 'triangle', 0.08); tone(988, 0.16, 'triangle', 0.08, 0.08); },
+    bad() { tone(320, 0.22, 'triangle', 0.09, 0, 0.55); },
+    jump() { tone(260, 0.25, 'square', 0.04, 0, 2.4); },
+    land() { noise(0.09, 0.12, 250); },
+    step() { noise(0.04, 0.05, 700); },
+    slurp() { noise(0.6, 0.07, 1400); tone(200, 0.5, 'sine', 0.03, 0, 1.6); },
+    siren() { for (let i = 0; i < 3; i++) { tone(700, 0.25, 'sawtooth', 0.05, i * 0.5, 1.4); tone(980, 0.25, 'sawtooth', 0.05, i * 0.5 + 0.25, 0.7); } },
+    music(on) {
+      clearInterval(musicTimer); musicTimer = null;
+      if (on && ctx) { nextT = ctx.currentTime + 0.1; musicTimer = setInterval(schedule, 100); }
+    },
+    duck(on) { if (musicBus) musicBus.gain.setTargetAtTime(on ? 0.25 : 1, ctx.currentTime, 0.3); },
+    toggleMute() { SAVE.mute = !SAVE.mute; writeSave(); if (master) master.gain.value = SAVE.mute ? 0 : 0.6; renderMute(); },
+  };
+})();
+function renderMute() {
+  $('mute').classList.toggle('off', SAVE.mute);
+  $('mute3d').textContent = SAVE.mute ? 'Sound: off' : 'Sound: on';
+}
+$('mute').addEventListener('click', () => SFX.toggleMute());
+$('mute3d').addEventListener('click', () => { SFX.init(); SFX.toggleMute(); });
+
+// ---------- Office Shop ----------
+const UPGRADES = [
+  { id: 'plant', name: 'Fake Desk Plant', price: 300, desc: 'Mr. Gristle thinks you are responsible. No fines from surprise inspections.' },
+  { id: 'binder', name: 'Caller Notes Binder', price: 600, desc: 'The Call List shows what each caller likes.' },
+  { id: 'headset', name: 'Noise-Cancelling Headset', price: 900, desc: 'You sound more official. Good answers calm callers down more.' },
+  { id: 'chair', name: 'Fancy Spinning Chair', price: 1000, desc: 'Your shift lasts 2 minutes longer. Starts next shift.' },
+  { id: 'monitor2', name: 'Second Monitor', price: 1200, desc: 'You look more professional. Callers start out less suspicious.' },
+  { id: 'cat', name: 'Lucky Gold Cat', price: 1800, desc: 'Every gift card pays 15% more.' },
+];
+function renderShop() {
+  $('shop-bank').textContent = fmt(SAVE.bank);
+  const box = $('shop'); box.innerHTML = '';
+  UPGRADES.forEach(u => {
+    const own = has(u.id);
+    const row = document.createElement('div'); row.className = 'item' + (own ? ' owned' : '');
+    row.innerHTML = '<div><b></b><small></small></div>';
+    row.querySelector('b').textContent = `${u.name} · ${fmt(u.price)}`;
+    row.querySelector('small').textContent = u.desc;
+    const b = document.createElement('button'); b.className = 'btn green';
+    b.textContent = own ? 'Owned' : 'Buy'; b.disabled = own || SAVE.bank < u.price;
+    b.addEventListener('click', () => {
+      if (has(u.id) || SAVE.bank < u.price) return;
+      SAVE.bank -= u.price; SAVE.owned.push(u.id); writeSave();
+      SFX.cash(); toast('Office Shop', `Bought: ${u.name}.`, 'good');
+      renderShop(); renderHud(); renderCallers(); window.office?.applyUpgrades?.();
+    });
+    row.append(b); box.append(row);
+  });
+}
+
+// ---------- Random events during a shift ----------
+function shuffle(a) { const b = [...a]; for (let i = b.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [b[i], b[j]] = [b[j], b[i]]; } return b; }
+const isDouble = () => S.doubleUntil != null && S.left > S.doubleUntil;
+const isOutage = () => S.outageUntil != null && S.left > S.outageUntil;
+function fireEvent(type) {
+  if (type === 'double') { S.doubleUntil = S.left - 60; toast('Mr. Gristle', 'Happy hour! Every gift card pays DOUBLE for the next 60 seconds.', 'good'); SFX.good(); }
+  if (type === 'outage') { S.outageUntil = S.left - 25; toast('System', 'The phone lines are down! No new calls for 25 seconds.', 'bad'); SFX.error(); }
+  if (type === 'inspection') { S.inspectAt = S.left - 15; toast('Mr. Gristle', 'Surprise inspection in 15 seconds! You had better be at your desk.', 'bad'); SFX.siren(); }
+}
+function checkInspection() {
+  const seated = window.office?.isSeated ? window.office.isSeated() : true;
+  if (seated) { S.money += 100; toast('Mr. Gristle', 'You are at your desk. Shocking. Here is a $100 bonus.', 'good'); SFX.cash(); }
+  else if (has('plant')) toast('Mr. Gristle', 'Not at your desk... but your plant looks so healthy. I will allow it.');
+  else { S.money -= 200; toast('Mr. Gristle', 'Not at your desk! That is a $200 fine.', 'bad'); SFX.bad(); }
+  renderHud();
+}
+
+// ---------- Break Room Arcade ----------
+// Three tiny canvas games. During a shift Mr. Gristle sometimes walks by: close the window in time or pay a fine.
+const AW = 360, AH = 240;
+const arcCv = $('arc-canvas'), ax = arcCv.getContext('2d');
+const arc = { id: null, st: null, raf: 0, last: 0, playT: 0, bossWarn: 0 };
+const TYPE_LINES = ['your computer has nine thousand viruses', 'please read me the numbers on the back', 'this is definitely a real company', 'do not hang up or the case closes', 'congratulations you won a castle', 'your pizza is not insured', 'my name is steve and it always was', 'the moon has a lovely view of earth', 'we accidentally refunded you forty thousand dollars', 'your car warranty expires in four minutes', 'press any key to continue the scam'];
+
+function aText(t, x, y, size = 16, color = '#fff', align = 'center', weight = 700) {
+  ax.fillStyle = color; ax.font = `${weight} ${size}px Rubik, "Segoe UI", sans-serif`; ax.textAlign = align; ax.textBaseline = 'middle'; ax.fillText(t, x, y);
+}
+function aBg(top = '#22304d', bottom = '#151b28') { const g = ax.createLinearGradient(0, 0, 0, AH); g.addColorStop(0, top); g.addColorStop(1, bottom); ax.fillStyle = g; ax.fillRect(0, 0, AW, AH); }
+function drawGristle(x, y, r) {
+  ax.lineWidth = 2; ax.strokeStyle = '#1b1b1b';
+  ax.fillStyle = '#b3272d'; ax.fillRect(x - r * .18, y + r * .8, r * .36, r * .7);
+  ax.fillStyle = '#d9652a'; ax.beginPath(); ax.arc(x, y, r, 0, 7); ax.fill(); ax.stroke();
+  ax.beginPath(); ax.moveTo(x - r * .65, y - r * .5); ax.lineTo(x - r * .15, y - r * .28); ax.moveTo(x + r * .65, y - r * .5); ax.lineTo(x + r * .15, y - r * .28); ax.lineWidth = 3; ax.stroke();
+  ax.fillStyle = '#1b1b1b'; ax.beginPath(); ax.arc(x - r * .32, y - r * .08, r * .11, 0, 7); ax.arc(x + r * .32, y - r * .08, r * .11, 0, 7); ax.fill();
+  ax.fillStyle = '#2a1408'; ax.fillRect(x - r * .5, y + r * .25, r, r * .2);
+}
+function drawDoris(x, y, r) {
+  ax.lineWidth = 2; ax.strokeStyle = '#1b1b1b';
+  ax.fillStyle = '#d8d8e0'; ax.beginPath(); ax.arc(x, y - r * .95, r * .4, 0, 7); ax.fill(); ax.stroke();
+  ax.fillStyle = '#f1c9a5'; ax.beginPath(); ax.arc(x, y, r, 0, 7); ax.fill(); ax.stroke();
+  ax.beginPath(); ax.arc(x - r * .32, y - r * .08, r * .22, 0, 7); ax.moveTo(x + r * .54, y - r * .08); ax.arc(x + r * .32, y - r * .08, r * .22, 0, 7); ax.stroke();
+  ax.beginPath(); ax.arc(x, y + r * .25, r * .35, 0.2, Math.PI - 0.2); ax.stroke();
+}
+function hiScore(id, v) { SAVE.hi = SAVE.hi || {}; const best = v > (SAVE.hi[id] || 0); if (best) { SAVE.hi[id] = v; writeSave(); } return best; }
+function arcEnd(s, score, unit) { s.over = true; s.final = score; s.unit = unit; s.best = hiScore(arc.id, score); SFX[s.best ? 'cash' : 'hangup'](); }
+
+const GAMES = {
+  whack: {
+    help: 'Bonk Mr. Gristle on the head. Do NOT bonk Doris (minus 2). 25 seconds.',
+    init: () => ({ t: 25, score: 0, spawn: 0.6, holes: Array.from({ length: 9 }, (_, i) => ({ x: 60 + (i % 3) * 120, y: 80 + Math.floor(i / 3) * 62, who: null, up: 0, bonk: 0 })) }),
+    update(s, dt) {
+      s.t -= dt; if (s.t <= 0) return arcEnd(s, s.score, 'bonks');
+      s.spawn -= dt;
+      if (s.spawn <= 0) {
+        s.spawn = 0.3 + Math.random() * 0.5 * Math.max(0.45, s.t / 25);
+        const free = s.holes.filter(h => !h.who);
+        if (free.length) { const h = rnd(free); h.who = Math.random() < 0.2 ? 'doris' : 'boss'; h.up = 0.65 + Math.random() * 0.5; }
+      }
+      s.holes.forEach(h => { if (h.who) { h.up -= dt; if (h.up <= 0) h.who = null; } if (h.bonk > 0) h.bonk -= dt; });
+    },
+    draw(s) {
+      aBg('#3a2a2a', '#1d1515');
+      s.holes.forEach(h => {
+        ax.fillStyle = '#0d0a0a'; ax.beginPath(); ax.ellipse(h.x, h.y, 34, 11, 0, 0, 7); ax.fill();
+        if (h.who) { ax.save(); ax.beginPath(); ax.rect(h.x - 40, h.y - 70, 80, 70); ax.clip(); (h.who === 'boss' ? drawGristle : drawDoris)(h.x, h.y - 16, 20); ax.restore(); }
+        ax.fillStyle = '#6e4a2f'; ax.fillRect(h.x - 42, h.y, 84, 9);
+        if (h.bonk > 0) aText(h.bonkTxt, h.x, h.y - 46, 16, h.bonkTxt === 'BONK!' ? '#f2b53b' : '#ff7b7f', 'center', 800);
+      });
+      aText(`Bonks: ${s.score}`, 12, 18, 15, '#fff', 'left'); aText(`${Math.ceil(s.t)}s`, AW - 12, 18, 15, '#f2b53b', 'right');
+    },
+    down(s, p) {
+      const h = s.holes.find(h => h.who && Math.abs(p.x - h.x) < 30 && p.y > h.y - 44 && p.y < h.y + 6);
+      if (!h) return;
+      if (h.who === 'boss') { s.score++; h.bonkTxt = 'BONK!'; SFX.land(); } else { s.score = Math.max(0, s.score - 2); h.bonkTxt = 'Not Doris!'; SFX.bad(); }
+      h.who = null; h.bonk = 0.4;
+    },
+  },
+  toss: {
+    help: 'Drag back from the paper ball and let go to throw it in the bin. Watch the desk fan. 10 throws.',
+    init: () => ({ left: 10, score: 0, ball: null, aim: null, wind: Math.round((Math.random() * 2 - 1) * 10) / 10, msg: '', msgT: 0 }),
+    update(s, dt) {
+      if (s.msgT > 0) s.msgT -= dt;
+      const b = s.ball; if (!b) return;
+      b.vx += s.wind * 60 * dt; b.vy += 430 * dt; b.x += b.vx * dt; b.y += b.vy * dt;
+      if (!b.in && b.vy > 0 && b.y >= 150 && b.y <= 166 && b.x > 278 && b.x < 316) { b.in = true; s.score++; s.msg = rnd(['Swish!', 'Nothing but bin!', 'Employee of the month!']); s.msgT = 1.2; SFX.good(); }
+      if (b.in) { b.x = Math.max(282, Math.min(312, b.x)); if (b.y > 218) b.y = 218; }
+      if (!b.in && b.x > 270 && b.x < 324 && b.y > 160 && b.y < 228) { b.vx = -Math.abs(b.vx) * 0.4; } // hits the bin side
+      if (b.y > 226 || b.x > AW + 20 || b.x < -20 || (b.in && b.y >= 218)) {
+        if (!b.in) { s.msg = rnd(['Miss!', 'The fan got it.', 'Nope.']); s.msgT = 1.2; SFX.bad(); }
+        s.ball = null; s.left--; s.wind = Math.round((Math.random() * 2 - 1) * 10) / 10;
+        if (s.left <= 0) arcEnd(s, s.score, 'in the bin');
+      }
+    },
+    draw(s) {
+      aBg('#2b3a4f', '#1a2230');
+      ax.fillStyle = '#4b4660'; ax.fillRect(0, 226, AW, 14);
+      // bin
+      ax.fillStyle = '#8b93a3'; ax.beginPath(); ax.moveTo(274, 156); ax.lineTo(320, 156); ax.lineTo(312, 228); ax.lineTo(282, 228); ax.closePath(); ax.fill();
+      ax.fillStyle = '#5b6474'; ax.fillRect(272, 152, 50, 6);
+      // fan and wind
+      const dir = Math.sign(s.wind), str = Math.abs(s.wind);
+      aText(`Fan: ${str === 0 ? 'off' : (dir > 0 ? '→ ' : '← ') + Math.round(str * 10)}`, AW / 2, 18, 14, '#cfd8e3');
+      for (let i = 0; i < Math.round(str * 5); i++) { ax.strokeStyle = '#ffffff40'; ax.beginPath(); const y = 40 + i * 14, x = 150 + Math.sin(performance.now() / 200 + i) * 30; ax.moveTo(x, y); ax.lineTo(x + dir * 30, y); ax.stroke(); }
+      // ball and aim
+      const b = s.ball || { x: 50, y: 200 };
+      if (s.aim) { ax.strokeStyle = '#f2b53b'; ax.setLineDash([4, 4]); ax.beginPath(); ax.moveTo(50, 200); ax.lineTo(50 + (50 - s.aim.x), 200 + (200 - s.aim.y)); ax.stroke(); ax.setLineDash([]); }
+      ax.fillStyle = '#f4efe6'; ax.beginPath(); ax.arc(b.x, b.y, 9, 0, 7); ax.fill(); ax.strokeStyle = '#b8b0a2'; ax.lineWidth = 1.5; ax.stroke();
+      aText(`In: ${s.score}`, 12, 18, 15, '#fff', 'left'); aText(`Throws: ${s.left}`, AW - 12, 18, 15, '#f2b53b', 'right');
+      if (s.msgT > 0) aText(s.msg, AW / 2, 110, 22, '#f2b53b', 'center', 800);
+    },
+    down(s, p) { if (!s.ball && Math.hypot(p.x - 50, p.y - 200) < 40) s.aim = { x: p.x, y: p.y }; },
+    move(s, p) { if (s.aim) s.aim = { x: p.x, y: p.y }; },
+    up(s) {
+      if (!s.aim) return;
+      const dx = 50 - s.aim.x, dy = 200 - s.aim.y; s.aim = null;
+      if (Math.hypot(dx, dy) < 8) return;
+      s.ball = { x: 50, y: 200, vx: dx * 4.2, vy: dy * 4.2 }; SFX.jump();
+    },
+  },
+  type: {
+    help: 'Type each scam line exactly and press Enter. 30 seconds. Score is words per minute.',
+    init: () => { $('arc-type').value = ''; setTimeout(() => $('arc-type').focus(), 0); return { t: 30, chars: 0, done: 0, line: rnd(TYPE_LINES), flash: 0 }; },
+    update(s, dt) { s.t -= dt; if (s.flash > 0) s.flash -= dt; if (s.t <= 0) arcEnd(s, Math.round(s.chars / 5 * 2), 'words per minute'); },
+    draw(s) {
+      aBg('#1f3a2e', '#11211a');
+      const typed = $('arc-type').value.toLowerCase();
+      // the line, green where you typed it right
+      ax.font = '600 17px "JetBrains Mono", Consolas, monospace'; ax.textBaseline = 'middle';
+      const words = s.line.split(' '); let lines = [''], li = 0;
+      words.forEach(w => { if ((lines[li] + ' ' + w).trim().length > 26) { lines.push(w); li++; } else lines[li] = (lines[li] + ' ' + w).trim(); });
+      let idx = 0;
+      lines.forEach((ln, row) => {
+        const y = 100 + row * 28, startX = AW / 2 - ax.measureText(ln).width / 2;
+        let x = startX;
+        for (const ch of ln) {
+          const ok = idx < typed.length && typed[idx] === s.line[idx], bad = idx < typed.length && !ok;
+          ax.fillStyle = ok ? '#2fbf71' : bad ? '#ff7b7f' : '#e7edf5'; ax.textAlign = 'left'; ax.fillText(ch, x, y);
+          x += ax.measureText(ch).width; idx++;
+        }
+        idx++; // the space between wrapped lines
+      });
+      aText(`Lines: ${s.done}`, 12, 18, 15, '#fff', 'left'); aText(`${Math.ceil(s.t)}s`, AW - 12, 18, 15, '#f2b53b', 'right');
+      if (s.flash > 0) aText('Nice!', AW / 2, 200, 20, '#2fbf71', 'center', 800);
+    },
+    enter(s) {
+      const v = $('arc-type').value.trim().toLowerCase();
+      if (v === s.line) { s.done++; s.chars += s.line.length + 1; s.line = rnd(TYPE_LINES.filter(l => l !== s.line)); s.flash = 0.6; SFX.good(); }
+      else SFX.error();
+      $('arc-type').value = '';
+    },
+  },
+};
+
+function arcStart(id) {
+  arc.id = id; arc.st = GAMES[id].init(); arc.playT = 0;
+  document.querySelectorAll('.arc-tab').forEach(b => b.setAttribute('aria-selected', String(b.dataset.game === id)));
+  $('arc-type').hidden = id !== 'type';
+  const best = SAVE.hi?.[id];
+  $('arc-info').textContent = GAMES[id].help + (best ? ` Your best: ${best}.` : '');
+  arcWake();
+}
+function arcWake() { if (!arc.raf) { arc.last = performance.now(); arc.raf = requestAnimationFrame(arcLoop); } }
+function arcIdle() {
+  aBg();
+  aText('BREAK ROOM ARCADE', AW / 2, 90, 24, '#f2b53b', 'center', 800);
+  aText('Pick a game above.', AW / 2, 124, 15, '#cfd8e3', 'center', 500);
+  aText('Close the window if the boss shows up.', AW / 2, 148, 13, '#8a94a6', 'center', 500);
+}
+function arcLoop(now) {
+  arc.raf = 0;
+  const hidden = $('win-arcade').hidden || $('pc').hidden;
+  if (hidden) {
+    if (arc.bossWarn > 0) { arc.bossWarn = 0; toast('Phew', 'You closed the game just in time. Mr. Gristle walks past.', 'good'); }
+    return; // stops until the window opens again
+  }
+  const dt = Math.min(0.05, (now - arc.last) / 1000); arc.last = now;
+  if (!arc.id) { arcIdle(); }
+  else {
+    const g = GAMES[arc.id], s = arc.st;
+    if (!s.over && !arc.bossWarn) g.update(s, dt);
+    g.draw(s);
+    if (s.over) {
+      ax.fillStyle = '#000000b0'; ax.fillRect(0, 0, AW, AH);
+      aText('TIME!', AW / 2, 80, 26, '#f2b53b', 'center', 800);
+      aText(`${s.final} ${s.unit}`, AW / 2, 118, 20);
+      aText(s.best ? 'New best score!' : `Best: ${SAVE.hi?.[arc.id] || 0}`, AW / 2, 148, 15, s.best ? '#2fbf71' : '#cfd8e3', 'center', 500);
+      aText('Click to play again', AW / 2, 190, 13, '#8a94a6', 'center', 500);
+    }
+    // the boss walks by now and then while you play during a shift
+    if (S.running && !s.over) {
+      if (arc.bossWarn > 0) {
+        arc.bossWarn -= dt;
+        ax.fillStyle = '#b3272de0'; ax.fillRect(0, 70, AW, 100);
+        drawGristle(48, 120, 26);
+        aText('MR. GRISTLE IS COMING!', AW / 2 + 30, 104, 19, '#fff', 'center', 800);
+        aText(`Close this window! ${arc.bossWarn.toFixed(1)}s`, AW / 2 + 30, 134, 15, '#ffe1d6', 'center', 600);
+        if (arc.bossWarn <= 0) {
+          arc.bossWarn = 0; S.money -= 100; renderHud(); SFX.bad();
+          toast('Mr. Gristle', 'Playing games on MY time? That is a $100 fine. Back to the phones!', 'bad');
+        }
+      } else {
+        arc.playT += dt;
+        if (arc.playT > 8 && Math.random() < dt * 0.09) { arc.bossWarn = 2.5; arc.playT = 0; SFX.siren(); }
+      }
+    }
+  }
+  arc.raf = requestAnimationFrame(arcLoop);
+}
+const arcPoint = e => { const r = arcCv.getBoundingClientRect(); return { x: (e.clientX - r.left) * AW / r.width, y: (e.clientY - r.top) * AH / r.height }; };
+arcCv.addEventListener('pointerdown', e => {
+  if (!arc.id) return;
+  const s = arc.st;
+  if (s.over) { arcStart(arc.id); return; }
+  if (arc.bossWarn) return;
+  arcCv.setPointerCapture(e.pointerId);
+  GAMES[arc.id].down?.(s, arcPoint(e));
+});
+arcCv.addEventListener('pointermove', e => { if (arc.id && !arc.st.over) GAMES[arc.id].move?.(arc.st, arcPoint(e)); });
+arcCv.addEventListener('pointerup', e => { if (arc.id && !arc.st.over) GAMES[arc.id].up?.(arc.st, arcPoint(e)); });
+$('arc-type').addEventListener('keydown', e => { if (e.key === 'Enter' && arc.id === 'type' && !arc.st.over && !arc.bossWarn) { e.preventDefault(); GAMES.type.enter(arc.st); } });
+document.querySelectorAll('.arc-tab').forEach(b => b.addEventListener('click', () => arcStart(b.dataset.game)));
+arcIdle();
+
+// ---------- Shift, HUD, toasts ----------
+function renderHud() {
+  $('hud-money').textContent = fmt(S.money);
+  $('hud-quota').textContent = fmt(QUOTA);
+  const m = Math.floor(S.left / 60), s = S.left % 60;
+  $('hud-left').textContent = `${m}:${String(s).padStart(2, '0')}`;
+  const mins = 9 * 60 + Math.floor((SHIFT - S.left) / SHIFT * 480);
+  const h = Math.floor(mins / 60), mm = mins % 60;
+  $('hud-time').textContent = `${((h + 11) % 12) + 1}:${String(mm).padStart(2, '0')} ${h < 12 ? 'AM' : 'PM'}`;
+  $('h3-money').textContent = fmt(S.money);
+  $('h3-quota').textContent = fmt(QUOTA);
+  $('h3-left').textContent = $('hud-left').textContent;
+  $('h3-time').textContent = $('hud-time').textContent;
+  $('h3-day').textContent = SAVE.day;
+  $('hud-date').textContent = `Day ${SAVE.day} · Bank ${fmt(SAVE.bank)}`;
+}
+function toast(who, text, kind = '') {
+  const t = document.createElement('div'); t.className = 'toast ' + kind;
+  t.innerHTML = '<b></b><span></span>'; t.firstChild.textContent = who; t.lastChild.textContent = text;
+  $('toasts').append(t); setTimeout(() => t.remove(), 6500);
+}
+let tick = null;
+function startShift() {
+  QUOTA = quotaFor(SAVE.day);
+  SHIFT = 600 + (has('chair') ? 120 : 0);
+  S = freshState(); S.running = true;
+  // two random events per shift, spread over the day
+  S.events = shuffle(['double', 'outage', 'inspection']).slice(0, 2)
+    .map((type, i) => ({ type, at: Math.round(SHIFT * (0.78 - i * 0.38) - Math.random() * 40) }));
+  $('intro').hidden = true; $('report').hidden = true;
+  renderScams(); renderCallers(); renderPhoneIdle(); renderLedger(); renderShop(); renderHud();
+  window.office?.reset(); window.office?.applyUpgrades?.();
+  SFX.init(); SFX.music(true); SFX.duck(false);
+  toast('Mr. Gristle', SAVE.day === 1
+    ? `Morning. Quota is ${fmt(QUOTA)} by 5 PM. Get to your desk. Don't embarrass me.`
+    : `Day ${SAVE.day}. Quota went up to ${fmt(QUOTA)}. Because I said so.`);
+  clearInterval(tick);
+  tick = setInterval(() => {
+    if (!S.running) return;
+    S.left--;
+    S.events.forEach(e => { if (S.left === e.at) fireEvent(e.type); });
+    if (S.inspectAt === S.left) checkInspection();
+    renderHud();
+    if (S.left === Math.floor(SHIFT / 2) && S.money < QUOTA / 3) toast('Mr. Gristle', 'Half the day is gone and you have almost nothing. Smile while you dial!', 'bad');
+    if (S.left === 60) toast('Mr. Gristle', 'One minute left. Close that deal!', 'bad');
+    if (S.left <= 0) endShift('time');
+  }, 1000);
+}
+function endShift() {
+  if (!S.running) return;
+  S.running = false; clearInterval(tick);
+  if (S.call) endCall('you');
+  stopMic(); speechSynthesis?.cancel();
+  const day = SAVE.day, ok = S.money >= QUOTA, great = S.money >= QUOTA * 1.6;
+  if (ok) {
+    SAVE.bank += Math.max(0, S.money); SAVE.lifetime += Math.max(0, S.money);
+    SAVE.best = Math.max(SAVE.best, day); SAVE.day++;
+  } else {
+    const keep = { mute: SAVE.mute, best: SAVE.best, hi: SAVE.hi }; SAVE = Object.assign(newSave(), keep);
+  }
+  writeSave();
+  SFX.music(false); ok ? SFX.cash() : SFX.siren();
+  $('rep-kicker').textContent = `End of shift report · Day ${day}`;
+  $('rep-title').textContent = great ? 'Employee of the month' : ok ? 'You keep your desk' : "You're fired";
+  $('rep-text').textContent = great ? `Mr. Gristle hangs your photo next to the broken coffee machine. ${fmt(S.money)} goes to your bank, which now holds ${fmt(SAVE.bank)}. Tomorrow's quota: ${fmt(quotaFor(SAVE.day))}.`
+    : ok ? `Mr. Gristle grunts. That is the nicest thing he has ever done. Your bank now holds ${fmt(SAVE.bank)} for the Office Shop. Tomorrow's quota: ${fmt(quotaFor(SAVE.day))}.`
+    : `You were ${fmt(QUOTA - S.money)} short. Mr. Gristle put your chair on the curb. Your bank and upgrades are gone, and you start over at Day 1. Best run: Day ${SAVE.best || day}.`;
+  $('rep-money').textContent = fmt(S.money);
+  $('rep-calls').textContent = S.calls;
+  $('rep-best').textContent = S.best ? fmt(S.best.amount) : '-';
+  $('again').textContent = ok ? `Start day ${SAVE.day}` : 'Start over at Day 1';
+  $('report').hidden = false;
+  renderCallers(); renderHud();
+}
+function renderIntro() {
+  const d = SAVE.day;
+  $('intro-kicker').textContent = `Totally Legit Solutions LLC · Floor 3, Desk 14 · Day ${d}`;
+  $('intro-title').textContent = d === 1 ? 'Day one on the phones' : `Day ${d}. Back on the phones`;
+  $('intro-quota').textContent = fmt(quotaFor(d));
+  $('intro-bank').textContent = d > 1 ? `Your save is loaded. You have ${fmt(SAVE.bank)} in the bank to spend in the Office Shop app.` : '';
+  $('reset-save').hidden = d === 1 && !SAVE.bank && !SAVE.owned.length;
+}
+$('clock-in').addEventListener('click', startShift);
+$('again').addEventListener('click', startShift);
+$('reset-save').addEventListener('click', () => {
+  const keep = { mute: SAVE.mute }; SAVE = Object.assign(newSave(), keep); writeSave();
+  renderIntro(); renderHud(); renderShop(); toast('System', 'Save cleared. Fresh start at Day 1.');
+});
+
+// Resting state behind the intro card
+renderScams(); renderCallers(); renderPhoneIdle(); renderLedger(); renderShop(); renderHud(); renderIntro(); renderMute();
+addEventListener('resize', () => { clearTimeout(window.__rz); window.__rz = setTimeout(() => { if (!$('pc').hidden) layout(); }, 150); });
+</script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// =====================================================================
+// Version 2: the office floor. Walk your wobbly guy to Desk 14, sit, dial.
+// =====================================================================
+(() => {
+  const pcEl = $('pc'), worldEl = $('world'), fadeEl = $('fade');
+  let laidOut = false;
+
+  function showPC() {
+    pcEl.hidden = false;
+    if (!laidOut) { layout(); laidOut = true; }
+    renderCallers(); syncTaskbar();
+  }
+  function hidePC() { pcEl.hidden = true; }
+
+  // No WebGL: skip the office and go straight to the computer
+  let renderer = null;
+  try { if (window.THREE) renderer = new THREE.WebGLRenderer({ antialias: true }); } catch { renderer = null; }
+  if (!renderer) {
+    const n = document.createElement('div'); n.id = 'no3d';
+    n.textContent = 'Your browser could not start 3D, so you go straight to your desk.';
+    worldEl.append(n);
+    $('stand-up').hidden = true;
+    window.office = { reset() { showPC(); }, isSeated: () => true };
+    return;
+  }
+
+  const V3 = THREE.Vector3;
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 1.75));
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  worldEl.prepend(renderer.domElement);
+
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color('#2b2f3a');
+  scene.fog = new THREE.Fog('#2b2f3a', 20, 38);
+  const camera = new THREE.PerspectiveCamera(48, 1, 0.1, 100);
+  function resize() {
+    renderer.setSize(innerWidth, innerHeight);
+    camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix();
+  }
+  resize(); addEventListener('resize', resize);
+
+  scene.add(new THREE.HemisphereLight('#fff4e6', '#4b3b3b', 0.8));
+  const sun = new THREE.DirectionalLight('#ffe2c4', 0.75);
+  sun.position.set(6, 14, 6); sun.castShadow = true;
+  sun.shadow.mapSize.set(2048, 2048);
+  Object.assign(sun.shadow.camera, { left: -14, right: 14, top: 12, bottom: -12, near: 1, far: 40 });
+  scene.add(sun);
+
+  // ---------- Helpers ----------
+  const mats = {};
+  const M = (c, o = {}) => mats[c + JSON.stringify(o)] ||= new THREE.MeshLambertMaterial({ color: c, ...o });
+  function mesh(geo, mat, x = 0, y = 0, z = 0, parent = scene) {
+    const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z);
+    m.castShadow = true; m.receiveShadow = true; parent.add(m); return m;
+  }
+  const box = (w, h, d, c, x, y, z, parent) => mesh(new THREE.BoxGeometry(w, h, d), typeof c === 'string' ? M(c) : c, x, y, z, parent);
+  const colliders = [];
+  const solid = (x, z, w, d) => colliders.push({ x0: x - w / 2, x1: x + w / 2, z0: z - d / 2, z1: z + d / 2 });
+  function canvasTex(w, h, draw) {
+    const c = document.createElement('canvas'); c.width = w; c.height = h;
+    const ctx = c.getContext('2d'); draw(ctx, w, h);
+    const t = new THREE.CanvasTexture(c); t.anisotropy = 4;
+    t.redraw = () => { ctx.clearRect(0, 0, w, h); draw(ctx, w, h); t.needsUpdate = true; };
+    return t;
+  }
+  const signs = [];
+  function sign(w, h, px, draw, x, y, z, ry = 0) {
+    const tex = canvasTex(px, Math.round(px * h / w), draw); signs.push(tex);
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({ map: tex, transparent: true }));
+    m.position.set(x, y, z); m.rotation.y = ry; scene.add(m); return m;
+  }
+
+  // ---------- The room ----------
+  const RX0 = -11, RX1 = 11, RZ0 = -8, RZ1 = 8;
+  const carpet = canvasTex(256, 256, (c, w, h) => {
+    c.fillStyle = '#4b4660'; c.fillRect(0, 0, w, h);
+    c.fillStyle = '#453f58'; for (let i = 0; i < 2; i++) for (let j = 0; j < 2; j++) if ((i + j) % 2) c.fillRect(i * 128, j * 128, 128, 128);
+    for (let k = 0; k < 900; k++) { c.fillStyle = Math.random() < .5 ? '#ffffff08' : '#00000012'; c.fillRect(Math.random() * w, Math.random() * h, 2, 2); }
+  });
+  carpet.wrapS = carpet.wrapT = THREE.RepeatWrapping; carpet.repeat.set(11, 8);
+  const floor = new THREE.Mesh(new THREE.PlaneGeometry(RX1 - RX0, RZ1 - RZ0), new THREE.MeshLambertMaterial({ map: carpet }));
+  floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; scene.add(floor);
+  const outside = new THREE.Mesh(new THREE.PlaneGeometry(80, 80), M('#22252e'));
+  outside.rotation.x = -Math.PI / 2; outside.position.y = -0.01; scene.add(outside);
+
+  const WALL = '#d8998a';
+  box(22.4, 3.2, 0.2, WALL, 0, 1.6, RZ0 - 0.1); box(22.4, 0.18, 0.24, '#8a4f45', 0, 0.09, RZ0 - 0.02);
+  box(0.2, 3.2, 16, WALL, RX0 - 0.1, 1.6, 0); box(0.24, 0.18, 16, '#8a4f45', RX0 - 0.02, 0.09, 0);
+  box(0.2, 3.2, 16, WALL, RX1 + 0.1, 1.6, 0); box(0.24, 0.18, 16, '#8a4f45', RX1 + 0.02, 0.09, 0);
+  // windows on the back wall: the night city outside
+  [-9, 3.5].forEach(x => {
+    sign(2.4, 1.2, 256, (c, w, h) => {
+      const g = c.createLinearGradient(0, 0, 0, h); g.addColorStop(0, '#1b2546'); g.addColorStop(1, '#c8643b'); c.fillStyle = g; c.fillRect(0, 0, w, h);
+      c.fillStyle = '#2a1d2e'; for (let i = 0; i < 9; i++) { const bw = 18 + Math.random() * 20, bh = 30 + Math.random() * 60; c.fillRect(i * 30, h - bh, bw, bh); }
+      c.fillStyle = '#ffd98a'; for (let i = 0; i < 40; i++) c.fillRect(Math.random() * w, h - Math.random() * 70, 2, 3);
+      c.strokeStyle = '#e9e4dc'; c.lineWidth = 10; c.strokeRect(0, 0, w, h); c.beginPath(); c.moveTo(w / 2, 0); c.lineTo(w / 2, h); c.stroke();
+    }, x, 1.9, RZ0 + 0.01);
+  });
+
+  // Company sign
+  sign(5.2, 0.9, 1024, (c, w, h) => {
+    c.fillStyle = '#1d2230'; c.beginPath(); c.roundRect ? c.roundRect(0, 0, w, h, 18) : c.rect(0, 0, w, h); c.fill();
+    c.fillStyle = '#f2b53b'; c.font = '64px Bungee, Impact, sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle';
+    c.fillText('TOTALLY LEGIT SOLUTIONS', w / 2, h * 0.42);
+    c.fillStyle = '#cfd8e3'; c.font = '500 26px Rubik, sans-serif'; c.fillText('We are definitely a real company', w / 2, h * 0.8);
+  }, -3, 2.55, RZ0 + 0.02);
+
+  // Whiteboard
+  box(2.7, 1.6, 0.06, '#6e4a2f', -7, 1.55, RZ0 + 0.03);
+  sign(2.5, 1.4, 512, (c, w, h) => {
+    c.fillStyle = '#f4efe6'; c.fillRect(0, 0, w, h);
+    c.fillStyle = '#3a2a1a'; c.font = 'bold 46px "Segoe Print", "Comic Sans MS", cursive'; c.textAlign = 'center';
+    c.fillText('Daily Targets', w / 2, 62); c.fillRect(w / 2 - 150, 74, 300, 4);
+    c.textAlign = 'left'; c.font = '36px "Segoe Print", "Comic Sans MS", cursive';
+    ['1. Dial', '2. Be charming', '3. Redeem it!', '4. Teamwork  :)'].forEach((l, i) => c.fillText(l, 70, 140 + i * 50));
+  }, -7, 1.55, RZ0 + 0.07);
+
+  // Posters on the left wall
+  sign(1.2, 1.6, 256, (c, w, h) => {
+    c.fillStyle = '#2f6fe4'; c.fillRect(0, 0, w, h); c.fillStyle = '#fff'; c.textAlign = 'center';
+    c.font = '22px Bungee, Impact, sans-serif'; c.fillText('EMPLOYEE', w / 2, 40); c.fillText('OF THE MONTH', w / 2, 68);
+    c.fillStyle = '#ffe9b0'; c.fillRect(48, 90, 160, 160); c.fillStyle = '#17202c'; c.font = '120px Bungee, Impact, sans-serif'; c.fillText('?', w / 2, 220);
+    c.fillStyle = '#fff'; c.font = '500 20px Rubik, sans-serif'; c.fillText('Could be you.', w / 2, 300); c.fillText('(It will not be you.)', w / 2, 326);
+  }, RX0 + 0.02, 1.7, -0.8, Math.PI / 2);
+  sign(1.3, 1.0, 256, (c, w, h) => {
+    c.fillStyle = '#e8f1e4'; c.fillRect(0, 0, w, h); c.fillStyle = '#3c6e47'; c.textAlign = 'center';
+    c.font = '26px Bungee, Impact, sans-serif'; c.fillText('HANG IN THERE', w / 2, h - 24);
+    c.strokeStyle = '#6e4a2f'; c.lineWidth = 6; c.beginPath(); c.moveTo(20, 30); c.lineTo(w - 20, 30); c.stroke();
+    c.fillStyle = '#e8742c'; c.beginPath(); c.arc(w / 2, 90, 36, 0, 7); c.fill(); c.fillRect(w / 2 - 4, 30, 8, 30);
+  }, RX0 + 0.02, 1.7, 4.5, Math.PI / 2);
+
+  // Plants
+  function plant(x, z) {
+    mesh(new THREE.CylinderGeometry(0.28, 0.22, 0.5, 12), M('#b0563d'), x, 0.25, z);
+    [[0, 0.85, 0, .42], [.18, 1.1, .1, .3], [-.16, 1.05, -.1, .32], [0, 1.3, 0, .25]].forEach(([dx, y, dz, r]) => mesh(new THREE.SphereGeometry(r, 10, 8), M('#4e9a4a'), x + dx, y, z + dz));
+    solid(x, z, 0.6, 0.6);
+  }
+  plant(-10.4, -7.4); plant(10.4, 7.2); plant(-10.4, 7.2); plant(4.6, -7.4);
+
+  // Coffee corner
+  box(0.9, 0.95, 1.6, '#7b5a45', -10.5, 0.475, -3); solid(-10.5, -3, 0.9, 1.6);
+  box(0.5, 0.6, 0.45, '#22262e', -10.5, 1.25, -3.3);
+  mesh(new THREE.SphereGeometry(0.04, 8, 6), new THREE.MeshBasicMaterial({ color: '#ff4d4d' }), -10.24, 1.4, -3.3);
+  mesh(new THREE.CylinderGeometry(0.06, 0.05, 0.12, 10), M('#ffffff'), -10.4, 1.01, -2.6);
+  sign(0.8, 0.4, 256, (c, w, h) => { c.fillStyle = '#fff8e8'; c.fillRect(0, 0, w, h); c.fillStyle = '#7c1d0b'; c.font = '30px Bungee, Impact, sans-serif'; c.textAlign = 'center'; c.fillText('COFFEE', w / 2, 52); c.font = '500 18px Rubik, sans-serif'; c.fillText('(probably)', w / 2, 92); }, RX0 + 0.02, 1.9, -3, Math.PI / 2);
+
+  // Water cooler
+  box(0.45, 0.95, 0.45, '#dfe4ea', -10.5, 0.475, 1.5); solid(-10.5, 1.5, 0.6, 0.6);
+  mesh(new THREE.CylinderGeometry(0.2, 0.2, 0.55, 14), M('#7fc4ff', { transparent: true, opacity: 0.75 }), -10.5, 1.25, 1.5);
+
+  // Manager's glass office (back right)
+  const glass = M('#bfe3ff', { transparent: true, opacity: 0.22 });
+  box(0.08, 2.6, 4.4, glass, 5.2, 1.3, -5.8); solid(5.2, -5.8, 0.2, 4.4);
+  box(2.0, 2.6, 0.08, glass, 6.2, 1.3, -3.6); solid(6.2, -3.6, 2.0, 0.2);
+  box(2.4, 2.6, 0.08, glass, 9.8, 1.3, -3.6); solid(9.8, -3.6, 2.4, 0.2);
+  box(1.8, 0.08, 0.9, '#5a3b26', 8.2, 0.78, -6.4); box(1.7, 0.74, 0.8, '#4a3020', 8.2, 0.37, -6.4); solid(8.2, -6.4, 1.8, 0.9);
+  sign(1.4, 0.32, 256, (c, w, h) => { c.fillStyle = '#7c1d0b'; c.fillRect(0, 0, w, h); c.fillStyle = '#fff'; c.font = '30px Bungee, Impact, sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('MANAGER', w / 2, h / 2); }, 6.2, 2.35, -3.55);
+
+  // ---------- Characters: noodle-armed blobs ----------
+  function makeBlob({ skin = '#e8742c', shirt = '#2aa198', pants = '#3b3b4f', mustache = false, glasses = false, tie = null, headset = true }) {
+    const g = new THREE.Group();
+    const hips = new THREE.Group(); hips.position.y = 0.55; g.add(hips);
+    const torso = new THREE.Group(); hips.add(torso);
+    const shirtM = M(shirt), skinM = M(skin), dark = M('#1b1b1b');
+    mesh(new THREE.CylinderGeometry(0.31, 0.36, 0.62, 16), shirtM, 0, 0.36, 0, torso);
+    mesh(new THREE.SphereGeometry(0.36, 16, 12), shirtM, 0, 0.05, 0, torso);
+    mesh(new THREE.SphereGeometry(0.31, 16, 12), shirtM, 0, 0.67, 0, torso);
+    box(0.12, 0.08, 0.02, '#ffffff', 0.15, 0.55, 0.3, torso); // name badge
+    if (tie) box(0.08, 0.36, 0.04, tie, 0, 0.5, 0.31, torso);
+    const head = new THREE.Group(); head.position.y = 1.08; torso.add(head);
+    const skull = mesh(new THREE.SphereGeometry(0.34, 18, 14), skinM, 0, 0, 0, head); skull.scale.y = 1.12;
+    [-1, 1].forEach(s => {
+      mesh(new THREE.SphereGeometry(0.085, 10, 8), M('#ffffff'), s * 0.12, 0.07, 0.28, head);
+      mesh(new THREE.SphereGeometry(0.042, 8, 6), dark, s * 0.12, 0.07, 0.36, head);
+    });
+    mesh(new THREE.SphereGeometry(0.075, 10, 8), M('#c85a1e'), 0, -0.04, 0.34, head);
+    box(0.14, 0.03, 0.03, '#5a1a10', 0, -0.17, 0.31, head);
+    if (mustache) box(0.26, 0.06, 0.05, '#2a1408', 0, -0.11, 0.34, head);
+    if (glasses) [-1, 1].forEach(s => { const r = mesh(new THREE.TorusGeometry(0.1, 0.016, 6, 16), dark, s * 0.12, 0.07, 0.36, head); });
+    if (headset) {
+      mesh(new THREE.TorusGeometry(0.37, 0.03, 6, 20, Math.PI), dark, 0, 0.02, 0, head);
+      [-1, 1].forEach(s => { const cup = mesh(new THREE.CylinderGeometry(0.09, 0.09, 0.06, 12), dark, s * 0.36, 0.02, 0, head); cup.rotation.z = Math.PI / 2; });
+      const mic = box(0.03, 0.03, 0.3, '#1b1b1b', -0.3, -0.12, 0.17, head); mic.rotation.y = 0.5;
+    }
+    const arms = [-1, 1].map(s => {
+      const sh = new THREE.Group(); sh.position.set(s * 0.34, 0.6, 0); torso.add(sh);
+      mesh(new THREE.CylinderGeometry(0.065, 0.06, 0.78, 8), skinM, 0, -0.39, 0, sh);
+      mesh(new THREE.SphereGeometry(0.1, 10, 8), skinM, 0, -0.8, 0, sh);
+      return sh;
+    });
+    const legs = [-1, 1].map(s => {
+      const hp = new THREE.Group(); hp.position.set(s * 0.15, 0.55, 0); g.add(hp);
+      mesh(new THREE.CylinderGeometry(0.09, 0.08, 0.48, 8), M(pants), 0, -0.24, 0, hp);
+      box(0.17, 0.09, 0.28, '#20232b', 0, -0.5, 0.05, hp);
+      return hp;
+    });
+    scene.add(g);
+    return { g, hips, torso, head, arms, legs, ph: Math.random() * 6 };
+  }
+  // Simple walk / sit poses for NPCs
+  function walkPose(b, phase, s) {
+    b.hips.position.y = 0.55 + Math.abs(Math.sin(phase)) * 0.06 * s;
+    b.legs.forEach((l, i) => l.rotation.x = Math.sin(phase + i * Math.PI) * 0.7 * s);
+    b.arms.forEach((a, i) => { a.rotation.x = Math.sin(phase + (1 - i) * Math.PI) * 0.8 * s; a.rotation.z = (i ? 1 : -1) * 0.15; });
+    b.torso.rotation.x = 0.08 * s; b.torso.rotation.z = Math.sin(phase) * 0.06 * s;
+  }
+  function sitPose(b, t, typing) {
+    b.hips.position.y = 0.42;
+    b.legs.forEach(l => l.rotation.x = -1.45);
+    b.arms.forEach((a, i) => { a.rotation.x = typing ? -1.15 + Math.sin(t * 14 + i * 2) * 0.09 : -0.2; a.rotation.z = (i ? 1 : -1) * 0.1; });
+    b.torso.rotation.x = typing ? 0.12 : -0.05;
+    b.torso.rotation.z = Math.sin(t * 1.3 + b.ph) * 0.04;
+    b.head.rotation.z = Math.sin(t * 2.1 + b.ph) * 0.06;
+  }
+
+  // ---------- Desks ----------
+  const MY_DESK = { x: 0.5, z: 3 };
+  const chairOf = d => ({ x: d.x, z: d.z + 0.68 });
+  let myScreen = null, myMonitor = null;
+  function desk(x, z, mine) {
+    box(1.7, 0.07, 0.85, '#c9a77c', x, 0.76, z);
+    [[-.78, -.36], [.78, -.36], [-.78, .36], [.78, .36]].forEach(([dx, dz]) => box(0.05, 0.74, 0.05, '#555b66', x + dx, 0.37, z + dz));
+    box(1.7, 0.6, 0.04, '#8b93a3', x, 1.05, z - 0.44); // partition
+    const mon = box(0.72, 0.46, 0.05, '#20242c', x, 1.12, z - 0.22);
+    box(0.06, 0.18, 0.06, '#20242c', x, 0.88, z - 0.22);
+    const scr = mesh(new THREE.PlaneGeometry(0.66, 0.4), new THREE.MeshBasicMaterial({ color: mine ? '#4aa3ff' : '#2f6fe4' }), x, 1.12, z - 0.19);
+    scr.castShadow = false;
+    box(0.5, 0.025, 0.16, '#e6e8ec', x, 0.8, z + 0.05);
+    mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.03, 10), M('#1b1b1b'), x + 0.42, 0.79, z - 0.05); // desk phone light
+    solid(x, z, 1.75, 0.95);
+    // chair
+    const c = chairOf({ x, z });
+    box(0.5, 0.08, 0.5, '#2c3240', c.x, 0.46, c.z);
+    box(0.5, 0.55, 0.07, '#2c3240', c.x, 0.78, c.z + 0.25);
+    mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.4, 8), M('#555b66'), c.x, 0.22, c.z);
+    if (mine) { myScreen = scr; myMonitor = mon; }
+  }
+  const deskSpots = [];
+  [-4.2, -0.6, 3].forEach(z => [-6.6, -3, 0.5, 4].forEach(x => { if (!(z < -3 && x > 3)) deskSpots.push({ x, z }); }));
+  deskSpots.forEach(d => desk(d.x, d.z, d.x === MY_DESK.x && d.z === MY_DESK.z));
+
+  // Shop upgrades that sit on Desk 14 (hidden until bought)
+  const deskTop = 0.8, U = MY_DESK;
+  const upgrade3D = {
+    plant: new THREE.Group(), cat: new THREE.Group(), monitor2: new THREE.Group(), chair: new THREE.Group(), headset: new THREE.Group(),
+  };
+  Object.values(upgrade3D).forEach(g => { g.visible = false; scene.add(g); });
+  mesh(new THREE.CylinderGeometry(0.08, 0.06, 0.14, 10), M('#b0563d'), U.x - 0.72, deskTop + 0.07, U.z + 0.22, upgrade3D.plant);
+  mesh(new THREE.SphereGeometry(0.13, 10, 8), M('#4e9a4a'), U.x - 0.72, deskTop + 0.24, U.z + 0.22, upgrade3D.plant);
+  mesh(new THREE.SphereGeometry(0.09, 10, 8), M('#79c06a'), U.x - 0.66, deskTop + 0.34, U.z + 0.2, upgrade3D.plant);
+  const gold = M('#f2c53b');
+  mesh(new THREE.SphereGeometry(0.09, 12, 10), gold, U.x - 0.5, deskTop + 0.09, U.z - 0.2, upgrade3D.cat).scale.y = 1.15;
+  mesh(new THREE.SphereGeometry(0.075, 12, 10), gold, U.x - 0.5, deskTop + 0.24, U.z - 0.2, upgrade3D.cat);
+  box(0.03, 0.12, 0.03, gold, U.x - 0.42, deskTop + 0.3, U.z - 0.2, upgrade3D.cat);
+  [-1, 1].forEach(s => box(0.03, 0.05, 0.03, gold, U.x - 0.5 + s * 0.045, deskTop + 0.32, U.z - 0.2, upgrade3D.cat));
+  const m2 = box(0.6, 0.4, 0.05, '#20242c', U.x + 0.6, 1.1, U.z - 0.15, upgrade3D.monitor2); m2.rotation.y = -0.4;
+  const s2 = mesh(new THREE.PlaneGeometry(0.54, 0.34), new THREE.MeshBasicMaterial({ color: '#2fbf71' }), U.x + 0.59, 1.1, U.z - 0.12, upgrade3D.monitor2); s2.rotation.y = -0.4;
+  box(0.06, 0.2, 0.06, '#20242c', U.x + 0.6, 0.9, U.z - 0.15, upgrade3D.monitor2);
+  box(0.58, 1.0, 0.1, '#b3272d', U.x, 1.0, U.z + 0.98, upgrade3D.chair);
+  box(0.6, 0.12, 0.1, '#f2c53b', U.x, 1.52, U.z + 0.98, upgrade3D.chair);
+  // fancy headset: glowing cups added onto your own character later, in applyUpgrades
+
+  // Desk 14 sign and glowing ring on the floor
+  sign(0.9, 0.28, 256, (c, w, h) => { c.fillStyle = '#f2b53b'; c.fillRect(0, 0, w, h); c.fillStyle = '#17202c'; c.font = '34px Bungee, Impact, sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('DESK 14', w / 2, h / 2 + 2); }, MY_DESK.x, 1.52, MY_DESK.z - 0.42);
+  const ring = new THREE.Mesh(new THREE.RingGeometry(0.5, 0.62, 32), new THREE.MeshBasicMaterial({ color: '#f2b53b', transparent: true, opacity: 0.8 }));
+  ring.rotation.x = -Math.PI / 2; ring.position.set(MY_DESK.x, 0.02, MY_DESK.z + 0.9); scene.add(ring);
+
+  // ---------- Coworkers ----------
+  const SKINS = ['#e8742c', '#f08a3c', '#d9652a', '#f29b4b', '#e07b35'];
+  const SHIRTS = ['#2aa198', '#d33682', '#6c71c4', '#268bd2', '#859900', '#cb4b16', '#b58900', '#1f9d55', '#c0392b'];
+  const coworkers = [];
+  deskSpots.forEach((d, i) => {
+    if (d.x === MY_DESK.x && d.z === MY_DESK.z) return;
+    if (i === 2 || i === 9) return; // empty desks, someone already got fired
+    const b = makeBlob({ skin: SKINS[i % SKINS.length], shirt: SHIRTS[i % SHIRTS.length], mustache: i % 3 === 0, glasses: i % 4 === 1 });
+    const c = chairOf(d); b.g.position.set(c.x, 0, c.z); b.g.rotation.y = Math.PI;
+    coworkers.push(b);
+  });
+  const WORK_LINES = ['Yes sir, this is Micromoft. Your computer called us.', 'No ma\'am, the virus is VERY real.', 'Can you read the code again? Slowly?', 'Thank you for calling Amazoon!', 'Sir, please do not hang up...', 'Congratulations, you won a castle!', 'Is your computer turned on? ...Is it?', 'Who is Mr. Biscuits?', 'Your car warranty is about to expire. Yes, the bicycle too.', 'I am a real tax man. Very real.', 'He hung up again!', 'Hello? Hello?!'];
+
+  // The manager paces the aisle
+  const boss = makeBlob({ skin: '#d9652a', shirt: '#f4f1ea', pants: '#2b2b2b', mustache: true, tie: '#b3272d', headset: false });
+  boss.g.scale.setScalar(1.12);
+  const bossState = { x: -5, z: -2.4, dir: 1, pause: 0, phase: 0 };
+  const BOSS_LINES = {
+    early: ['Why are you walking? Phones do not dial themselves!', 'Desk 14. That is your desk. Go sit at it.', 'I can see you not working.'],
+    behind: ['Your numbers are tragic. Get back on the phone!', 'Do you want to keep your chair or not?', 'Less walking, more talking.'],
+    good: ['Hmph. Decent numbers. Do not let it go to your head.', 'Keep going and maybe you get a second chair.', 'Not bad. For you.'],
+  };
+  const GOSSIP = [
+    'Psst. Pick ONE fake name and stick to it. They remember everything.',
+    'Gerald Fink asks for your employee ID twice. Give the same number both times.',
+    'Never ask for money while they still have questions. Answer everything first.',
+    'Bank details pay way more, but only if they are fully convinced. Otherwise take the gift card.',
+    'That Linda lady asks way too many questions about the office. Weird, right?',
+    'Mildred never pays. She once kept Steve on the phone for 40 minutes.',
+    'If they say they will call the official number back, give them a reason not to.',
+    'Dodge a question twice and they get really suspicious.',
+  ];
+  let gossipI = 0;
+
+  // ---------- Player ----------
+  const me = makeBlob({ skin: '#ef7a2a', shirt: '#f2b53b', mustache: true });
+  const P = {
+    pos: new V3(-8, 0, 6.5), vel: new V3(), yaw: Math.PI, y: 0, vy: 0, grounded: true,
+    pitch: 0, pv: 0, roll: 0, rv: 0, squash: 1, sv: 0, phase: 0,
+    arms: [{ x: 0, vx: 0, z: 0, vz: 0 }, { x: 0, vx: 0, z: 0, vz: 0 }],
+    seated: false, coffee: 0,
+  };
+
+  // ---------- Input ----------
+  const keys = new Set();
+  const joy = { x: 0, z: 0 };
+  const typingIn = (el) => el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable);
+  addEventListener('keydown', e => {
+    if (typingIn(document.activeElement)) return;
+    const k = e.key.toLowerCase();
+    if (!pcEl.hidden) { if (k === 'escape') standUp(); return; }
+    if (!$('intro').hidden || !$('report').hidden) return;
+    if (['arrowup', 'arrowdown', 'arrowleft', 'arrowright', ' '].includes(k)) e.preventDefault();
+    keys.add(k);
+    if (k === 'e' && !e.repeat) interact();
+    if (k === ' ' && !e.repeat) jump();
+  });
+  addEventListener('keyup', e => keys.delete(e.key.toLowerCase()));
+  addEventListener('blur', () => keys.clear());
+
+  const joyEl = $('joy'), knob = joyEl.querySelector('i');
+  let joyId = null;
+  joyEl.addEventListener('pointerdown', e => { joyId = e.pointerId; joyEl.setPointerCapture(e.pointerId); moveJoy(e); });
+  joyEl.addEventListener('pointermove', e => { if (e.pointerId === joyId) moveJoy(e); });
+  const endJoy = () => { joyId = null; joy.x = joy.z = 0; knob.style.transform = ''; };
+  joyEl.addEventListener('pointerup', endJoy); joyEl.addEventListener('pointercancel', endJoy);
+  function moveJoy(e) {
+    const r = joyEl.getBoundingClientRect();
+    let dx = e.clientX - (r.left + r.width / 2), dz = e.clientY - (r.top + r.height / 2);
+    const d = Math.hypot(dx, dz), max = 46;
+    if (d > max) { dx *= max / d; dz *= max / d; }
+    knob.style.transform = `translate(${dx}px, ${dz}px)`;
+    joy.x = dx / max; joy.z = dz / max;
+  }
+  $('t-act').addEventListener('click', () => interact());
+  $('t-jump').addEventListener('pointerdown', e => { e.preventDefault(); jump(); });
+  $('prompt').addEventListener('click', () => interact());
+  if (matchMedia('(pointer: coarse)').matches) $('h3-keys').textContent = 'Use the stick to walk and the buttons to jump and use things.';
+
+  function jump() {
+    if (P.seated || !P.grounded || anim) return;
+    P.vy = 4.6; P.grounded = false; P.sv -= 2.5; SFX.jump();
+  }
+
+  // ---------- Speech bubbles ----------
+  const bubbles = [];
+  function say(target, text, cls = '', secs = 3.2) {
+    const old = bubbles.find(b => b.target === target); if (old) { old.el.remove(); bubbles.splice(bubbles.indexOf(old), 1); }
+    const el = document.createElement('div'); el.className = 'say ' + cls; el.textContent = text;
+    $('bubbles').append(el); bubbles.push({ el, target, until: clock + secs });
+  }
+  const tmpV = new V3();
+  function updateBubbles() {
+    for (let i = bubbles.length - 1; i >= 0; i--) {
+      const b = bubbles[i];
+      if (clock > b.until) { b.el.remove(); bubbles.splice(i, 1); continue; }
+      b.target.g.getWorldPosition(tmpV); tmpV.y += 2.0 * b.target.g.scale.y; tmpV.project(camera);
+      const vis = tmpV.z < 1 && Math.abs(tmpV.x) < 1.1 && Math.abs(tmpV.y) < 1.1;
+      b.el.style.display = vis ? '' : 'none';
+      b.el.style.left = ((tmpV.x + 1) / 2 * innerWidth) + 'px';
+      b.el.style.top = ((1 - tmpV.y) / 2 * innerHeight) + 'px';
+    }
+  }
+
+  // ---------- Things you can use ----------
+  const chair = chairOf(MY_DESK);
+  const spots = [
+    { label: 'Sit at your desk', x: chair.x, z: chair.z + 0.2, r: 1.25, use: sitDown },
+    { label: 'Drink sketchy office coffee', x: -9.7, z: -3, r: 1.3, use: () => {
+      P.coffee = 20; say(me, 'Mmm... tastes like printer toner.', 'you'); SFX.slurp();
+      toast('Coffee', 'You feel extremely wobbly. And fast. For 20 seconds.', 'good');
+    } },
+    { label: 'Gossip at the water cooler', x: -9.8, z: 1.5, r: 1.3, use: () => {
+      say(me, GOSSIP[gossipI++ % GOSSIP.length], 'you', 6);
+    } },
+    { label: 'Read the whiteboard', x: -7, z: -7.2, r: 1.5, use: () => {
+      toast('Whiteboard', `Quota today: ${fmt(QUOTA)}. You have ${fmt(S.money)}. Someone drew a smiley face. It is judging you.`);
+    } },
+    { label: 'Talk to Mr. Gristle', get x() { return boss.g.position.x; }, get z() { return boss.g.position.z; }, r: 1.6, use: () => {
+      const pool = S.money >= QUOTA ? BOSS_LINES.good : S.money > 0 ? BOSS_LINES.behind : BOSS_LINES.early;
+      say(boss, rnd(pool), 'boss', 4); bossState.pause = 3;
+    } },
+  ];
+  let near = null;
+  function interact() {
+    if (P.seated || anim || !S.running) return;
+    if (near) near.use();
+  }
+
+  // ---------- Sitting down at the computer ----------
+  let anim = null; // camera move between floor and monitor
+  const camLook = new V3();
+  function followCam() {
+    const narrow = innerWidth / innerHeight < 0.9;
+    return { pos: new V3(P.pos.x, (narrow ? 10 : 7.5), P.pos.z + (narrow ? 9 : 7.8)), look: new V3(P.pos.x, 0.9, P.pos.z) };
+  }
+  function sitDown() {
+    if (P.seated || anim) return;
+    P.seated = true; P.vel.set(0, 0, 0); P.y = 0; P.vy = 0; P.grounded = true;
+    P.pos.set(chair.x, 0, chair.z); P.yaw = Math.PI;
+    $('prompt').hidden = true;
+    const mp = new V3(); myMonitor.getWorldPosition(mp);
+    anim = { t: 0, dur: 1.0, hideMe: true, fromPos: camera.position.clone(), fromLook: camLook.clone(), toPos: new V3(mp.x, mp.y + 0.12, mp.z + 0.75), toLook: mp, done: () => {
+      fadeEl.style.opacity = 1;
+      setTimeout(() => { showPC(); fadeEl.style.opacity = 0; anim = null; }, 350);
+    } };
+  }
+  function standUp() {
+    if (!P.seated || anim) return;
+    if (S.call) { toast('Mr. Gristle', 'You do not walk away in the middle of a call!', 'bad'); return; }
+    fadeEl.style.opacity = 1;
+    setTimeout(() => {
+      hidePC(); fadeEl.style.opacity = 0;
+      P.seated = false; P.pos.set(chair.x, 0, chair.z + 0.7); P.yaw = 0; me.g.visible = true;
+      const f = followCam();
+      anim = { t: 0, dur: 0.8, fromPos: camera.position.clone(), fromLook: camLook.clone(), toPos: f.pos, toLook: f.look, done: () => { anim = null; } };
+    }, 350);
+  }
+  $('stand-up').addEventListener('click', standUp);
+
+  // ---------- Collision ----------
+  function collide(p, r) {
+    for (const b of colliders) {
+      const cx = Math.max(b.x0, Math.min(p.x, b.x1)), cz = Math.max(b.z0, Math.min(p.z, b.z1));
+      const dx = p.x - cx, dz = p.z - cz, d2 = dx * dx + dz * dz;
+      if (d2 >= r * r) continue;
+      if (d2 > 1e-6) { const d = Math.sqrt(d2), k = (r - d) / d; p.x += dx * k; p.z += dz * k; }
+      else {
+        const m = Math.min(p.x - b.x0, b.x1 - p.x, p.z - b.z0, b.z1 - p.z);
+        if (m === p.x - b.x0) p.x = b.x0 - r; else if (m === b.x1 - p.x) p.x = b.x1 + r; else if (m === p.z - b.z0) p.z = b.z0 - r; else p.z = b.z1 + r;
+      }
+    }
+    for (const o of [...coworkers, boss]) {
+      const dx = p.x - o.g.position.x, dz = p.z - o.g.position.z, d = Math.hypot(dx, dz), min = r + 0.38;
+      if (d < min && d > 1e-4) { p.x += dx / d * (min - d); p.z += dz / d * (min - d); }
+    }
+    p.x = Math.max(RX0 + r, Math.min(RX1 - r, p.x));
+    p.z = Math.max(RZ0 + r, Math.min(RZ1 + 1.5, p.z));
+  }
+
+  const wrapA = a => ((a + Math.PI) % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2) - Math.PI;
+  const spring = (o, k, vk, target, K, C, dt) => { o[vk] += ((target - o[k]) * K - o[vk] * C) * dt; o[k] += o[vk] * dt; };
+
+  // ---------- Player update: the wobble lives here ----------
+  const prevVel = new V3();
+  function updatePlayer(dt) {
+    const wob = (P.coffee > 0 ? 2.1 : 1) * (reduced ? 0.5 : 1);
+    if (P.coffee > 0) P.coffee -= dt;
+    if (P.seated) { sitPose(me, clock, !!S.call || !pcEl.hidden); me.g.position.set(P.pos.x, 0, P.pos.z); me.g.rotation.y = P.yaw; return; }
+
+    let ix = joy.x, iz = joy.z;
+    if (keys.has('a') || keys.has('arrowleft')) ix -= 1;
+    if (keys.has('d') || keys.has('arrowright')) ix += 1;
+    if (keys.has('w') || keys.has('arrowup')) iz -= 1;
+    if (keys.has('s') || keys.has('arrowdown')) iz += 1;
+    if (anim || !S.running) ix = iz = 0;
+    const il = Math.hypot(ix, iz); if (il > 1) { ix /= il; iz /= il; }
+    const maxSpd = P.coffee > 0 ? 4.6 : 3.3;
+    prevVel.copy(P.vel);
+    const grip = P.grounded ? 7 : 2;
+    P.vel.x += (ix * maxSpd - P.vel.x) * Math.min(1, dt * grip);
+    P.vel.z += (iz * maxSpd - P.vel.z) * Math.min(1, dt * grip);
+    P.pos.addScaledVector(P.vel, dt);
+    collide(P.pos, 0.38);
+
+    const spd = Math.hypot(P.vel.x, P.vel.z), s = Math.min(1, spd / 3.3);
+    let turn = 0;
+    if (spd > 0.25) {
+      const target = Math.atan2(P.vel.x, P.vel.z), d = wrapA(target - P.yaw), step = d * Math.min(1, dt * 9);
+      P.yaw += step; turn = step / dt;
+    }
+    // acceleration in the body's own frame drives the lean springs
+    const ax = (P.vel.x - prevVel.x) / dt, az = (P.vel.z - prevVel.z) / dt;
+    const fwdAcc = ax * Math.sin(P.yaw) + az * Math.cos(P.yaw);
+    spring(P, 'pitch', 'pv', (0.16 * s + fwdAcc * 0.018) * wob, 55, 5 / wob, dt);
+    spring(P, 'roll', 'rv', -turn * 0.05 * s * wob, 45, 4 / wob, dt);
+    if (spd > 1 && Math.random() < dt * 0.35 * wob && !reduced) P.rv += (Math.random() - 0.5) * 6; // random stumble
+
+    // jumping and landing squash
+    if (!P.grounded) {
+      P.vy -= 13 * dt; P.y += P.vy * dt;
+      if (P.y <= 0) { P.y = 0; P.grounded = true; SFX.land(); P.sv -= Math.min(6, -P.vy * 0.9); P.pv += 2; }
+    }
+    spring(P, 'squash', 'sv', 1, 160, 9, dt);
+
+    P.phase += dt * (2 + spd * 3.2);
+    const footDown = Math.sin(P.phase) > 0; // a footstep each time the swing flips
+    if (P.grounded && spd > 0.6 && footDown !== P.lastFoot) SFX.step();
+    P.lastFoot = footDown;
+    const air = P.grounded ? 0 : 1;
+    me.g.position.set(P.pos.x, P.y, P.pos.z);
+    me.g.rotation.y = P.yaw;
+    me.hips.position.y = 0.55 + Math.abs(Math.sin(P.phase)) * 0.08 * s;
+    me.hips.scale.set(1 + (1 - P.squash) * 0.6, P.squash, 1 + (1 - P.squash) * 0.6);
+    me.torso.rotation.x = P.pitch;
+    me.torso.rotation.z = P.roll;
+    me.head.rotation.z = -P.roll * 0.8 + Math.sin(clock * 3) * 0.04 * wob;
+    me.head.rotation.x = -P.pitch * 0.6;
+    me.legs.forEach((l, i) => l.rotation.x = air ? (i ? -0.6 : 0.4) : Math.sin(P.phase + i * Math.PI) * 0.75 * s);
+    // floppy noodle arms: springs chasing a swing target, dragged by the body's lean
+    me.arms.forEach((a, i) => {
+      const side = i ? 1 : -1, st = P.arms[i];
+      const tx = Math.sin(P.phase + i * Math.PI) * 0.9 * s - air * 2.6 - (P.coffee > 0 ? Math.sin(clock * 9 + i) * 0.8 : 0);
+      const tz = side * (0.12 + 0.35 * s + air * 0.9 + (P.coffee > 0 ? 0.5 : 0));
+      st.vx -= P.pv * 0.9 * dt * 60 * 0.02;
+      spring(st, 'x', 'vx', tx, 40 / wob, 3 / wob, dt);
+      spring(st, 'z', 'vz', tz, 40 / wob, 3 / wob, dt);
+      a.rotation.x = st.x; a.rotation.z = st.z;
+    });
+  }
+
+  // ---------- NPCs ----------
+  let nextChatter = 3;
+  function updateNPCs(dt) {
+    coworkers.forEach(b => sitPose(b, clock, true));
+    if (clock > nextChatter) {
+      nextChatter = clock + 3 + Math.random() * 4;
+      say(rnd(coworkers), rnd(WORK_LINES), '', 3);
+    }
+    // the boss walks the aisle and stops to glare at you
+    const bs = bossState;
+    if (bs.pause > 0) {
+      bs.pause -= dt; walkPose(boss, bs.phase, 0);
+      const d = Math.atan2(P.pos.x - boss.g.position.x, P.pos.z - boss.g.position.z);
+      boss.g.rotation.y += wrapA(d - boss.g.rotation.y) * Math.min(1, dt * 5);
+    } else {
+      bs.x += bs.dir * dt * 1.2; bs.phase += dt * 5;
+      if (bs.x > 4.2 || bs.x < -8.5) { bs.dir *= -1; bs.pause = 1.5; }
+      boss.g.rotation.y = bs.dir > 0 ? Math.PI / 2 : -Math.PI / 2;
+      walkPose(boss, bs.phase, 0.7);
+      const dist = Math.hypot(P.pos.x - bs.x, P.pos.z - bs.z);
+      if (dist < 2.2 && !P.seated && S.running && Math.random() < dt * 0.5) {
+        const pool = S.money >= QUOTA ? BOSS_LINES.good : S.money > 0 ? BOSS_LINES.behind : BOSS_LINES.early;
+        say(boss, rnd(pool), 'boss', 3.5); bs.pause = 2.5;
+      }
+    }
+    boss.g.position.set(bs.x, 0, bs.z);
+  }
+
+  // ---------- Loop ----------
+  let clock = 0, last = performance.now();
+  function frame(now) {
+    const dt = Math.min(0.05, (now - last) / 1000); last = now; clock += dt;
+    const inPC = !pcEl.hidden && !anim;
+    if (!inPC) {
+      updatePlayer(dt); updateNPCs(dt);
+      ring.material.opacity = 0.45 + Math.sin(clock * 4) * 0.35;
+      ring.visible = !P.seated;
+      myScreen.material.color.set(P.seated ? '#8fd0ff' : (Math.sin(clock * 3) > 0 ? '#4aa3ff' : '#2f6fe4'));
+      if (anim) {
+        anim.t += dt / anim.dur; const k = Math.min(1, anim.t), e = k < .5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
+        camera.position.lerpVectors(anim.fromPos, anim.toPos, e); camLook.lerpVectors(anim.fromLook, anim.toLook, e);
+        if (anim.hideMe && k > 0.5) me.g.visible = false; // the camera passes through your head
+        if (k >= 1) { const d = anim.done; anim.done = null; d && d(); }
+      } else {
+        const f = followCam();
+        camera.position.lerp(f.pos, Math.min(1, dt * 4)); camLook.lerp(f.look, Math.min(1, dt * 6));
+      }
+      camera.lookAt(camLook);
+      // nearest usable thing
+      near = null;
+      if (!P.seated && !anim && S.running) {
+        let best = Infinity;
+        for (const sp of spots) { const d = Math.hypot(P.pos.x - sp.x, P.pos.z - sp.z); if (d < sp.r && d < best) { best = d; near = sp; } }
+      }
+      $('prompt').hidden = !near;
+      if (near) $('prompt-text').textContent = near.label;
+      $('h3-help').classList.toggle('wobbly', P.coffee > 0);
+      renderer.render(scene, camera);
+      updateBubbles();
+    }
+    requestAnimationFrame(frame);
+  }
+
+  // Glowing cups on your own headset once you own the good one
+  const proCups = [-1, 1].map(s => {
+    const cup = mesh(new THREE.CylinderGeometry(0.11, 0.11, 0.07, 14), new THREE.MeshBasicMaterial({ color: '#4aa3ff' }), s * 0.38, 0.02, 0, me.head);
+    cup.rotation.z = Math.PI / 2; cup.visible = false; return cup;
+  });
+
+  window.office = {
+    isSeated: () => P.seated,
+    applyUpgrades() {
+      for (const id in upgrade3D) upgrade3D[id].visible = has(id);
+      proCups.forEach(c => c.visible = has('headset'));
+    },
+    reset() {
+      hidePC(); anim = null; fadeEl.style.opacity = 0;
+      P.seated = false; me.g.visible = true; P.pos.set(-8, 0, 6.5); P.vel.set(0, 0, 0); P.yaw = Math.PI; P.coffee = 0; P.y = 0; P.grounded = true;
+      const f = followCam(); camera.position.copy(f.pos); camLook.copy(f.look);
+      bubbles.forEach(b => b.el.remove()); bubbles.length = 0;
+      setTimeout(() => say(me, 'Okay. Desk 14. I can do this.', 'you', 3), 600);
+    },
+  };
+  { const f = followCam(); camera.position.copy(f.pos); camLook.copy(f.look); }
+  document.fonts?.ready.then(() => signs.forEach(t => t.redraw()));
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
