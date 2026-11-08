@@ -1,7 +1,7 @@
 {
   "v": 1,
   "pw": "c35ce56b9f43384dd502f93cc7c2a83f901c9a4d72e60b53fe34594250916aa9",
-  "updated": "2026-11-07T14:07:59.229Z",
+  "updated": "2026-11-08T10:52:04.421Z",
   "countdowns": [
     {
       "id": "cd-1793052855240",
@@ -91,7 +91,7 @@
     "After Hours.html": {
       "msg": "Chapter 5 In:",
       "on": true,
-      "until": ""
+      "until": "2026-11-08T11:25:00.000Z"
     }
   },
   "badges": {},
