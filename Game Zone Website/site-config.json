@@ -1,7 +1,7 @@
 {
   "v": 1,
   "pw": "c35ce56b9f43384dd502f93cc7c2a83f901c9a4d72e60b53fe34594250916aa9",
-  "updated": "2026-11-08T10:52:04.421Z",
+  "updated": "2026-11-11T22:39:40.451Z",
   "countdowns": [
     {
       "id": "cd-1793052855240",
@@ -95,20 +95,12 @@
     }
   },
   "badges": {},
-  "news": [
-    {
-      "id": "adm-1793222611233",
-      "game": "beatstorm.html",
-      "date": "2026-10-28",
-      "title": "BEATSTORM: Update 3 is out!",
-      "text": "",
-      "days": 4,
-      "version": "3"
-    }
-  ],
+  "news": [],
   "gotw": {
     "on": true,
     "fb": null,
     "pick": null
-  }
+  },
+  "bans": [],
+  "shots": {}
 }
