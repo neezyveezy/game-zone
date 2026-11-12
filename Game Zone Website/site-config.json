@@ -1,7 +1,7 @@
 {
   "v": 1,
   "pw": "c35ce56b9f43384dd502f93cc7c2a83f901c9a4d72e60b53fe34594250916aa9",
-  "updated": "2026-11-12T18:14:15.801Z",
+  "updated": "2026-11-12T18:45:14.239Z",
   "countdowns": [
     {
       "id": "cd-1793052855240",
@@ -103,14 +103,14 @@
   },
   "bans": [
     {
-      "id": "ban-1794507238432",
+      "id": "ban-1794509112609",
       "pid": "GZ-94D9-CQ8Z",
       "r": "94D9",
       "f": "CQ8Z",
-      "dev": false,
-      "reason": "Being A Dumbass",
-      "at": "2026-11-12T18:13:58.413Z",
-      "until": "2026-11-12T18:23:58.413Z"
+      "dev": true,
+      "reason": "Breaking the Terms of Use",
+      "at": "2026-11-12T18:45:12.246Z",
+      "until": "2026-12-12T18:45:12.246Z"
     }
   ],
   "shots": {}
