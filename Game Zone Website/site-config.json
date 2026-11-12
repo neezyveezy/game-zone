@@ -1,7 +1,7 @@
 {
   "v": 1,
   "pw": "c35ce56b9f43384dd502f93cc7c2a83f901c9a4d72e60b53fe34594250916aa9",
-  "updated": "2026-11-12T18:57:19.450Z",
+  "updated": "2026-11-12T19:35:20.834Z",
   "countdowns": [
     {
       "id": "cd-1793052855240",
@@ -101,17 +101,6 @@
     "fb": null,
     "pick": null
   },
-  "bans": [
-    {
-      "id": "ban-1794509834412",
-      "pid": "GZ-M4EV-DCWH",
-      "r": "M4EV",
-      "f": "DCWH",
-      "dev": true,
-      "reason": "Breaking the Terms of Use",
-      "at": "2026-11-12T18:57:14.401Z",
-      "until": "2026-12-12T18:57:14.401Z"
-    }
-  ],
+  "bans": [],
   "shots": {}
 }
