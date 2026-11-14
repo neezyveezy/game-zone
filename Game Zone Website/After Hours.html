@@ -691,6 +691,8 @@ input[type=text]:focus,select:focus{outline:1px solid var(--paper)}
 #ahInstall .bar{width:100%;max-width:320px;height:6px;border-radius:3px;background:rgba(255,255,255,.1);overflow:hidden}
 #ahInstall .bar i{display:block;height:100%;width:0;background:#e2b54c;transition:width .3s}
 #ahInstall small{color:#7c776c;font-size:12px}
+#ahInstall ol{text-align:left;margin:0;padding-left:22px;color:#e6e1d3;display:flex;flex-direction:column;gap:8px}
+#ahInstall .sm{font-size:13px;color:#8a8478}
 #ahUpdate{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:9998;background:#16120e;border:1px solid #e2b54c;color:#e6e1d3;font:13px "IBM Plex Mono",monospace;padding:10px 14px;border-radius:6px;display:flex;gap:12px;align-items:center;max-width:calc(100vw - 32px)}
 #ahUpdate button{font:600 13px "IBM Plex Mono",monospace;background:#e2b54c;color:#140e06;border:0;border-radius:4px;padding:6px 12px;cursor:pointer}`;
   document.head.appendChild(css);
@@ -702,6 +704,7 @@ input[type=text]:focus,select:focus{outline:1px solid var(--paper)}
     if (d.type === 'ah-progress') { prog = d; paint(); }
     if (d.type === 'ah-ready') { ready = true; paint(); }
   };
+  // (paint() is defined further down; progress messages may arrive before the screen exists)
   if ('serviceWorker' in navigator && location.protocol !== 'file:') {
     navigator.serviceWorker.addEventListener('message', onMsg);
     navigator.serviceWorker.register('./after-hours-sw.js', { scope: './After Hours.html' }).then(r => {
@@ -724,43 +727,58 @@ input[type=text]:focus,select:focus{outline:1px solid var(--paper)}
     document.body.appendChild(el);
   }
 
-  /* ---------- the install screen (only in a normal browser tab) ---------- */
-  let promptEv = null, ov = null, installed = false;
+  /* ---------- installing ----------
+     The browser only lets a page show its "Install?" question at certain moments, and after someone says no
+     it may not offer it again for a while. So installing never depends on that question alone: there is an
+     "Install as app" button in the game's main menu that always works, and when the browser won't ask,
+     it shows the two clicks to install it from the browser's own menu instead. */
+  let promptEv = null, ov = null, installed = false, mode = 'intro';
+  const ua = navigator.userAgent, isEdge = /Edg\//.test(ua), isFF = /firefox/i.test(ua), isSafari = /safari/i.test(ua) && !/chrome|chromium|edg/i.test(ua);
   addEventListener('beforeinstallprompt', e => { e.preventDefault(); promptEv = e; paint(); });
-  addEventListener('appinstalled', () => { installed = true; promptEv = null; paint(); });
-  if (standalone || skip) return;
-  ov = document.createElement('div'); ov.id = 'ahInstall';
-  ov.innerHTML = `<div class="box"><img src="after-hours/icon-512.png" alt=""><h1>After Hours</h1>
-    <p id="ahMsg">A first-person horror game. Install it once and play it like any other game on your computer.</p>
-    <button type="button" id="ahBtn">Install After Hours</button>
-    <div class="bar"><i id="ahBar"></i></div><small id="ahProg">Getting the game files ready…</small>
-    <button type="button" class="alt" id="ahBrowser">Play in the browser instead</button>
-    <small id="ahHelp"></small></div>`;
-  const add = () => { document.body.appendChild(ov); paint(); };
-  if (document.body) add(); else addEventListener('DOMContentLoaded', add);
-  ov.addEventListener('click', e => e.stopPropagation()); ov.addEventListener('pointerdown', e => e.stopPropagation()); ov.addEventListener('keydown', e => e.stopPropagation());
-  ov.querySelector('#ahBtn').addEventListener('click', async () => {
-    if (!promptEv) return; const p = promptEv; promptEv = null; p.prompt();
-    try { const c = await p.userChoice; if (c.outcome === 'accepted') installed = true; } catch (e) {}
+  addEventListener('appinstalled', () => { installed = true; promptEv = null; mode = 'done'; paint(); menuBtn(); });
+  async function install() {
+    if (promptEv) {
+      const p = promptEv; promptEv = null; p.prompt();
+      let ok = false; try { ok = (await p.userChoice).outcome === 'accepted'; } catch (e) {}
+      if (ok) { installed = true; mode = 'done'; } else mode = 'later';
+      if (!ov && !ok) return; open(); return;
+    }
+    mode = 'help'; open();
+  }
+  const steps = () => isFF ? ['Firefox can\'t install games as apps.', 'Open this page in <b>Microsoft Edge</b> (it\'s on every Windows PC) or <b>Google Chrome</b>, then click Install there.']
+    : isSafari ? ['In the top menu bar, click <b>File</b>.', 'Click <b>Add to Dock</b>.']
+    : isEdge ? ['Click the <b>···</b> button at the top right of Edge.', 'Click <b>Apps</b>, then <b>Install After Hours</b>.', 'Or: click the small <b>app icon</b> at the right end of the address bar.']
+    : ['Click the <b>⋮</b> button at the top right of Chrome.', 'Click <b>Cast, save and share</b>, then <b>Install page as app…</b> (or <b>Install After Hours…</b>).', 'Or: click the small <b>install icon</b> at the right end of the address bar.'];
+  function open() {
+    if (!ov) { ov = document.createElement('div'); ov.id = 'ahInstall'; ov.addEventListener('click', e => e.stopPropagation()); ov.addEventListener('pointerdown', e => e.stopPropagation()); ov.addEventListener('keydown', e => e.stopPropagation()); document.body.appendChild(ov); }
     paint();
-  });
-  ov.querySelector('#ahBrowser').addEventListener('click', () => { try { localStorage.setItem('afterhours.playInBrowser', '1'); } catch (e) {} ov.remove(); ov = null; });
-  setTimeout(paint, 2500);
-
+  }
+  function close() { if (ov) { ov.remove(); ov = null; } }
   function paint() {
     if (!ov) return;
-    const $ = id => ov.querySelector(id), btn = $('#ahBtn'), pct = prog.total ? prog.done / prog.total : ready ? 1 : 0;
-    $('#ahBar').style.width = (pct * 100).toFixed(0) + '%';
-    $('#ahProg').textContent = ready ? 'Game files downloaded. It works offline too (multiplayer needs the internet).' : prog.total ? `Downloading the game: ${prog.done} of ${prog.total} files` : 'Getting the game files ready…';
-    if (installed) { $('#ahMsg').textContent = 'Installed! Open After Hours from your desktop or Start menu. You can close this tab.'; btn.hidden = true; $('#ahHelp').textContent = ''; return; }
-    btn.hidden = false; btn.disabled = !promptEv;
-    const ff = /firefox/i.test(navigator.userAgent), saf = /safari/i.test(navigator.userAgent) && !/chrome|edg/i.test(navigator.userAgent);
-    $('#ahHelp').textContent = promptEv ? '' : ff ? 'Firefox can\'t install games like this. Open this page in Microsoft Edge or Google Chrome to install it, or play in the browser.'
-      : saf ? 'In Safari: File → Add to Dock to install it.'
-      : 'Already installed? Open After Hours from your desktop or Start menu. Otherwise use the install icon at the right of the address bar.';
+    const pct = prog.total ? prog.done / prog.total : ready ? 1 : 0;
+    const progress = `<div class="bar"><i style="width:${(pct * 100).toFixed(0)}%"></i></div><small>${ready ? 'Game files downloaded. It works offline too (multiplayer needs the internet).' : prog.total ? `Downloading the game: ${prog.done} of ${prog.total} files` : 'Getting the game files ready…'}</small>`;
+    let body;
+    if (mode === 'done') body = `<p>Installed! After Hours is now on your desktop and in your Start menu. Open it from there. You can close this tab.</p>`;
+    else if (mode === 'help') body = `<p>Your browser didn't show its install question this time. It only takes two clicks from the browser's menu:</p><ol>${steps().map(s => `<li>${s}</li>`).join('')}</ol><p class="sm">Already installed? Open After Hours from your desktop or Start menu.</p><button type="button" id="ahGo">Back to the game</button>`;
+    else if (mode === 'later') body = `<p>No problem. Whenever you want it, press <b>Install as app</b> in the game's main menu.</p><button type="button" id="ahGo">Play in the browser</button>`;
+    else body = `<p>A first-person horror game. Install it once and play it like any other game on your computer.</p><button type="button" id="ahYes">Install After Hours</button>${progress}<button type="button" class="alt" id="ahGo">Play in the browser instead</button><small>You can also install it later from the game's main menu.</small>`;
+    ov.innerHTML = `<div class="box"><img src="after-hours/icon-512.png" alt=""><h1>After Hours</h1>${body}</div>`;
+    const yes = ov.querySelector('#ahYes'), go = ov.querySelector('#ahGo');
+    if (yes) yes.addEventListener('click', install);
+    if (go) go.addEventListener('click', () => { if (mode === 'intro') { try { localStorage.setItem('afterhours.playInBrowser', '1'); } catch (e) {} } close(); });
   }
+  // the button in the main menu (never inside the installed app)
+  function menuBtn() {
+    const nav = document.querySelector('#btnPatch') && document.querySelector('#btnPatch').parentNode; if (!nav) return;
+    let b = document.getElementById('btnInstall');
+    if (standalone || installed) { if (b) b.remove(); return; }
+    if (!b) { b = document.createElement('button'); b.className = 'item'; b.id = 'btnInstall'; b.type = 'button'; b.textContent = 'Install as app'; b.addEventListener('click', e => { e.stopPropagation(); install(); }); nav.appendChild(b); }
+  }
+  const boot = () => { menuBtn(); if (!standalone && !skip) { mode = 'intro'; open(); } };
+  if (document.body) boot(); else addEventListener('DOMContentLoaded', boot);
+  setInterval(() => { if (ov && mode === 'intro') paint(); }, 1000);
 })();
-
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
