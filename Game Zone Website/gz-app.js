@@ -44,6 +44,7 @@ html.gz-gate body > *:not(#gz-gate), html.gz-playing body > *:not(#gz-play) { di
 #gz-gate a { color: #9fd8ff; }
 #gz-gate .ok { padding: 12px 16px; border-radius: 14px; background: rgba(47,191,113,.15); box-shadow: inset 0 0 0 1px rgba(47,191,113,.45); color: #c9f7dc; font-weight: 700; }
 #gz-play { position: fixed; inset: 0; z-index: 2147483500; background: #000; }
+#gz-play[hidden] { display: none !important; }
 #gz-play iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; display: block; background: #000; }
 #gz-home { position: absolute; left: 50%; top: 6px; transform: translate(-50%, -70%); z-index: 2; border: 0; cursor: pointer; padding: 6px 14px 5px; border-radius: 0 0 12px 12px;
   background: rgba(16,10,36,.82); color: #fff; font: 700 13px "Nunito", system-ui, sans-serif; box-shadow: 0 4px 16px rgba(0,0,0,.4), inset 0 0 0 1px rgba(255,255,255,.14);
@@ -134,6 +135,7 @@ html.gz-gate body > *:not(#gz-gate), html.gz-playing body > *:not(#gz-play) { di
       frame.title = name || 'Game';
       frame.src = file;
       box.insertBefore(frame, box.firstChild);
+      box.hidden = false;
       document.documentElement.classList.add('gz-playing');
       document.title = (name ? name + ' · ' : '') + 'Game Zone';
       history.pushState({ gzPlay: file }, '');
@@ -144,6 +146,7 @@ html.gz-gate body > *:not(#gz-gate), html.gz-playing body > *:not(#gz-play) { di
       if (!frame) return;
       try { frame.src = 'about:blank'; } catch (e) { /* ignore */ }   // stops the game's sound right away
       frame.remove(); frame = null;
+      if (box) { box.hidden = true; box.classList.remove('peek'); }   // take the black game screen away too
       if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
       document.documentElement.classList.remove('gz-playing');
       document.title = title0;
