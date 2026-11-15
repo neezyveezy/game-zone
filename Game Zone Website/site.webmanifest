@@ -1,0 +1,20 @@
+{
+  "id": "./",
+  "name": "Game Zone",
+  "short_name": "Game Zone",
+  "description": "Every Game Zone game in one app.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#07040f",
+  "theme_color": "#140a2e",
+  "categories": ["games", "entertainment"],
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ],
+  "related_applications": [
+    { "platform": "webapp", "url": "https://neezyveezy.github.io/game-zone/Game%20Zone%20Website/site.webmanifest" }
+  ]
+}

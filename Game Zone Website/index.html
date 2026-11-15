@@ -10,6 +10,10 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="manifest" href="site.webmanifest">
 <meta name="theme-color" content="#140a2e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Game Zone">
+<script src="gz-app.js"></script>
 <!-- Each card uses its game's own fonts. Without internet they fall back to normal fonts. -->
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Saira+Condensed:wght@700;800&family=Barlow:wght@400;500&family=Rajdhani:wght@600;700&family=IBM+Plex+Sans:wght@400;500&family=IBM+Plex+Mono:wght@500&family=Limelight&family=Monoton&family=Manrope:wght@400;600&family=JetBrains+Mono:wght@500;700&family=Bricolage+Grotesque:opsz,wght@12..96,800&family=Fredoka:wght@600;700&family=Nunito:wght@600;700&family=Big+Shoulders+Stencil+Display:wght@800&family=Barlow+Semi+Condensed:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@500;600&family=Orbitron:wght@800;900&family=Press+Start+2P&family=Unbounded:wght@700;900&family=Teko:wght@500;600&family=Special+Elite&family=Bungee&family=Rubik:wght@500;700&display=swap">
 <style>
@@ -2741,16 +2745,22 @@ function launch(game, card, e) {
   ring.style.top = (r.top + r.height / 2 - 10) + "px";
   $("#launch-name").textContent = game.title;
   setTimeout(() => ov.classList.add("on"), 250);
-  setTimeout(() => { window.location.href = game.file; }, 1500);
+  setTimeout(() => {
+    // in the Game Zone app every game opens inside the app itself
+    if (window.GZ_PLAYER && GZ_PLAYER.on) { GZ_PLAYER.open(game.file, game.title); resetLaunch(); }
+    else window.location.href = game.file;
+  }, 1500);
 }
 
-// Reset everything when coming back with the browser's Back button
-window.addEventListener("pageshow", () => {
+// Reset everything when coming back with the browser's Back button (or out of a game in the app)
+function resetLaunch() {
   launching = false; warp = false;
   $("#launch").classList.remove("on");
   document.body.classList.remove("shake");
   document.querySelectorAll(".ripple").forEach(el => el.remove());
-});
+}
+window.addEventListener("pageshow", resetLaunch);
+window.addEventListener("gz-closed", resetLaunch);
 
 /* ---------- Search ---------- */
 $("#search").addEventListener("input", e => {
@@ -3227,7 +3237,9 @@ const ago = when => { const d = Math.round((dayStart() - when) / DAY); return d 
 
 function launchFile(file) {
   const i = GAMES.findIndex(g => g.file === file);
-  if (i >= 0) launch(GAMES[i], CARDS[i]); else location.href = file;
+  if (i >= 0) launch(GAMES[i], CARDS[i]);
+  else if (window.GZ_PLAYER && GZ_PLAYER.on) GZ_PLAYER.open(file);
+  else location.href = file;
 }
 
 // badges on the cards are set by hand in the admin panel; this only keeps the News button's counter up to date

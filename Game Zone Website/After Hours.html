@@ -3,7 +3,6 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<link rel="manifest" href="after-hours/manifest.webmanifest">
 <meta name="theme-color" content="#060505">
 <link rel="icon" href="after-hours/icon-192.png">
 <link rel="apple-touch-icon" href="after-hours/icon-192.png">
@@ -734,8 +733,7 @@ input[type=text]:focus,select:focus{outline:1px solid var(--paper)}
      it shows the two clicks to install it from the browser's own menu instead. */
   let promptEv = null, ov = null, installed = false, mode = 'intro';
   const ua = navigator.userAgent, isEdge = /Edg\//.test(ua), isFF = /firefox/i.test(ua), isSafari = /safari/i.test(ua) && !/chrome|chromium|edg/i.test(ua);
-  addEventListener('beforeinstallprompt', e => { e.preventDefault(); promptEv = e; paint(); });
-  addEventListener('appinstalled', () => { installed = true; promptEv = null; mode = 'done'; paint(); menuBtn(); });
+  // After Hours can't be installed on its own any more: it lives in the Game Zone app now.
   async function install() {
     if (promptEv) {
       const p = promptEv; promptEv = null; p.prompt();
@@ -759,7 +757,8 @@ input[type=text]:focus,select:focus{outline:1px solid var(--paper)}
     const pct = prog.total ? prog.done / prog.total : ready ? 1 : 0;
     const progress = `<div class="bar"><i style="width:${(pct * 100).toFixed(0)}%"></i></div><small>${ready ? 'Game files downloaded. It works offline too (multiplayer needs the internet).' : prog.total ? `Downloading the game: ${prog.done} of ${prog.total} files` : 'Getting the game files ready…'}</small>`;
     let body;
-    if (mode === 'done') body = `<p>Installed! After Hours is now on your desktop and in your Start menu. Open it from there. You can close this tab.</p>`;
+    if (mode === 'moved') body = `<p>After Hours now lives in the <b>Game Zone app</b>, together with every other Game Zone game. One app, all the games.</p><a href="index.html" id="ahZone" style="font:600 16px 'IBM Plex Mono',monospace;padding:14px 28px;border-radius:6px;background:#e2b54c;color:#140e06;text-decoration:none;min-width:260px">Get the Game Zone app</a><small>Already have it? Open Game Zone and pick After Hours there.</small>`;
+    else if (mode === 'done') body = `<p>Installed! After Hours is now on your desktop and in your Start menu. Open it from there. You can close this tab.</p>`;
     else if (mode === 'help') body = `<p>Your browser didn't show its install question this time. It only takes two clicks from the browser's menu:</p><ol>${steps().map(s => `<li>${s}</li>`).join('')}</ol><p class="sm">Already installed? Open After Hours from your desktop or Start menu.</p><button type="button" id="ahGo">Back to the game</button>`;
     else if (mode === 'later') body = `<p>No problem. Whenever you want it, press <b>Install as app</b> in the game's main menu.</p><button type="button" id="ahGo">Play in the browser</button>`;
     else body = `<p>A first-person horror game. Install it once and play it like any other game on your computer.</p><button type="button" id="ahYes">Install After Hours</button>${progress}<button type="button" class="alt" id="ahGo">Play in the browser instead</button><small>You can also install it later from the game's main menu.</small>`;
@@ -775,9 +774,12 @@ input[type=text]:focus,select:focus{outline:1px solid var(--paper)}
     if (standalone || installed) { if (b) b.remove(); return; }
     if (!b) { b = document.createElement('button'); b.className = 'item'; b.id = 'btnInstall'; b.type = 'button'; b.textContent = 'Install as app'; b.addEventListener('click', e => { e.stopPropagation(); install(); }); nav.appendChild(b); }
   }
-  const boot = () => { menuBtn(); if (!standalone && !skip) { mode = 'intro'; open(); } };
+  // inside the Game Zone app (or an old After Hours app): straight into the game.
+  // Opened on its own in a browser tab: send the player to the Game Zone app.
+  const framed = (() => { try { return window.top !== window; } catch (e) { return true; } })();
+  const boot = () => { const b = document.getElementById('btnInstall'); if (b) b.remove(); if (!standalone && !framed && location.protocol !== 'file:') { mode = 'moved'; open(); } };
   if (document.body) boot(); else addEventListener('DOMContentLoaded', boot);
-  setInterval(() => { if (ov && mode === 'intro') paint(); }, 1000);
+  void skip; void install; void menuBtn; void installed;
 })();
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
