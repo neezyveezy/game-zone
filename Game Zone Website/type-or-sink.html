@@ -1,0 +1,1164 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>Type or Sink</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#1d1b2e;--panel:#fffaf2;--accent:#ff6b2c;--accent-d:#c24a17;--blue:#4f7cff;--blue-d:#2f4fb8;--good:#22a866;--good-d:#167a49;--bad:#e5484d;--muted:#6b6880;--line:#e9e2d4}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;overflow:hidden;background:#1d1b2e;font-family:'Fredoka',system-ui,sans-serif;color:var(--ink)}
+#cv{position:fixed;inset:0;display:block}
+button{font-family:inherit}
+.screen{position:fixed;inset:0;display:none;align-items:center;justify-content:center;padding:16px;overflow:auto}
+.screen.active{display:flex}
+.panel{background:var(--panel);border-radius:26px;padding:22px;box-shadow:0 8px 0 rgba(0,0,0,.22),0 24px 60px rgba(0,0,0,.4);width:min(620px,100%);max-height:100%;overflow:auto;margin:auto}
+.panel h2{margin:0 0 4px;font-size:30px}
+.muted{color:var(--muted)}
+.btn{font-weight:600;font-size:19px;border:0;border-radius:16px;padding:13px 20px;background:var(--accent);color:#fff;box-shadow:0 5px 0 var(--accent-d);cursor:pointer;transition:transform .07s,box-shadow .07s,filter .15s;user-select:none}
+.btn:hover{filter:brightness(1.07)}
+.btn:active{transform:translateY(3px);box-shadow:0 2px 0 var(--accent-d)}
+.btn.blue{background:var(--blue);box-shadow:0 5px 0 var(--blue-d)}
+.btn.green{background:var(--good);box-shadow:0 5px 0 var(--good-d)}
+.btn.ghost{background:#ece6da;color:var(--ink);box-shadow:0 5px 0 #c9c0ae}
+.btn.small{font-size:15px;padding:8px 14px;border-radius:12px;box-shadow:0 3px 0 #c9c0ae}
+.btn.big{font-size:24px;padding:16px 22px}
+.btn:disabled{opacity:.5;cursor:default}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.row.end{justify-content:flex-end}
+.label{font-weight:600;font-size:14px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin:16px 0 8px}
+#home{justify-content:flex-start;padding-left:max(16px,7vw)}
+.home{display:flex;flex-direction:column;gap:14px;width:min(380px,100%)}
+.title{font-size:clamp(54px,10vw,96px);font-weight:700;color:#fff;line-height:.86;letter-spacing:1px;text-shadow:0 6px 0 #b3261e,0 12px 30px rgba(0,0,0,.55);margin-bottom:4px}
+.title span{color:#ffd23f}
+.tag{color:#ffe7d6;font-size:19px;margin-bottom:10px;text-shadow:0 2px 6px rgba(0,0,0,.6)}
+.who{color:#fff;font-size:15px;opacity:.9;text-shadow:0 2px 6px rgba(0,0,0,.6)}
+.halfrow{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:820px){#home{justify-content:center;align-items:flex-start;padding-top:28px;padding-left:16px}.home{align-items:stretch;text-align:center}}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px}
+.card{text-align:left;border:3px solid transparent;background:#fff;border-radius:16px;padding:10px;cursor:pointer;box-shadow:0 3px 0 var(--line);display:flex;flex-direction:column;gap:2px;color:var(--ink)}
+.card b{font-size:16px}.card small{color:var(--muted);font-size:12.5px;line-height:1.25}
+.card .sw{height:34px;border-radius:10px;margin-bottom:6px}
+.card.sel{border-color:var(--accent);background:#fff3ea}
+.card:disabled{cursor:default;opacity:.45}.card.sel:disabled{opacity:1}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg button{border:0;background:#fff;border-radius:12px;padding:9px 14px;font-size:15px;font-weight:600;cursor:pointer;box-shadow:0 3px 0 var(--line);color:var(--ink)}
+.seg.bigseg button{font-size:19px;padding:12px 20px}
+.seg button.sel{background:var(--accent);color:#fff;box-shadow:0 3px 0 var(--accent-d)}
+.seg button:disabled{cursor:default}
+.stepper{display:flex;align-items:center;gap:12px}
+.stepper button{width:42px;height:42px;border-radius:12px;border:0;font-size:24px;font-weight:700;background:#fff;box-shadow:0 3px 0 var(--line);cursor:pointer;color:var(--ink)}
+.stepper span{font-size:26px;font-weight:700;min-width:30px;text-align:center}
+.code{font-size:44px;font-weight:700;letter-spacing:6px;color:var(--accent)}
+.plist{display:flex;flex-direction:column;gap:6px;margin-top:10px}
+.prow{display:flex;align-items:center;gap:10px;background:#fff;border-radius:14px;padding:6px 10px;box-shadow:0 3px 0 var(--line)}
+.prow canvas{width:40px;height:40px;border-radius:50%}
+.prow .nm{font-weight:600;flex:1}
+.pill{font-size:12px;font-weight:700;border-radius:8px;padding:2px 8px;background:#ece6da;color:var(--muted)}
+.pill.host{background:#ffe1cc;color:var(--accent-d)}
+input.txt{font:inherit;font-size:20px;padding:11px 14px;border-radius:14px;border:3px solid var(--line);background:#fff;outline:none;min-width:0;color:var(--ink)}
+input.txt:focus{border-color:var(--accent)}
+#onlineStatus{min-height:24px;margin-top:12px;font-weight:600}
+.cust{display:grid;grid-template-columns:240px 1fr;gap:18px}
+@media (max-width:640px){.cust{grid-template-columns:1fr}}
+#pcv{width:240px;height:280px;border-radius:22px;background:#ffe9d6;justify-self:center}
+.opt{margin-bottom:10px}
+.opt .ol{font-size:13px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px}
+.sws{display:flex;flex-wrap:wrap;gap:6px}
+.sws button{width:28px;height:28px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 1px #d8d0c0;cursor:pointer;padding:0}
+.sws button.sel{box-shadow:0 0 0 3px var(--accent)}
+.cyc{display:flex;align-items:center;gap:8px}
+.cyc button{width:36px;height:36px;border-radius:10px;border:0;background:#fff;box-shadow:0 3px 0 var(--line);font-size:18px;font-weight:700;cursor:pointer;color:var(--ink)}
+.cyc span{min-width:120px;text-align:center;font-weight:600;font-size:17px}
+#hud{padding:0;pointer-events:none}
+#hud .top{position:absolute;top:10px;left:0;right:0;display:flex;justify-content:center;padding:0 70px}
+#prompt{background:rgba(255,250,242,.96);border-radius:22px;padding:10px 22px 12px;text-align:center;width:min(480px,100%);box-shadow:0 6px 0 rgba(0,0,0,.2),0 14px 30px rgba(0,0,0,.3)}
+#pRound{font-size:13px;letter-spacing:2px;color:var(--muted);font-weight:600}
+#pQ{font-size:17px;font-weight:500;min-height:20px}
+#pBig{font-size:clamp(26px,5.5vw,44px);font-weight:700;line-height:1.05;color:var(--accent);overflow-wrap:anywhere}
+#pLetter{display:none;margin:6px auto 0;font-weight:700;font-size:18px;background:var(--ink);color:#ffd23f;border-radius:10px;padding:2px 12px;width:max-content}
+#timer{height:10px;background:#e7e0d3;border-radius:6px;overflow:hidden;margin-top:8px}
+#timerFill{height:100%;background:var(--good);width:100%;border-radius:6px}
+#pNeed{font-size:14.5px;margin-top:6px;font-weight:600;min-height:18px}
+#pNeed.bad{color:var(--bad)}#pNeed.ok{color:var(--good)}
+.corner{position:absolute;top:12px;pointer-events:auto}
+#quitBtn{left:12px}
+#muteBtn{left:64px}
+.iconbtn{width:44px;height:44px;border-radius:14px;border:0;background:rgba(255,250,242,.95);font-size:20px;font-weight:700;cursor:pointer;box-shadow:0 4px 0 rgba(0,0,0,.25);display:flex;align-items:center;justify-content:center;color:var(--ink)}
+#aliveBox{right:12px;background:rgba(255,250,242,.95);border-radius:14px;padding:9px 14px;font-weight:700;box-shadow:0 4px 0 rgba(0,0,0,.25);pointer-events:none}
+#feed{position:absolute;left:12px;top:70px;display:flex;flex-direction:column;gap:4px;max-width:46vw}
+#feed div{background:rgba(20,16,30,.7);color:#fff;border-radius:10px;padding:5px 10px;font-size:14px;animation:fade 4.5s forwards}
+@keyframes fade{0%{opacity:0;transform:translateX(-10px)}8%{opacity:1;transform:none}80%{opacity:1}100%{opacity:0}}
+#inputBar{position:absolute;left:0;right:0;bottom:14px;display:flex;flex-direction:column;align-items:center;gap:6px;padding:0 16px}
+#fb{min-height:28px;font-weight:700;color:#fff;text-shadow:0 2px 5px rgba(0,0,0,.8);font-size:19px;text-align:center}
+#fb.good{color:#7dffb5}#fb.bad{color:#ffb0b0}
+.inrow{pointer-events:auto;display:flex;gap:8px;width:min(580px,100%)}
+#answer{flex:1;font:inherit;font-size:23px;font-weight:600;padding:12px 16px;border-radius:18px;border:4px solid #fff;outline:none;background:#fff;box-shadow:0 6px 0 rgba(0,0,0,.25);min-width:0;color:var(--ink);text-transform:uppercase}
+#answer:focus{border-color:#ffd23f}
+#answer:disabled{background:#e9e4da;color:var(--muted)}
+#answer::placeholder{text-transform:none;font-weight:500}
+.shake{animation:shake .35s}
+@keyframes shake{20%{transform:translateX(-9px)}40%{transform:translateX(8px)}60%{transform:translateX(-6px)}80%{transform:translateX(4px)}}
+#deadBar{display:none;pointer-events:auto;background:rgba(255,250,242,.96);border-radius:18px;padding:10px 16px;font-weight:600;align-items:center;gap:12px;box-shadow:0 6px 0 rgba(0,0,0,.25)}
+@media (max-width:640px){#hud .top{top:62px;padding:0 10px}#feed{top:auto;bottom:110px}#prompt{padding:8px 14px 10px}}
+.res{display:flex;flex-direction:column;gap:6px;margin:14px 0}
+.res .prow .place{font-size:20px;font-weight:700;width:34px;text-align:center}
+.res .prow.me{outline:3px solid var(--accent)}
+.res .stat{font-size:13px;color:var(--muted);text-align:right}
+.howto ol{padding-left:22px;line-height:1.5;font-size:17px}
+.howto li{margin-bottom:6px}
+</style>
+</head>
+<body>
+<canvas id="cv"></canvas>
+
+<div id="home" class="screen active">
+  <div class="home">
+    <div class="title"><span data-i18n="title1" style="color:#fff"></span><br><span data-i18n="title2"></span></div>
+    <div class="tag" data-i18n="tag"></div>
+    <button class="btn big" data-go="solo" data-i18n="playSolo"></button>
+    <button class="btn blue big" data-go="online" data-i18n="playOnline"></button>
+    <button class="btn green" data-go="custom" data-i18n="customize"></button>
+    <div class="halfrow">
+      <button class="btn ghost" data-go="howto" data-i18n="howto"></button>
+      <button class="btn ghost" data-go="settings" data-i18n="settings"></button>
+    </div>
+    <div class="who" id="who"></div>
+  </div>
+</div>
+
+<div id="settings" class="screen">
+  <div class="panel">
+    <h2 data-i18n="settingsTitle"></h2>
+    <div class="label" data-i18n="language"></div>
+    <div class="seg bigseg" id="langSeg">
+      <button data-lang="en">English</button>
+      <button data-lang="nl">Nederlands</button>
+    </div>
+    <div class="muted" style="margin-top:8px" data-i18n="langNote"></div>
+    <div class="label" data-i18n="sound"></div>
+    <div class="seg bigseg" id="soundSeg">
+      <button data-snd="on" data-i18n="on"></button>
+      <button data-snd="off" data-i18n="off"></button>
+    </div>
+    <div class="label" data-i18n="music"></div>
+    <div class="seg bigseg" id="musicSeg">
+      <button data-mus="on" data-i18n="on"></button>
+      <button data-mus="off" data-i18n="off"></button>
+    </div>
+    <div class="row end" style="margin-top:18px"><button class="btn green" data-go="home" data-i18n="done"></button></div>
+  </div>
+</div>
+
+<div id="solo" class="screen">
+  <div class="panel">
+    <h2 data-i18n="soloTitle"></h2>
+    <div class="muted" data-i18n="soloDesc"></div>
+    <div id="soloSettings"></div>
+    <div class="row end" style="margin-top:18px">
+      <button class="btn ghost" data-go="home" data-i18n="back"></button>
+      <button class="btn big" id="soloStart" data-i18n="start"></button>
+    </div>
+  </div>
+</div>
+
+<div id="online" class="screen">
+  <div class="panel">
+    <h2 data-i18n="onlineTitle"></h2>
+    <div class="muted" data-i18n="onlineDesc"></div>
+    <div class="label" data-i18n="hostGame"></div>
+    <button class="btn blue" id="createBtn" data-i18n="createRoom"></button>
+    <div class="label" data-i18n="joinGame"></div>
+    <div class="row">
+      <input class="txt" id="joinCode" data-i18n-ph="codePh" maxlength="6" style="flex:1;text-transform:uppercase;letter-spacing:3px">
+      <button class="btn" id="joinBtn" data-i18n="join"></button>
+    </div>
+    <div id="onlineStatus"></div>
+    <div class="row end" style="margin-top:8px"><button class="btn ghost" data-go="home" data-i18n="back"></button></div>
+  </div>
+</div>
+
+<div id="lobby" class="screen">
+  <div class="panel">
+    <div class="row" style="justify-content:space-between">
+      <div><div class="label" style="margin:0" data-i18n="roomCode"></div><div class="code" id="roomCode">-----</div></div>
+      <button class="btn ghost small" id="copyCode" data-i18n="copy"></button>
+    </div>
+    <div class="label" data-i18n="players"></div>
+    <div class="plist" id="lobbyPlayers"></div>
+    <div class="muted" id="lobbyLang" style="margin-top:10px;font-weight:600"></div>
+    <div id="lobbySettings"></div>
+    <div class="muted" id="lobbyWait" style="margin-top:14px;font-weight:600" data-i18n="waitHost"></div>
+    <div class="row end" style="margin-top:16px">
+      <button class="btn ghost" id="lobbyLeave" data-i18n="leave"></button>
+      <button class="btn big" id="lobbyStart" data-i18n="startGame"></button>
+    </div>
+  </div>
+</div>
+
+<div id="custom" class="screen">
+  <div class="panel" style="width:min(760px,100%)">
+    <h2 data-i18n="custTitle"></h2>
+    <div class="cust">
+      <div style="display:flex;flex-direction:column;gap:10px;align-items:center">
+        <canvas id="pcv"></canvas>
+        <input class="txt" id="nameIn" maxlength="14" data-i18n-ph="namePh" style="width:240px;text-align:center">
+        <button class="btn ghost small" id="randBtn" data-i18n="randomize"></button>
+      </div>
+      <div id="custOpts"></div>
+    </div>
+    <div class="row end" style="margin-top:14px"><button class="btn green" data-go="home" data-i18n="done"></button></div>
+  </div>
+</div>
+
+<div id="howto" class="screen">
+  <div class="panel howto">
+    <h2 data-i18n="howtoTitle"></h2>
+    <ol id="howtoList"></ol>
+    <div class="muted" data-i18n="howtoTip"></div>
+    <div class="row end" style="margin-top:14px"><button class="btn" data-go="home" data-i18n="gotIt"></button></div>
+  </div>
+</div>
+
+<div id="hud" class="screen">
+  <button class="iconbtn corner" id="quitBtn">&#10005;</button>
+  <button class="iconbtn corner" id="muteBtn"></button>
+  <div class="corner" id="aliveBox"></div>
+  <div class="top"><div id="prompt">
+    <div id="pRound"></div><div id="pQ"></div><div id="pBig"></div><div id="pLetter"></div>
+    <div id="timer"><div id="timerFill"></div></div>
+    <div id="pNeed"></div>
+  </div></div>
+  <div id="feed"></div>
+  <div id="inputBar">
+    <div id="fb"></div>
+    <div class="inrow" id="inRow">
+      <input id="answer" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" maxlength="40">
+      <button class="btn" id="sendBtn">GO</button>
+    </div>
+    <div id="deadBar"><span id="deadTxt"></span><button class="btn small" id="skipBtn" style="box-shadow:0 3px 0 var(--accent-d)" data-i18n="skip"></button></div>
+  </div>
+</div>
+
+<div id="over" class="screen">
+  <div class="panel">
+    <h2 id="resTitle"></h2>
+    <div class="muted" id="resSub"></div>
+    <div class="res" id="resList"></div>
+    <div class="muted" id="resWait" style="font-weight:600" data-i18n="waitHostRes"></div>
+    <div class="row end">
+      <button class="btn ghost" id="resMenu" data-i18n="menu"></button>
+      <button class="btn big" id="resAgain"></button>
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+/* ================= utils ================= */
+const $=s=>document.querySelector(s);
+const rand=(a,b)=>a+Math.random()*(b-a);
+const ri=(a,b)=>Math.floor(rand(a,b+1));
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+function store(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+function load(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}}
+const norm=s=>String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z]/g,'');
+function hexRgb(h){const n=parseInt(h.slice(1),16);return[(n>>16)&255,(n>>8)&255,n&255]}
+function shade(h,a){const[r,g,b]=hexRgb(h);const f=v=>clamp(Math.round(v+a*2.55),0,255);return`rgb(${f(r)},${f(g)},${f(b)})`}
+function lum(h){const[r,g,b]=hexRgb(h);return(0.299*r+0.587*g+0.114*b)/255}
+
+/* ================= translations ================= */
+let lang=load('tos_lang','en');if(lang!=='nl')lang='en';
+const I18N={
+en:{title1:'TYPE',title2:'OR SINK',tag:"Name it. Stack it. Don't sink.",playSolo:'Play Solo',playOnline:'Play Online',customize:'Customize Character',howto:'How to Play',settings:'Settings',playingAs:'Playing as {n}',
+ settingsTitle:'Settings',language:'Language',sound:'Sound',on:'On',off:'Off',langNote:'Questions, answers and bots use this language too.',done:'Done',
+ soloTitle:'Solo Game',soloDesc:'Play against bots. Pick a map, a mode, and how tough the bots are.',back:'Back',start:'Start!',
+ onlineTitle:'Play Online',onlineDesc:"Create a room and share the code, or type in a friend's code to join their room. Everyone needs this same game file open.",hostGame:'Host a game',createRoom:'Create Room',joinGame:'Join a game',codePh:'ROOM CODE',join:'Join',
+ roomCode:'Room code',copy:'Copy code',copied:'Copied!',players:'Players',waitHost:'Waiting for the host to start...',leave:'Leave',startGame:'Start Game',you:' (you)',host:'HOST',botsN:'+ {n} bots ({d})',bots1:'+ 1 bot ({d})',qLang:'Questions are in: {l}',
+ custTitle:'Your Character',namePh:'Your name',randomize:'Randomize',
+ howtoTitle:'How to Play',gotIt:'Got it!',
+ howtoList:['Every round you get a question, like <b>"Name a CAR BRAND"</b>.','Type an answer and press <b>Enter</b>. Every letter becomes a block in your tower. <b>Longer word = higher tower.</b>','When the timer ends, the <b>lava</b> (or water, slime...) rises. If it gets above you, you sink!','You get <b>one answer per round</b>. Wrong answers can be retried until time runs out.','Answers stay <b>secret</b> until time is up, then everyone\'s tower grows at once. You may pick the same word as someone else, but you can\'t use the same word twice yourself.','The last player standing wins.'],
+ howtoTip:'Tip: spaces don\'t count, plurals do. "United States of America" is 21 blocks!',
+ map:'Map',mode:'Game mode',botsL:'Bots',diff:'Bot difficulty',mixed:'Mixed',
+ round:'ROUND {n}',mega:' · MEGA WAVE!',getReady:'Get ready...',nextQ:'Next question in',mustStart:'Must start with {l}',alive:'{a}/{n} alive',
+ needBad:'Rises {r}m: you need {n}+ letters!',needOk:"Rises {r}m: you're safe (+{n}m)",survived:'You survived! {n}m above',uhoh:'Uh oh...',sank:'You sank!',
+ phType:'Type your answer + Enter',phTypeS:'Type your answer',phLocked:'Locked in!',phHold:'Hold on...',phReady:'Get ready...',
+ spectating:'You sank! Spectating...',spect:'Spectating...',skip:'Skip to results',quitQ:'Quit this game?',
+ fbOk:'+{n} blocks: {w}!',fbLock:'Locked in: {w} (+{n}). Secret until time is up!',ready:'READY!',timeUp:"Time's up! The answers:",willSurvive:"You'll survive this rise (+{n}m)",willSink:'Uh oh... not high enough!',music:'Music',
+ short:'Too short!',letter:'It must start with {l}!',unknown:'"{w}" isn\'t a {c} we know',used:'You already used that word this game!',out:'You are out!',wait:'Wait for the question!',locked:'Already locked in!',
+ gameOver:'Game over!',youWin:'You win!',wins:'{n} wins!',placed:'You placed #{p} of {n}',soloRes:'You reached {h}m and survived {r} rounds. Best: {b}m',waitHostRes:'Waiting for the host...',menu:'Menu',again:'Play Again',toLobby:'Back to Lobby',botTag:' (bot)',best:'best: {w}',YOU:'YOU',left:'{n} left the game',
+ connecting:'Connecting...',libErr:'Could not load the multiplayer library. Check your internet connection.',connErr:'Connection error: {e}',enterCode:'Enter the room code from your friend.',noReach:'Could not reach that room. Check the code and try again.',noRoom:'No room found with that code.',disc:'You were disconnected from the room (the host may have left).',started:'That game already started. Wait for the next one!',full:'That room is full.',
+ langName:'English',
+ maps:{volcano:['Volcano','Lava bubbles up from below.','The lava rises!','got toasted in the lava'],shark:['Shark Bay','The tide rises. Sharks are hungry.','The tide is rising!','got eaten by a shark'],toxic:['Toxic Lab','Bubbling green slime. Do not touch.','The slime is rising!','melted in toxic slime'],candy:['Choco Canyon','Sweet land, rising hot chocolate.','Hot chocolate is rising!','drowned in hot chocolate']},
+ modes:{classic:['Classic','Lava rises every round. Long words keep you safe.'],rush:['Speed Rush','Less time every round, faster lava.'],letter:['Letter Lock','Answers must start with a given letter.'],mega:['Mega Waves','Every 3rd round a MEGA wave hits. Extra time to find a huge word!']},
+ diffs:{easy:'Easy',normal:'Normal',hard:'Hard',insane:'Insane'},
+ cust:{skin:'Skin',hair:'Hair',hairColor:'Hair color',eyes:'Eyes',mouth:'Mouth',shirt:'Shirt',pants:'Pants',hat:'Hat',hatColor:'Hat color',glasses:'Glasses'},
+ vals:{bald:'Bald',short:'Short',spiky:'Spiky',long:'Long',bun:'Bun',curly:'Curly',mohawk:'Mohawk',ponytail:'Ponytail',afro:'Afro',dots:'Dots',big:'Big eyes',happy:'Happy',sleepy:'Sleepy',wink:'Wink',angry:'Angry',smile:'Smile',grin:'Grin',open:'Open',smirk:'Smirk',tongue:'Tongue',none:'None',cap:'Cap',beanie:'Beanie',crown:'Crown',tophat:'Top hat',party:'Party hat',cowboy:'Cowboy hat',headphones:'Headphones',viking:'Viking helmet',round:'Round glasses',shades:'Sunglasses',star:'Star glasses',nerd:'Nerd glasses'},
+ demo:[['LAVA','TYPE','SINK'],['WORD','RISE'],['FAST','LETTERS'],['STACK']]
+},
+nl:{title1:'TYP',title2:'OF ZINK',tag:'Noem het. Stapel het. Niet zinken!',playSolo:'Solo spelen',playOnline:'Online spelen',customize:'Personage aanpassen',howto:'Hoe speel je?',settings:'Instellingen',playingAs:'Je speelt als {n}',
+ settingsTitle:'Instellingen',language:'Taal',sound:'Geluid',on:'Aan',off:'Uit',langNote:'Vragen, antwoorden en bots gebruiken ook deze taal.',done:'Klaar',
+ soloTitle:'Solo spel',soloDesc:'Speel tegen bots. Kies een map, een spelmodus en hoe sterk de bots zijn.',back:'Terug',start:'Start!',
+ onlineTitle:'Online spelen',onlineDesc:'Maak een kamer en deel de code, of typ de code van een vriend in om mee te doen. Iedereen moet dit spelbestand open hebben.',hostGame:'Spel hosten',createRoom:'Kamer maken',joinGame:'Meedoen met een spel',codePh:'KAMERCODE',join:'Meedoen',
+ roomCode:'Kamercode',copy:'Code kopiëren',copied:'Gekopieerd!',players:'Spelers',waitHost:'Wachten tot de host start...',leave:'Verlaten',startGame:'Start spel',you:' (jij)',host:'HOST',botsN:'+ {n} bots ({d})',bots1:'+ 1 bot ({d})',qLang:'Vragen zijn in het: {l}',
+ custTitle:'Jouw personage',namePh:'Jouw naam',randomize:'Willekeurig',
+ howtoTitle:'Hoe speel je?',gotIt:'Begrepen!',
+ howtoList:['Elke ronde krijg je een vraag, zoals <b>"Noem een AUTOMERK"</b>.','Typ een antwoord en druk op <b>Enter</b>. Elke letter wordt een blok in je toren. <b>Langer woord = hogere toren.</b>','Als de tijd om is, stijgt de <b>lava</b> (of het water, het slijm...). Komt het boven je uit, dan zink je!','Je krijgt <b>één antwoord per ronde</b>. Een fout antwoord mag je opnieuw proberen tot de tijd op is.','Antwoorden blijven <b>geheim</b> tot de tijd om is, daarna groeien alle torens tegelijk. Je mag hetzelfde woord kiezen als een ander, maar je mag zelf een woord niet twee keer gebruiken.','Wie als laatste overblijft, wint.'],
+ howtoTip:'Tip: spaties tellen niet mee, meervouden wel. "Verenigde Staten van Amerika" is 25 blokken!',
+ map:'Map',mode:'Spelmodus',botsL:'Bots',diff:'Moeilijkheid bots',mixed:'Gemengd',
+ round:'RONDE {n}',mega:' · MEGAGOLF!',getReady:'Maak je klaar...',nextQ:'Volgende vraag over',mustStart:'Moet beginnen met {l}',alive:'{a}/{n} over',
+ needBad:'Stijgt {r}m: je hebt {n}+ letters nodig!',needOk:'Stijgt {r}m: je bent veilig (+{n}m)',survived:'Overleefd! {n}m erboven',uhoh:'Oei...',sank:'Je bent gezonken!',
+ phType:'Typ je antwoord + Enter',phTypeS:'Typ je antwoord',phLocked:'Vastgezet!',phHold:'Even wachten...',phReady:'Maak je klaar...',
+ spectating:'Je bent gezonken! Je kijkt mee...',spect:'Meekijken...',skip:'Naar de uitslag',quitQ:'Dit spel stoppen?',
+ fbOk:'+{n} blokken: {w}!',fbLock:'Vastgezet: {w} (+{n}). Geheim tot de tijd om is!',ready:'KLAAR!',timeUp:'Tijd is om! De antwoorden:',willSurvive:'Je overleeft deze stijging (+{n}m)',willSink:'Oei... niet hoog genoeg!',music:'Muziek',
+ short:'Te kort!',letter:'Het moet beginnen met {l}!',unknown:'"{w}" kennen we niet als {c}',used:'Dat woord heb je dit spel al gebruikt!',out:'Je ligt eruit!',wait:'Wacht op de vraag!',locked:'Je hebt al geantwoord!',
+ gameOver:'Game over!',youWin:'Jij wint!',wins:'{n} wint!',placed:'Je bent #{p} van de {n} geworden',soloRes:'Je haalde {h}m en overleefde {r} rondes. Record: {b}m',waitHostRes:'Wachten op de host...',menu:'Menu',again:'Opnieuw spelen',toLobby:'Terug naar lobby',botTag:' (bot)',best:'beste: {w}',YOU:'JIJ',left:'{n} heeft het spel verlaten',
+ connecting:'Verbinden...',libErr:'Kon de multiplayer-bibliotheek niet laden. Controleer je internetverbinding.',connErr:'Verbindingsfout: {e}',enterCode:'Vul de kamercode van je vriend in.',noReach:'Kon die kamer niet bereiken. Controleer de code en probeer opnieuw.',noRoom:'Geen kamer gevonden met die code.',disc:'De verbinding met de kamer is verbroken (misschien is de host weg).',started:'Dat spel is al begonnen. Wacht op het volgende!',full:'Die kamer is vol.',
+ langName:'Nederlands',
+ maps:{volcano:['Vulkaan','Lava borrelt omhoog.','De lava stijgt!','is verbrand in de lava'],shark:['Haaienbaai','Het water stijgt. De haaien hebben honger.','Het water stijgt!','is opgegeten door een haai'],toxic:['Giflab','Borrelend groen slijm. Niet aanraken!','Het slijm stijgt!','is gesmolten in giftig slijm'],candy:['Chocokloof','Snoepland met stijgende chocolademelk.','De chocolademelk stijgt!','is verdronken in warme chocolademelk']},
+ modes:{classic:['Klassiek','Elke ronde stijgt de lava. Lange woorden houden je veilig.'],rush:['Snelheidsrace','Elke ronde minder tijd en snellere lava.'],letter:['Letterslot','Antwoorden moeten met een gegeven letter beginnen.'],mega:['Megagolven','Elke 3e ronde komt er een MEGAgolf. Extra tijd voor een enorm woord!']},
+ diffs:{easy:'Makkelijk',normal:'Normaal',hard:'Moeilijk',insane:'Extreem'},
+ cust:{skin:'Huid',hair:'Haar',hairColor:'Haarkleur',eyes:'Ogen',mouth:'Mond',shirt:'Shirt',pants:'Broek',hat:'Hoed',hatColor:'Hoedkleur',glasses:'Bril'},
+ vals:{bald:'Kaal',short:'Kort',spiky:'Stekels',long:'Lang',bun:'Knotje',curly:'Krullen',mohawk:'Hanenkam',ponytail:'Paardenstaart',afro:'Afro',dots:'Stipjes',big:'Grote ogen',happy:'Blij',sleepy:'Slaperig',wink:'Knipoog',angry:'Boos',smile:'Glimlach',grin:'Grijns',open:'Open',smirk:'Scheef',tongue:'Tong',none:'Geen',cap:'Pet',beanie:'Muts',crown:'Kroon',tophat:'Hoge hoed',party:'Feesthoed',cowboy:'Cowboyhoed',headphones:'Koptelefoon',viking:'Vikinghelm',round:'Ronde bril',shades:'Zonnebril',star:'Sterrenbril',nerd:'Nerdbril'},
+ demo:[['LAVA','TYP','ZINK'],['WOORD','STIJG'],['SNEL','LETTERS'],['STAPEL']]
+}};
+function t(k,p){let s=I18N[lang][k];if(s==null)s=I18N.en[k];if(s==null)return k;if(p&&typeof s==='string')for(const x in p)s=s.split('{'+x+'}').join(p[x]);return s}
+const ordinal=p=>lang==='nl'?p+'e':p===1?'1st':p===2?'2nd':p===3?'3rd':p+'th';
+
+/* ================= words ================= */
+const WORDS={en:{
+food:`pizza,burger,hamburger,cheeseburger,hot dog,spaghetti,lasagna,lasagne,pasta,macaroni,mac and cheese,ravioli,tortellini,risotto,sushi,sashimi,ramen,noodles,dumplings,taco,burrito,quesadilla,enchilada,nachos,fajitas,guacamole,salad,soup,sandwich,pancakes,waffles,omelette,omelet,croissant,baguette,bread,toast,bagel,muffin,cupcake,cake,cheesecake,brownie,cookie,biscuit,donut,doughnut,pie,apple pie,pudding,ice cream,chocolate,popcorn,pretzel,fries,french fries,chips,crisps,steak,chicken,fried chicken,chicken nuggets,nuggets,bacon,sausage,meatballs,kebab,doner kebab,shawarma,falafel,hummus,curry,paella,couscous,quiche,fondue,gnocchi,tiramisu,cereal,oatmeal,porridge,granola,yogurt,yoghurt,cheese,butter,rice,fried rice,egg,scrambled eggs,mashed potatoes,potato salad,lobster,shrimp,prawns,salmon,tuna,fish and chips,fish,meatloaf,barbecue,spring rolls,samosa,biryani,tandoori chicken,butter chicken,naan,pad thai,pho,kimchi,bibimbap,tempura,teriyaki,gyoza,empanada,churros,crepe,macarons,marshmallow,lollipop,candy,caramel,jelly,jam,honey,peanut butter,nutella,bolognese,carbonara,chili con carne,goulash,stroganoff,schnitzel,bratwurst,sauerkraut,pierogi,borscht,moussaka,gyros,souvlaki,baklava,ratatouille,cannelloni,calzone,focaccia,bruschetta,minestrone,gazpacho,tortilla,croquettes,stroopwafel,bitterballen,frikandel,poffertjes,pastel de nata,bacalhau,feijoada,francesinha,poutine,cornbread,pot roast,roast beef,roast chicken,turkey,ham,salami,pepperoni,prosciutto,chorizo,meat pie,sausage roll,pasty,lamb chops,ribs,spare ribs,pulled pork,brisket,corn dog,mozzarella sticks,onion rings,coleslaw,garlic bread,flatbread,pita,wrap,club sandwich,grilled cheese,dim sum,bao,peking duck,sweet and sour pork,chow mein,lo mein,miso soup,udon,soba,onigiri,takoyaki,okonomiyaki,katsu,tonkatsu,yakitori,ceviche,arepa,tamales,pupusa,jollof rice,fufu,tagine,shakshuka,lentil soup,tomato soup,chicken soup,clam chowder,gumbo,jambalaya,mochi,gelato,sorbet,custard,trifle,eclair,profiteroles,strudel,apple strudel,crumpet,scone,flapjack,fudge,toffee,cotton candy,gummy bears,licorice,jellybeans,muesli,smoothie,milkshake,spaghetti and meatballs,hash browns,corn on the cob,baked potato,jacket potato`,
+fruit:`apple,banana,orange,mango,pineapple,strawberry,blueberry,raspberry,blackberry,cranberry,gooseberry,elderberry,cherry,grape,grapefruit,watermelon,melon,cantaloupe,honeydew,kiwi,kiwifruit,peach,pear,plum,apricot,nectarine,lemon,lime,coconut,papaya,passion fruit,pomegranate,fig,date,guava,lychee,dragon fruit,persimmon,tangerine,mandarin,clementine,kumquat,starfruit,durian,jackfruit,rambutan,mulberry,quince,avocado,olive,blood orange,boysenberry,cloudberry,currant,blackcurrant,redcurrant,plantain,soursop,tamarind,ugli fruit,yuzu,feijoa,loquat,longan,mangosteen,pawpaw,huckleberry,lingonberry,raisin,prune,acai,goji berry,physalis,cherimoya,custard apple,breadfruit,salak,satsuma,bilberry,sloe`,
+veg:`carrot,potato,sweet potato,tomato,cucumber,lettuce,spinach,broccoli,cauliflower,cabbage,red cabbage,onion,red onion,garlic,pepper,bell pepper,chili,chilli,jalapeno,zucchini,courgette,eggplant,aubergine,pumpkin,squash,butternut squash,corn,sweetcorn,peas,green beans,beans,celery,asparagus,artichoke,beetroot,beet,radish,turnip,parsnip,leek,kale,brussels sprouts,mushroom,okra,fennel,shallot,ginger,yam,cassava,rutabaga,kohlrabi,watercress,arugula,rocket,bok choy,pak choi,chard,swiss chard,endive,chicory,horseradish,wasabi,lentils,chickpeas,edamame,bamboo shoots,bean sprouts,scallion,spring onion,celeriac,collard greens,mustard greens,romanesco,jicama,daikon,taro,broad beans,runner beans,kidney beans,black beans,soybeans,iceberg lettuce,romaine,sugar snap peas,snow peas,gherkin,pickle,cress,salsify,sorrel,purslane,radicchio`,
+cars:`audi,bmw,mercedes,mercedes benz,volkswagen,porsche,opel,ferrari,lamborghini,maserati,alfa romeo,fiat,lancia,pagani,bugatti,renault,peugeot,citroen,toyota,honda,nissan,mazda,subaru,mitsubishi,suzuki,lexus,infiniti,acura,daihatsu,isuzu,hyundai,kia,genesis,ford,chevrolet,chevy,dodge,jeep,chrysler,cadillac,buick,gmc,lincoln,tesla,rivian,lucid,ram,pontiac,hummer,saturn,oldsmobile,plymouth,volvo,saab,koenigsegg,polestar,mini,rolls royce,bentley,aston martin,jaguar,land rover,range rover,lotus,mclaren,morgan,vauxhall,skoda,seat,cupra,dacia,lada,tata,mahindra,byd,geely,nio,chery,smart,maybach,alpine,abarth,ssangyong,proton,holden,rimac,spyker,scion,datsun,mg,mercury,de tomaso,noble,ariel,caterham,tvr,zenvo,hennessey,saleen,fisker,lynk and co,xpeng,zeekr,great wall,haval,perodua,trabant,wartburg,delorean,studebaker,packard,hispano suiza,lucid motors,vinfast,donkervoort`,
+animals:`dog,cat,horse,cow,pig,sheep,goat,chicken,duck,goose,turkey,rabbit,hamster,guinea pig,mouse,rat,lion,tiger,leopard,cheetah,jaguar,panther,cougar,puma,lynx,bobcat,wolf,fox,coyote,bear,polar bear,brown bear,grizzly bear,panda,giant panda,koala,kangaroo,wallaby,wombat,platypus,elephant,rhinoceros,rhino,hippopotamus,hippo,giraffe,zebra,gorilla,chimpanzee,orangutan,monkey,baboon,lemur,sloth,armadillo,anteater,hedgehog,porcupine,squirrel,chipmunk,beaver,otter,sea otter,badger,raccoon,skunk,weasel,ferret,mole,bat,deer,moose,elk,reindeer,caribou,antelope,gazelle,buffalo,bison,camel,llama,alpaca,donkey,mule,crocodile,alligator,snake,python,cobra,king cobra,rattlesnake,anaconda,boa constrictor,lizard,iguana,chameleon,gecko,komodo dragon,turtle,tortoise,frog,toad,salamander,newt,shark,great white shark,hammerhead shark,whale,blue whale,humpback whale,sperm whale,dolphin,orca,killer whale,seal,sea lion,walrus,octopus,squid,jellyfish,starfish,crab,lobster,shrimp,eel,stingray,salmon,tuna,goldfish,clownfish,swordfish,seahorse,pufferfish,piranha,eagle,bald eagle,hawk,falcon,owl,parrot,penguin,flamingo,ostrich,emu,peacock,pelican,swan,pigeon,crow,raven,sparrow,robin,hummingbird,woodpecker,toucan,vulture,seagull,kingfisher,butterfly,bee,bumblebee,wasp,hornet,ant,spider,scorpion,beetle,ladybug,ladybird,grasshopper,cricket,dragonfly,mosquito,fly,caterpillar,snail,slug,worm,earthworm,hyena,meerkat,mongoose,warthog,tapir,okapi,capybara,chinchilla,pangolin,narwhal,manatee,dugong,axolotl,red panda,snow leopard,arctic fox,wolverine,opossum,possum,tarantula,centipede,millipede,kookaburra,cockatoo,albatross,canary,budgie,parakeet,macaw,heron,stork,crane,puffin,quail,pheasant,partridge,ox,yak,boar,wild boar,hare,lamb,calf,puppy,kitten,pony,stallion,dinosaur,tyrannosaurus,velociraptor,mammoth,gibbon,mandrill,koi,trout,cod,sardine,anchovy,barracuda,manta ray,sea urchin,hermit crab,beluga,wildebeest,impala,springbok,ibex,chamois,marmot,lemming,vole,shrew,gerbil,mink,stoat,ermine,dingo,jackal,aardvark,tamarin,marmoset,cassowary,roadrunner,firefly,moth,termite,flea,tick,cockroach,praying mantis,stick insect`,
+countries:`afghanistan,albania,algeria,andorra,angola,antigua and barbuda,argentina,armenia,australia,austria,azerbaijan,bahamas,bahrain,bangladesh,barbados,belarus,belgium,belize,benin,bhutan,bolivia,bosnia and herzegovina,bosnia,botswana,brazil,brunei,bulgaria,burkina faso,burundi,cambodia,cameroon,canada,cape verde,central african republic,chad,chile,china,colombia,comoros,congo,costa rica,croatia,cuba,cyprus,czech republic,czechia,denmark,djibouti,dominica,dominican republic,ecuador,egypt,el salvador,equatorial guinea,eritrea,estonia,eswatini,swaziland,ethiopia,fiji,finland,france,gabon,gambia,georgia,germany,ghana,greece,grenada,guatemala,guinea,guinea bissau,guyana,haiti,honduras,hungary,iceland,india,indonesia,iran,iraq,ireland,israel,italy,ivory coast,jamaica,japan,jordan,kazakhstan,kenya,kiribati,kosovo,kuwait,kyrgyzstan,laos,latvia,lebanon,lesotho,liberia,libya,liechtenstein,lithuania,luxembourg,madagascar,malawi,malaysia,maldives,mali,malta,marshall islands,mauritania,mauritius,mexico,micronesia,moldova,monaco,mongolia,montenegro,morocco,mozambique,myanmar,burma,namibia,nauru,nepal,netherlands,holland,new zealand,nicaragua,niger,nigeria,north korea,north macedonia,macedonia,norway,oman,pakistan,palau,palestine,panama,papua new guinea,paraguay,peru,philippines,poland,portugal,qatar,romania,russia,rwanda,saint lucia,samoa,san marino,saudi arabia,senegal,serbia,seychelles,sierra leone,singapore,slovakia,slovenia,solomon islands,somalia,south africa,south korea,korea,south sudan,spain,sri lanka,sudan,suriname,sweden,switzerland,syria,taiwan,tajikistan,tanzania,thailand,east timor,timor leste,togo,tonga,trinidad and tobago,tunisia,turkey,turkiye,turkmenistan,tuvalu,uganda,ukraine,united arab emirates,uae,united kingdom,uk,great britain,england,scotland,wales,northern ireland,united states,usa,america,united states of america,uruguay,uzbekistan,vanuatu,vatican city,vatican,venezuela,vietnam,yemen,zambia,zimbabwe,greenland,puerto rico,saint kitts and nevis,saint vincent and the grenadines,sao tome and principe,democratic republic of the congo`,
+cities:`amsterdam,rotterdam,utrecht,the hague,eindhoven,groningen,maastricht,london,manchester,liverpool,birmingham,leeds,bristol,edinburgh,glasgow,cardiff,belfast,dublin,cork,paris,marseille,lyon,nice,bordeaux,toulouse,lille,strasbourg,berlin,munich,hamburg,frankfurt,cologne,stuttgart,dusseldorf,dortmund,dresden,leipzig,vienna,salzburg,zurich,geneva,bern,basel,brussels,antwerp,bruges,ghent,luxembourg,madrid,barcelona,valencia,seville,malaga,bilbao,granada,lisbon,porto,faro,rome,milan,naples,venice,florence,turin,bologna,palermo,verona,pisa,athens,thessaloniki,istanbul,ankara,izmir,moscow,saint petersburg,kyiv,kiev,lviv,warsaw,krakow,gdansk,prague,brno,budapest,bucharest,sofia,belgrade,zagreb,split,dubrovnik,ljubljana,bratislava,copenhagen,stockholm,gothenburg,oslo,bergen,helsinki,reykjavik,tallinn,riga,vilnius,new york,new york city,los angeles,chicago,houston,phoenix,philadelphia,san antonio,san diego,dallas,austin,san francisco,seattle,boston,miami,atlanta,denver,las vegas,detroit,washington,orlando,nashville,new orleans,portland,minneapolis,baltimore,toronto,montreal,vancouver,ottawa,calgary,edmonton,quebec,winnipeg,mexico city,cancun,guadalajara,monterrey,havana,bogota,medellin,cartagena,lima,cusco,santiago,buenos aires,montevideo,caracas,quito,la paz,rio de janeiro,sao paulo,brasilia,salvador,fortaleza,recife,cairo,alexandria,marrakech,casablanca,tunis,lagos,abuja,accra,nairobi,mombasa,addis ababa,johannesburg,cape town,durban,pretoria,dakar,kinshasa,luanda,dubai,abu dhabi,doha,riyadh,mecca,medina,jeddah,tehran,baghdad,beirut,jerusalem,tel aviv,amman,damascus,karachi,lahore,islamabad,delhi,new delhi,mumbai,bangalore,kolkata,chennai,hyderabad,jaipur,agra,kathmandu,dhaka,colombo,bangkok,phuket,chiang mai,hanoi,ho chi minh city,saigon,phnom penh,singapore,kuala lumpur,jakarta,denpasar,manila,cebu,beijing,shanghai,hong kong,macau,shenzhen,guangzhou,chengdu,wuhan,xian,tokyo,osaka,kyoto,yokohama,sapporo,hiroshima,nagoya,seoul,busan,taipei,ulaanbaatar,sydney,melbourne,brisbane,perth,adelaide,canberra,auckland,wellington,christchurch,honolulu,anchorage,monaco,marbella,ibiza,palma,tenerife,valletta,nicosia,tbilisi,yerevan,baku,almaty,tashkent`,
+sports:`football,soccer,american football,basketball,baseball,tennis,golf,cricket,rugby,hockey,ice hockey,field hockey,volleyball,beach volleyball,badminton,table tennis,ping pong,handball,swimming,diving,surfing,skateboarding,snowboarding,skiing,boxing,wrestling,karate,judo,taekwondo,fencing,archery,cycling,running,marathon,sprinting,triathlon,gymnastics,rowing,canoeing,kayaking,sailing,bowling,darts,snooker,billiards,pool,climbing,rock climbing,bouldering,polo,water polo,lacrosse,softball,curling,figure skating,ice skating,speed skating,bobsled,bobsleigh,luge,skeleton,biathlon,equestrian,horse riding,horse racing,motocross,formula one,rally,karting,squash,racquetball,pickleball,padel,netball,dodgeball,kickboxing,mma,mixed martial arts,sumo,weightlifting,powerlifting,bodybuilding,parkour,trampoline,javelin,discus,shot put,hammer throw,high jump,long jump,triple jump,pole vault,hurdles,decathlon,heptathlon,orienteering,paragliding,skydiving,bungee jumping,windsurfing,kitesurfing,wakeboarding,waterskiing,snorkeling,scuba diving,fishing,hiking,mountaineering,frisbee,ultimate frisbee,korfball,hurling,kabaddi,sepak takraw,jiu jitsu,capoeira,muay thai,crossfit,cheerleading,esports,chess,motorsport,nascar,bmx,mountain biking,roller skating,inline skating,synchronized swimming,artistic swimming,rhythmic gymnastics,cross country skiing,ski jumping,freestyle skiing,dragon boat racing,rodeo,jousting,tug of war,arm wrestling,floorball,futsal,beach soccer,aussie rules,gaelic football,bandy,cornhole,petanque,boules,bocce,croquet,table football,foosball,air hockey`,
+jobs:`doctor,nurse,teacher,firefighter,fireman,police officer,policeman,policewoman,chef,cook,baker,butcher,farmer,pilot,astronaut,engineer,architect,lawyer,attorney,judge,dentist,pharmacist,scientist,chemist,biologist,physicist,programmer,developer,designer,artist,painter,musician,singer,actor,actress,dancer,writer,author,poet,journalist,reporter,photographer,plumber,electrician,carpenter,mechanic,builder,bricklayer,welder,gardener,cleaner,janitor,waiter,waitress,bartender,barista,cashier,accountant,banker,secretary,receptionist,manager,salesman,saleswoman,mailman,postman,driver,taxi driver,bus driver,truck driver,soldier,sailor,fisherman,lifeguard,librarian,veterinarian,vet,surgeon,therapist,psychologist,psychiatrist,paramedic,hairdresser,barber,tailor,florist,jeweler,optician,translator,interpreter,professor,principal,coach,athlete,referee,detective,spy,security guard,zookeeper,beekeeper,archaeologist,astronomer,geologist,economist,politician,president,mayor,diplomat,entrepreneur,influencer,youtuber,streamer,comedian,magician,clown,director,producer,editor,animator,illustrator,model,flight attendant,captain,miner,lumberjack,shepherd,blacksmith,locksmith,plasterer,roofer,upholsterer,cobbler,glazier,mortician,undertaker,auctioneer,realtor,real estate agent,consultant,analyst,data scientist,web developer,software engineer,game developer,nanny,babysitter,caretaker,housekeeper,butler,chauffeur,courier,delivery driver,radiologist,dermatologist,cardiologist,pediatrician,midwife,optometrist,physiotherapist,nutritionist,dietitian,priest,monk,nun,rabbi,imam,king,queen,prince,princess,knight,pirate,cowboy,ninja,sheriff,ranger,park ranger,tour guide,travel agent,dj,composer,conductor,sculptor,potter,stylist,makeup artist,personal trainer,yoga instructor,dog walker,garbage collector,crane operator,train driver,air traffic controller,technician,inventor,mathematician,historian,philosopher,tutor`,
+instruments:`piano,grand piano,guitar,electric guitar,acoustic guitar,bass guitar,bass,drums,drum kit,violin,viola,cello,double bass,harp,flute,piccolo,clarinet,oboe,bassoon,saxophone,sax,trumpet,trombone,tuba,french horn,horn,cornet,euphonium,harmonica,accordion,banjo,ukulele,mandolin,sitar,organ,pipe organ,keyboard,synthesizer,synth,xylophone,marimba,vibraphone,glockenspiel,triangle,tambourine,cymbals,cymbal,gong,bongo,bongos,conga,djembe,tabla,bagpipes,recorder,kazoo,ocarina,didgeridoo,harpsichord,lute,lyre,zither,theremin,steel drum,steelpan,castanets,maracas,cowbell,timpani,snare drum,bass drum,bugle,pan flute,panpipes,balalaika,shamisen,koto,erhu,bouzouki,melodica,cajon,kalimba,mbira,hurdy gurdy,dulcimer,hammered dulcimer,clavichord,celesta,sousaphone,flugelhorn,mellophone,tenor saxophone,alto saxophone,bass clarinet,contrabassoon,english horn,tin whistle,bodhran,washboard,woodblock,claves,guiro,cabasa,shaker,handpan,beatbox,turntables,drum machine,electric violin,twelve string guitar,charango,oud,kora,shakuhachi,pipa,guzheng`,
+clothing:`shirt,t shirt,pants,trousers,jeans,shorts,skirt,dress,jacket,coat,raincoat,sweater,jumper,hoodie,cardigan,vest,waistcoat,blouse,suit,tie,necktie,bowtie,scarf,gloves,mittens,hat,cap,baseball cap,beanie,helmet,socks,shoes,sneakers,trainers,boots,sandals,slippers,flip flops,heels,high heels,loafers,belt,pajamas,pyjamas,robe,bathrobe,dressing gown,underwear,boxers,briefs,bra,bikini,swimsuit,swimming trunks,leggings,tights,overalls,dungarees,poncho,cape,cloak,tuxedo,blazer,kimono,sari,kilt,turban,apron,uniform,tracksuit,sweatpants,joggers,polo shirt,tank top,crop top,onesie,parka,windbreaker,gilet,bandana,earmuffs,beret,fedora,sombrero,top hat,cowboy hat,balaclava,corset,sarong,toga,tunic,leotard,wetsuit,stockings,clogs,moccasins,espadrilles,wellies,wellington boots,rain boots,cargo pants,chinos,jumpsuit,romper,shawl,veil,gown,wedding dress,ballgown,evening gown,lab coat,trench coat,puffer jacket,leather jacket,denim jacket,bomber jacket,fleece,turtleneck,sweatshirt,nightgown,nightie,slip,petticoat,suspenders,braces,cufflinks,pocket square,headband,hijab,burqa,dirndl,lederhosen,mukluks,ugg boots,crocs,ski jacket,snow pants,sports bra,knee socks,ankle socks,miniskirt,maxi dress,sundress,cocktail dress,hot pants,bermuda shorts,board shorts,swim shorts,mac,anorak,kaftan,caftan,dashiki,hanbok,cheongsam,qipao,sherwani,thobe`,
+kitchen:`fridge,refrigerator,freezer,oven,microwave,stove,cooker,hob,toaster,kettle,blender,mixer,stand mixer,dishwasher,sink,tap,faucet,knife,fork,spoon,plate,bowl,cup,mug,glass,wine glass,pan,frying pan,pot,saucepan,wok,spatula,ladle,whisk,grater,peeler,colander,sieve,strainer,cutting board,chopping board,rolling pin,scissors,can opener,tin opener,bottle opener,corkscrew,tongs,oven mitt,oven glove,apron,tray,baking tray,baking sheet,teapot,coffee machine,coffee maker,espresso machine,juicer,food processor,toaster oven,air fryer,slow cooker,pressure cooker,rice cooker,thermometer,timer,kitchen scale,scale,measuring cup,measuring spoon,napkin,tablecloth,dish towel,tea towel,sponge,dish soap,washing up liquid,trash can,bin,cupboard,cabinet,drawer,shelf,counter,countertop,table,chair,stool,lunchbox,thermos,jar,bottle,pitcher,jug,salt shaker,pepper grinder,spice rack,mortar,pestle,casserole dish,baking dish,muffin tin,cake tin,cookie cutter,skewer,chopsticks,teaspoon,tablespoon,butter knife,steak knife,bread knife,cleaver,pizza cutter,ice cream scoop,garlic press,salad spinner,salad bowl,serving spoon,soup ladle,coaster,placemat,saucer,egg cup,egg timer,funnel,piping bag,pastry brush,baster,potato masher,nutcracker,kitchen roll,paper towel,aluminium foil,tin foil,cling film,plastic wrap,food container,tupperware,bread bin,fruit bowl,dish rack,dish drainer,extractor fan,range hood,ice tray,ice cube tray,water filter,hand mixer,waffle iron,sandwich maker,popcorn maker,ice cream maker,bread maker,deep fryer,griddle,grill,barbecue,cast iron skillet,skillet,dutch oven,stockpot,steamer,mandoline,zester,microplane,sharpener,knife block,spice jar,cookbook,recipe book,oven tray,cake stand,trivet`,
+school:`pencil,pen,eraser,rubber,ruler,sharpener,pencil sharpener,notebook,book,textbook,exercise book,backpack,schoolbag,school bag,calculator,scissors,glue,glue stick,stapler,staples,tape,sellotape,highlighter,marker,crayon,crayons,colored pencils,paintbrush,paint,chalk,chalkboard,blackboard,whiteboard,smartboard,desk,chair,locker,map,globe,computer,laptop,tablet,projector,clock,bell,school bell,teacher,student,pupil,principal,headmaster,classroom,library,gym,gymnasium,cafeteria,canteen,playground,homework,exam,test,diploma,compass,protractor,set square,folder,binder,paper,dictionary,encyclopedia,microscope,beaker,test tube,pencil case,lunchbox,sticky notes,post it,paperclip,thumbtack,pushpin,drawing pin,bulletin board,notice board,timetable,schedule,report card,uniform,school bus,bus,recess,break time,lesson,quiz,atlas,flashcards,worksheet,whiteboard marker,fountain pen,ink,ballpoint pen,mechanical pencil,lab coat,goggles,safety goggles,bunsen burner,periodic table,skeleton,art room,music room,science lab,laboratory,hallway,corridor,staff room,gym teacher,janitor,school nurse,detention,field trip,sports day,assembly,graduation,yearbook,classmate,best friend,essay,project,presentation,science fair,spelling test,times tables,alphabet,poster,trophy,certificate,scholarship,grade,report`,
+beach:`sand,sea,ocean,wave,shell,seashell,crab,sunscreen,suncream,sun cream,towel,beach towel,umbrella,beach umbrella,parasol,bucket,spade,shovel,sandcastle,surfboard,bodyboard,lifeguard,swimsuit,bikini,sunglasses,flip flops,seagull,starfish,jellyfish,seaweed,rock,rockpool,rock pool,pier,boardwalk,promenade,lighthouse,boat,sailboat,kayak,canoe,volleyball,beach volleyball,frisbee,ice cream,cooler,cool box,sun,palm tree,coconut,hammock,deckchair,deck chair,beach ball,snorkel,flippers,goggles,kite,dune,sand dune,driftwood,pebbles,tide,lifebuoy,jet ski,pelican,dolphin,shark,sun hat,sunhat,picnic,picnic basket,sandals,lotion,sunbed,lounger,cabana,beach hut,surfer,swimmer,tourist,sunburn,tan,sunset,sunrise,horizon,bay,cove,cliff,reef,coral,coral reef,fish,boat ride,banana boat,pedalo,paddleboard,stand up paddle,wetsuit,lifejacket,life jacket,moat,footprints,message in a bottle,treasure,hermit crab,sea turtle,turtle,whale,clam,oyster,mussel,sand dollar,surf,foam,breeze,beach bar,cocktail,smoothie,fish and chips,ice lolly,popsicle,slush,water bottle,cool bag,windbreak,sunshade,beach mat,beach bag,inflatable,pool float,rubber ring,swim ring,armbands,water wings,sailing boat,yacht,fishing rod,metal detector,shipwreck,island`,
+brands:`apple,samsung,google,microsoft,amazon,facebook,meta,netflix,spotify,youtube,tiktok,instagram,snapchat,twitter,whatsapp,discord,nike,adidas,puma,reebok,under armour,new balance,converse,vans,gucci,prada,chanel,louis vuitton,versace,dior,hermes,zara,primark,uniqlo,levis,tommy hilfiger,calvin klein,ralph lauren,the north face,coca cola,pepsi,fanta,sprite,red bull,monster,nestle,heinz,kelloggs,mcdonalds,burger king,kfc,subway,starbucks,dominos,pizza hut,taco bell,wendys,dunkin,five guys,lego,mattel,barbie,hasbro,disney,pixar,warner bros,sony,nintendo,playstation,xbox,sega,intel,nvidia,amd,ibm,hp,dell,lenovo,asus,acer,huawei,xiaomi,oppo,oneplus,motorola,nokia,philips,panasonic,lg,siemens,bosch,dyson,ikea,walmart,target,costco,aldi,lidl,tesco,carrefour,ebay,paypal,visa,mastercard,american express,uber,airbnb,booking,shell,bp,rolex,casio,canon,nikon,gopro,logitech,razer,steam,epic games,ubisoft,electronic arts,activision,roblox,fortnite,minecraft,oreo,kitkat,mars,snickers,twix,haribo,lindt,toblerone,cadbury,ferrero,nutella,doritos,pringles,lays,heineken,gatorade,lipton,nivea,loreal,dove,colgate,gillette,adobe,oracle,samsonite,ray ban,oakley,swatch,omega,tag heuer,h and m,hm,decathlon,mediamarkt,zalando,shein,temu,aliexpress,alibaba,tencent,baidu,openai,anthropic,tesla,spacex,boeing,airbus,fedex,ups,dhl`,
+vehicles:`car,bus,truck,lorry,van,bicycle,bike,motorcycle,motorbike,scooter,moped,skateboard,train,tram,subway,metro,underground,taxi,cab,ambulance,fire truck,fire engine,police car,tractor,bulldozer,excavator,digger,crane,forklift,airplane,aeroplane,plane,jet,jumbo jet,helicopter,glider,hot air balloon,blimp,zeppelin,airship,rocket,spaceship,space shuttle,boat,ship,yacht,sailboat,canoe,kayak,ferry,submarine,cruise ship,jet ski,hovercraft,speedboat,raft,gondola,limousine,limo,convertible,pickup truck,pickup,minivan,jeep,suv,caravan,camper van,campervan,motorhome,rv,tank,golf cart,segway,unicycle,tricycle,monorail,cable car,snowmobile,sled,sledge,sleigh,rickshaw,tuk tuk,carriage,horse and carriage,stagecoach,wagon,dump truck,cement mixer,garbage truck,bin lorry,tow truck,steamroller,road roller,quad bike,go kart,dirt bike,hoverboard,trolley,trolleybus,double decker bus,coach,school bus,catamaran,tugboat,freight train,bullet train,steam train,paddle boat,pedalo,electric scooter,kick scooter,roller skates,rollerblades,mountain bike,racing car,race car,sports car,cargo ship,container ship,tanker,oil tanker,aircraft carrier,battleship,warship,fighter jet,seaplane,biplane,drone,space station,lunar rover,mars rover,ice cream truck,food truck,delivery van,minibus,shuttle bus,tandem bicycle,dinghy,lifeboat,rowing boat,rowboat,houseboat,narrowboat,barge,canal boat,icebreaker,snowplow,snowplough,combine harvester,harvester,backhoe,loader,armored car,humvee,station wagon,estate car,hatchback,sedan,coupe,electric car,hybrid car,funicular,chairlift,ski lift,maglev`
+},nl:{
+food:`pizza,hamburger,cheeseburger,hotdog,patat,friet,frietjes,patatje,kroket,frikandel,bitterbal,bitterballen,kaassouffle,loempia,stroopwafel,poffertjes,pannenkoek,stamppot,boerenkool,hutspot,zuurkool,erwtensoep,snert,hachee,draadjesvlees,gehaktbal,gehakt,rookworst,braadworst,worst,worstenbroodje,saucijzenbroodje,kaas,boterham,brood,bruinbrood,witbrood,krentenbol,beschuit,hagelslag,pindakaas,appelstroop,jam,honing,ontbijtkoek,peperkoek,ei,gekookt ei,gebakken ei,spiegelei,roerei,omelet,soep,tomatensoep,kippensoep,groentesoep,linzensoep,salade,spaghetti,macaroni,lasagne,pasta,ravioli,tortellini,risotto,rijst,nasi,nasi goreng,bami,bami goreng,sate,kipsate,babi pangang,foe yong hai,sushi,ramen,noedels,dumplings,taco,burrito,nachos,wrap,tosti,broodje,croissant,stokbrood,bagel,muffin,cupcake,taart,appeltaart,vlaai,kwarktaart,cheesecake,brownie,koekje,koek,gevulde koek,speculaas,tompouce,moorkop,oliebol,appelflap,appelbeignet,donut,wafel,pudding,vla,chocoladevla,vanillevla,yoghurt,kwark,ijs,ijsje,chocolade,popcorn,chips,drop,snoep,kauwgom,marshmallow,lolly,karamel,biefstuk,steak,kip,kipfilet,kippenpoot,spek,ham,salami,shoarma,kebab,doner,falafel,hummus,curry,paella,couscous,quiche,fondue,schnitzel,slavink,blinde vink,karbonade,speklap,haring,kibbeling,lekkerbekje,vissticks,vis,zalm,tonijn,garnalen,mosselen,kreeft,aardappelpuree,puree,gebakken aardappelen,ovenschotel,macaronischotel,stoofvlees,goulash,chili con carne,roti,bapao,kipnuggets,nuggets,uitsmijter,saucijs,andijviestamppot,appelmoes,mayonaise,ketchup,mosterd,pindasaus,satesaus,sambal,croque monsieur,tiramisu,creme brulee,chocolademousse,mousse,bonbon,marsepein,banketstaaf,kerststol,paasbrood,krentenbrood,suikerbrood,roggebrood,muesli,cornflakes,havermout,pap,griesmeelpap,rijstepap,smoothie,milkshake,kroepoek,spareribs,gyros,souvlaki,moussaka,baklava,ratatouille,gnocchi,calzone,focaccia,bruschetta,minestrone,gazpacho,tortilla,kroketten,frikadel,erwtjes,bladerdeeg,worstje,knakworst,cervelaat,leverworst,filet americain,ossenworst,boterkoek,jodenkoek,taai taai,pepernoot,kruidnoot,chocoladeletter,suikerspin,zuurstok,dropveter,stroopwafels,muisjes,vruchtenhagel,gehaktballetjes,hutspot met klapstuk,zuurkoolstamppot,rode kool met appel,pizza margherita,hamburger met friet,friet speciaal,patatje oorlog,kapsalon`,
+fruit:`appel,banaan,sinaasappel,mandarijn,clementine,mango,ananas,aardbei,bosbes,blauwe bes,framboos,braam,braambes,veenbes,cranberry,kruisbes,vlierbes,kers,druif,grapefruit,pompelmoes,watermeloen,meloen,honingmeloen,kiwi,perzik,peer,pruim,abrikoos,nectarine,citroen,limoen,kokosnoot,papaja,passievrucht,granaatappel,vijg,dadel,guave,lychee,lichee,drakenvrucht,kaki,kumquat,stervrucht,carambola,durian,jackfruit,ramboetan,moerbei,kweepeer,avocado,olijf,bloedsinaasappel,rode bes,zwarte bes,aalbes,bes,bakbanaan,tamarinde,yuzu,mangosteen,rozijn,pruimedant,gojibes,physalis,cherimoya,broodvrucht,satsuma,wilde aardbei,rabarber,mispel,sleedoorn,krent,cantaloupe,nashi,nashipeer,lijsterbes,cranberrie,kokos,passiefruit,druiven,peren,kersen`,
+veg:`wortel,winterpeen,peen,aardappel,zoete aardappel,tomaat,komkommer,sla,ijsbergsla,spinazie,broccoli,bloemkool,kool,witte kool,rode kool,savooiekool,spitskool,ui,rode ui,knoflook,paprika,peper,chilipeper,jalapeno,courgette,aubergine,pompoen,flespompoen,mais,erwt,doperwt,sperzieboon,boon,snijboon,tuinboon,bruine bonen,kidneybonen,selderij,bleekselderij,knolselderij,asperge,artisjok,biet,rode biet,radijs,raap,meiraap,pastinaak,prei,boerenkool,spruitje,spruitjes,champignon,paddenstoel,okra,venkel,sjalot,gember,yam,cassave,koolraap,koolrabi,waterkers,rucola,paksoi,snijbiet,andijvie,witlof,mierikswortel,wasabi,linzen,kikkererwten,edamame,bamboescheuten,tauge,bosui,lente ui,schorseneren,postelein,raapstelen,veldsla,peultjes,sugarsnaps,kapucijners,augurk,zuurkool,bataat,romanesco,daikon,taro,groene asperge,witte asperge,krulandijvie,kropsla,eikenbladsla,rode paprika,groene paprika,gele paprika,cherrytomaat,trostomaat,snoeptomaat,pompoenpit,zeekraal,lamsoor,spinaziebladeren,broccolini,paksoi,chinese kool,kailan,shiitake,oesterzwam,kastanjechampignon`,
+cars:null,
+animals:`hond,kat,poes,paard,koe,varken,schaap,geit,kip,haan,eend,gans,kalkoen,konijn,hamster,cavia,muis,rat,leeuw,tijger,luipaard,jachtluipaard,cheeta,jaguar,panter,poema,lynx,wolf,vos,coyote,beer,ijsbeer,bruine beer,grizzlybeer,panda,reuzenpanda,koala,kangoeroe,wallaby,wombat,vogelbekdier,olifant,neushoorn,nijlpaard,giraffe,zebra,gorilla,chimpansee,orang oetan,aap,baviaan,maki,luiaard,gordeldier,miereneter,egel,stekelvarken,eekhoorn,bever,otter,zeeotter,das,wasbeer,stinkdier,wezel,fret,mol,vleermuis,hert,eland,rendier,edelhert,ree,antilope,gazelle,buffel,bizon,kameel,dromedaris,lama,alpaca,ezel,muilezel,krokodil,alligator,slang,python,cobra,koningscobra,ratelslang,anaconda,boa,hagedis,leguaan,kameleon,gekko,komodovaraan,schildpad,landschildpad,kikker,pad,salamander,watersalamander,haai,witte haai,hamerhaai,walvis,blauwe vinvis,bultrug,potvis,dolfijn,orka,zeehond,zeeleeuw,walrus,octopus,inktvis,kwal,zeester,krab,kreeft,garnaal,paling,aal,rog,pijlstaartrog,zalm,tonijn,goudvis,clownvis,zwaardvis,zeepaardje,kogelvis,piranha,adelaar,arend,zeearend,havik,valk,slechtvalk,uil,papegaai,pinguin,flamingo,struisvogel,emoe,pauw,pelikaan,zwaan,duif,kraai,raaf,mus,roodborstje,kolibrie,specht,toekan,gier,meeuw,ijsvogel,vlinder,bij,hommel,wesp,horzel,mier,spin,schorpioen,kever,lieveheersbeestje,sprinkhaan,krekel,libel,mug,vlieg,rups,slak,naaktslak,worm,regenworm,hyena,stokstaartje,mangoest,wrattenzwijn,tapir,okapi,capibara,chinchilla,schubdier,narwal,zeekoe,doejong,axolotl,rode panda,sneeuwluipaard,poolvos,veelvraat,opossum,vogelspin,duizendpoot,miljoenpoot,kaketoe,albatros,kanarie,parkiet,ara,reiger,ooievaar,kraanvogel,papegaaiduiker,kwartel,fazant,patrijs,os,jak,everzwijn,zwijn,haas,lam,kalf,puppy,kitten,pony,hengst,merrie,dinosaurus,tyrannosaurus,velociraptor,mammoet,gibbon,mandril,koi,forel,kabeljauw,sardine,ansjovis,barracuda,mantarog,zee egel,heremietkreeft,beloega,gnoe,impala,springbok,steenbok,gems,marmot,lemming,woelmuis,spitsmuis,gerbil,nerts,hermelijn,dingo,jakhals,aardvarken,tamarin,kasuaris,vuurvlieg,glimworm,mot,termiet,vlo,teek,kakkerlak,bidsprinkhaan,wandelende tak,merel,ekster,kauw,zwaluw,spreeuw,vink,koolmees,mees,buizerd,torenvalk,koekoek,nachtegaal,lepelaar,kievit,grutto,scholekster,fuut,meerkoet,waterhoen,karper,snoek,baars,haring,makreel,schol,tong,mossel,oester,eekhoorntje,goudhamster,dwergkonijn,herdershond,labrador,poedel,tekkel,chihuahua`,
+countries:`afghanistan,albanie,algerije,andorra,angola,antigua en barbuda,argentinie,armenie,australie,oostenrijk,azerbeidzjan,bahamas,bahrein,bangladesh,barbados,wit rusland,belarus,belgie,belize,benin,bhutan,bolivia,bosnie,bosnie en herzegovina,botswana,brazilie,brunei,bulgarije,burkina faso,burundi,cambodja,kameroen,canada,kaapverdie,centraal afrikaanse republiek,tsjaad,chili,china,colombia,comoren,congo,costa rica,kroatie,cuba,cyprus,tsjechie,denemarken,djibouti,dominica,dominicaanse republiek,ecuador,egypte,el salvador,equatoriaal guinea,eritrea,estland,eswatini,swaziland,ethiopie,fiji,finland,frankrijk,gabon,gambia,georgie,duitsland,ghana,griekenland,grenada,guatemala,guinee,guinee bissau,guyana,haiti,honduras,hongarije,ijsland,india,indonesie,iran,irak,ierland,israel,italie,ivoorkust,jamaica,japan,jordanie,kazachstan,kenia,kiribati,kosovo,koeweit,kirgizie,laos,letland,libanon,lesotho,liberia,libie,liechtenstein,litouwen,luxemburg,madagaskar,malawi,maleisie,maldiven,mali,malta,marshalleilanden,mauritanie,mauritius,mexico,micronesie,moldavie,monaco,mongolie,montenegro,marokko,mozambique,myanmar,birma,namibie,nauru,nepal,nederland,holland,nieuw zeeland,nicaragua,niger,nigeria,noord korea,noord macedonie,macedonie,noorwegen,oman,pakistan,palau,palestina,panama,papoea nieuw guinea,paraguay,peru,filipijnen,polen,portugal,qatar,roemenie,rusland,rwanda,saint lucia,samoa,san marino,saoedi arabie,senegal,servie,seychellen,sierra leone,singapore,slowakije,slovenie,salomonseilanden,somalie,zuid afrika,zuid korea,korea,zuid soedan,spanje,sri lanka,soedan,suriname,zweden,zwitserland,syrie,taiwan,tadzjikistan,tanzania,thailand,oost timor,togo,tonga,trinidad en tobago,tunesie,turkije,turkmenistan,tuvalu,oeganda,oekraine,verenigde arabische emiraten,verenigd koninkrijk,groot brittannie,engeland,schotland,wales,noord ierland,verenigde staten,amerika,verenigde staten van amerika,uruguay,oezbekistan,vanuatu,vaticaanstad,venezuela,vietnam,jemen,zambia,zimbabwe,groenland,puerto rico,curacao,aruba,bonaire,sint maarten,democratische republiek congo`,
+cities:`amsterdam,rotterdam,den haag,s gravenhage,utrecht,eindhoven,groningen,tilburg,almere,breda,nijmegen,apeldoorn,arnhem,haarlem,enschede,amersfoort,zaanstad,den bosch,s hertogenbosch,zwolle,leiden,maastricht,dordrecht,zoetermeer,delft,alkmaar,leeuwarden,venlo,deventer,hilversum,heerlen,roermond,middelburg,vlissingen,assen,emmen,lelystad,gouda,hoorn,purmerend,schiedam,helmond,oss,sittard,zaandam,den helder,harderwijk,kampen,meppel,hengelo,almelo,doetinchem,ede,wageningen,veenendaal,nieuwegein,amstelveen,hoofddorp,volendam,edam,zandvoort,scheveningen,katwijk,noordwijk,terneuzen,bergen op zoom,roosendaal,waalwijk,weert,valkenburg,kerkrade,venray,brussel,antwerpen,gent,brugge,leuven,mechelen,luik,namen,charleroi,bergen,hasselt,genk,oostende,kortrijk,aalst,londen,manchester,liverpool,birmingham,edinburgh,glasgow,cardiff,belfast,dublin,parijs,marseille,lyon,nice,bordeaux,toulouse,rijsel,straatsburg,berlijn,munchen,hamburg,frankfurt,keulen,stuttgart,dusseldorf,dortmund,dresden,leipzig,aken,wenen,salzburg,zurich,geneve,bern,bazel,madrid,barcelona,valencia,sevilla,malaga,bilbao,granada,lissabon,porto,rome,milaan,napels,venetie,florence,turijn,bologna,palermo,verona,pisa,athene,thessaloniki,istanbul,ankara,moskou,sint petersburg,kiev,kyiv,warschau,krakau,gdansk,praag,brno,boedapest,boekarest,sofia,belgrado,zagreb,split,dubrovnik,ljubljana,bratislava,kopenhagen,stockholm,goteborg,oslo,helsinki,reykjavik,tallinn,riga,vilnius,new york,los angeles,chicago,houston,philadelphia,san diego,dallas,austin,san francisco,seattle,boston,miami,atlanta,denver,las vegas,detroit,washington,orlando,nashville,new orleans,toronto,montreal,vancouver,ottawa,mexico stad,cancun,havana,bogota,medellin,lima,santiago,buenos aires,montevideo,caracas,quito,la paz,rio de janeiro,sao paulo,brasilia,paramaribo,willemstad,oranjestad,kaapstad,cairo,alexandrie,marrakesh,casablanca,tunis,lagos,accra,nairobi,addis abeba,johannesburg,durban,pretoria,dakar,kinshasa,dubai,abu dhabi,doha,riyad,mekka,medina,teheran,bagdad,beiroet,jeruzalem,tel aviv,amman,damascus,karachi,lahore,islamabad,delhi,new delhi,mumbai,bangalore,kolkata,calcutta,chennai,kathmandu,dhaka,colombo,bangkok,phuket,hanoi,ho chi minhstad,singapore,kuala lumpur,jakarta,manilla,peking,beijing,shanghai,hongkong,shenzhen,kanton,tokio,tokyo,osaka,kyoto,yokohama,seoul,busan,taipei,sydney,melbourne,brisbane,perth,canberra,auckland,wellington,honolulu,luxemburg,monaco,ibiza,tenerife,valletta`,
+sports:`voetbal,zaalvoetbal,american football,basketbal,honkbal,tennis,golf,cricket,rugby,hockey,ijshockey,veldhockey,volleybal,beachvolleybal,badminton,tafeltennis,pingpong,handbal,zwemmen,schoonspringen,duiken,surfen,skateboarden,snowboarden,skien,langlaufen,schaatsen,kunstschaatsen,hardrijden,boksen,worstelen,karate,judo,taekwondo,schermen,boogschieten,wielrennen,fietsen,mountainbiken,hardlopen,marathon,sprint,triatlon,turnen,gymnastiek,roeien,kanoen,kajakken,zeilen,bowlen,darten,darts,snooker,biljart,poolbiljart,klimmen,boulderen,polo,waterpolo,lacrosse,softbal,curling,bobsleeen,rodelen,biatlon,paardrijden,dressuur,springconcours,paardenrennen,motorcross,formule 1,formule een,rally,karten,squash,padel,pickleball,korfbal,netbal,trefbal,kickboksen,mma,sumo,gewichtheffen,powerliften,bodybuilding,parkour,trampolinespringen,speerwerpen,discuswerpen,kogelstoten,kogelslingeren,hoogspringen,verspringen,hink stap sprong,polsstokhoogspringen,hordelopen,tienkamp,zevenkamp,orientatielopen,paragliden,parachutespringen,bungeejumpen,windsurfen,kitesurfen,wakeboarden,waterskien,snorkelen,vissen,wandelen,bergbeklimmen,frisbee,ultimate frisbee,jiujitsu,capoeira,thaiboksen,crossfit,cheerleading,esports,schaken,dammen,fierljeppen,klootschieten,kaatsen,jeu de boules,petanque,croquet,tafelvoetbal,airhockey,rolschaatsen,skeeleren,inline skaten,synchroonzwemmen,ritmische gymnastiek,schansspringen,touwtrekken,armworstelen,zaalhockey,beachsoccer,atletiek,duathlon,aerobics,yoga,pilates,zumba,dansen,ballet,breakdance,fitness,spinning,steppen,bmx,baanwielrennen,veldrijden,motorsport,kanopolo,suppen,ijszeilen,snowkiten,freerunnen,flagfootball,beachhandbal,rugby sevens`,
+jobs:`dokter,arts,huisarts,verpleegkundige,verpleger,zuster,leraar,lerares,docent,juf,meester,brandweerman,brandweervrouw,politieagent,agent,kok,chefkok,bakker,slager,boer,boerin,piloot,astronaut,ingenieur,architect,advocaat,rechter,notaris,tandarts,apotheker,wetenschapper,scheikundige,bioloog,natuurkundige,programmeur,ontwikkelaar,ontwerper,designer,kunstenaar,schilder,muzikant,zanger,zangeres,acteur,actrice,danser,danseres,schrijver,schrijfster,dichter,journalist,verslaggever,fotograaf,loodgieter,elektricien,timmerman,monteur,automonteur,bouwvakker,metselaar,lasser,tuinman,hovenier,schoonmaker,conciërge,ober,serveerster,barman,barista,kassamedewerker,caissiere,boekhouder,accountant,bankier,secretaresse,receptioniste,manager,verkoper,postbode,chauffeur,taxichauffeur,buschauffeur,vrachtwagenchauffeur,soldaat,militair,matroos,zeeman,visser,badmeester,strandwacht,bibliothecaris,dierenarts,chirurg,therapeut,psycholoog,psychiater,ambulancebroeder,kapper,kapster,barbier,kleermaker,naaister,bloemist,juwelier,opticien,vertaler,tolk,professor,hoogleraar,directeur,coach,trainer,sporter,atleet,scheidsrechter,detective,rechercheur,spion,beveiliger,bewaker,dierenverzorger,imker,archeoloog,sterrenkundige,astronoom,geoloog,econoom,politicus,president,burgemeester,minister,premier,diplomaat,ondernemer,influencer,youtuber,streamer,komiek,cabaretier,goochelaar,clown,regisseur,producent,redacteur,animator,illustrator,model,stewardess,steward,kapitein,mijnwerker,houthakker,herder,smid,slotenmaker,stukadoor,dakdekker,stoffeerder,schoenmaker,glazenwasser,begrafenisondernemer,makelaar,consultant,adviseur,analist,webdesigner,softwareontwikkelaar,gameontwikkelaar,oppas,nanny,huishoudster,butler,koerier,bezorger,pakketbezorger,radioloog,dermatoloog,cardioloog,kinderarts,verloskundige,fysiotherapeut,dietist,logopedist,priester,dominee,pastoor,monnik,non,rabbijn,imam,koning,koningin,prins,prinses,ridder,piraat,cowboy,ninja,boswachter,gids,reisleider,reisagent,dj,componist,dirigent,beeldhouwer,pottenbakker,stylist,visagist,personal trainer,yogadocent,hondenuitlater,vuilnisman,kraanmachinist,machinist,treinmachinist,conducteur,luchtverkeersleider,technicus,uitvinder,wiskundige,historicus,filosoof,onderwijsassistent,bijlesdocent,vakkenvuller,magazijnmedewerker,heftruckchauffeur,glazenmaker,belastingadviseur,rijinstructeur,kinderopvangmedewerker,pedagogisch medewerker,maatschappelijk werker,tandartsassistent,doktersassistent,apothekersassistent,schoonheidsspecialist,nagelstylist,tattooartiest`,
+instruments:`piano,vleugel,gitaar,elektrische gitaar,akoestische gitaar,basgitaar,bas,drumstel,drums,trommel,viool,altviool,cello,contrabas,harp,fluit,dwarsfluit,piccolo,klarinet,hobo,fagot,saxofoon,sax,trompet,trombone,schuiftrombone,tuba,hoorn,waldhoorn,cornet,eufonium,mondharmonica,harmonica,accordeon,trekharmonica,banjo,ukelele,mandoline,sitar,orgel,kerkorgel,draaiorgel,keyboard,synthesizer,xylofoon,marimba,vibrafoon,klokkenspel,triangel,tamboerijn,bekkens,bekken,gong,bongo,conga,djembe,tabla,doedelzak,blokfluit,kazoo,ocarina,didgeridoo,klavecimbel,luit,lier,citer,theremin,steeldrum,castagnetten,maracas,sambaballen,koebel,pauken,pauk,snaredrum,kleine trom,grote trom,bugel,panfluit,balalaika,shamisen,koto,erhu,bouzouki,melodica,cajon,kalimba,draailier,hakkebord,celesta,sousafoon,flugelhorn,tenorsaxofoon,altsaxofoon,basklarinet,contrafagot,althobo,tinwhistle,wasbord,houtblok,claves,guiro,shaker,handpan,beatbox,draaitafel,drumcomputer,elektrische viool,charango,oud,kora,shakuhachi,pipa,guzheng,carillon,beiaard,klokken,rammelaar,elektrische piano,digitale piano,keyboardgitaar,bastrommel,tamtam,ratel,fluitje,toeter`,
+clothing:`shirt,t shirt,overhemd,blouse,broek,spijkerbroek,jeans,korte broek,rok,jurk,jas,jack,jasje,regenjas,winterjas,trui,sweater,hoodie,vest,gilet,colbert,pak,kostuum,stropdas,das,vlinderdas,strik,sjaal,handschoen,want,hoed,pet,muts,helm,sok,schoen,sneaker,gymp,laars,sandaal,pantoffel,slof,slipper,teenslipper,hakken,pumps,instappers,riem,ceintuur,pyjama,badjas,ochtendjas,ondergoed,onderbroek,boxershort,slip,beha,bh,bikini,badpak,zwembroek,legging,panty,maillot,tuinbroek,overall,poncho,cape,mantel,smoking,blazer,kimono,sari,kilt,tulband,schort,uniform,trainingspak,joggingbroek,polo,poloshirt,hemd,singlet,topje,croptop,onesie,parka,windjack,bodywarmer,bandana,oorwarmers,baret,fedora,sombrero,hoge hoed,cowboyhoed,bivakmuts,korset,sarong,toga,tuniek,turnpakje,wetsuit,kous,kniekous,klomp,mocassin,espadrille,regenlaars,cargobroek,chino,jumpsuit,playsuit,omslagdoek,sluier,japon,avondjurk,trouwjurk,baljurk,labjas,doktersjas,trenchcoat,pufferjas,leren jas,spijkerjas,bomberjack,fleece,coltrui,col,nachthemd,nachtjapon,onderjurk,bretels,manchetknopen,pochet,haarband,hoofddoek,boerka,dirndl,lederhosen,uggs,crocs,skijas,skibroek,sportbeha,enkelsok,minirok,maxirok,zomerjurk,cocktailjurk,hotpants,bermuda,zwemshort,anorak,kaftan,klederdracht,wollen trui,kerstrui,regenpak,regenbroek,sportschoen,voetbalschoen,schaats,balletschoen,spijkerrok,colbertje,rokje,jurkje,shirtje,broekje`,
+kitchen:`koelkast,ijskast,vriezer,diepvries,oven,magnetron,fornuis,kookplaat,inductieplaat,gasfornuis,broodrooster,waterkoker,blender,mixer,keukenmachine,staafmixer,vaatwasser,afwasmachine,gootsteen,aanrecht,kraan,mes,vork,lepel,bord,kom,schaal,kop,kopje,mok,beker,glas,wijnglas,pan,koekenpan,braadpan,kookpan,steelpan,wok,spatel,pannenlikker,soeplepel,opscheplepel,garde,rasp,kaasschaaf,dunschiller,aardappelschiller,vergiet,zeef,snijplank,deegroller,schaar,blikopener,flesopener,kurkentrekker,tang,ovenwant,pannenlap,schort,dienblad,bakplaat,theepot,koffiezetapparaat,koffiemachine,espressoapparaat,sapcentrifuge,citruspers,airfryer,frituurpan,slowcooker,snelkookpan,rijstkoker,thermometer,kookwekker,eierwekker,timer,keukenweegschaal,weegschaal,maatbeker,servet,tafelkleed,theedoek,vaatdoek,spons,afwasborstel,afwasmiddel,prullenbak,vuilnisbak,afvalbak,keukenkastje,kastje,la,lade,plank,tafel,stoel,kruk,broodtrommel,lunchtrommel,thermosfles,pot,fles,kan,karaf,waterkan,zoutvaatje,pepermolen,kruidenrek,vijzel,ovenschaal,muffinvorm,bakvorm,taartvorm,springvorm,koekjesvorm,uitsteekvorm,spies,eetstokjes,theelepel,eetlepel,botermes,steakmes,broodmes,hakmes,koksmes,pizzasnijder,ijsschep,knoflookpers,slacentrifuge,slakom,onderzetter,placemat,schotel,schoteltje,eierdopje,trechter,spuitzak,bakkwast,pureestamper,notenkraker,keukenrol,aluminiumfolie,vershoudfolie,bakpapier,vershouddoos,bewaardoos,broodplank,fruitschaal,afdruiprek,afzuigkap,ijsblokjesvorm,waterfilter,handmixer,wafelijzer,tosti ijzer,tostiapparaat,popcornmachine,ijsmachine,broodbakmachine,grillpan,grill,barbecue,gietijzeren pan,braadslede,stoompan,mandoline,messenslijper,messenblok,kruidenpotje,kookboek,receptenboek,taartplateau,pannenonderzetter,keukenkast,voorraadkast,keukenlamp,koffiekopje,theeglas,suikerpot,melkkan,botervloot,kaasplank,broodmand,eierkoker,melkopschuimer,koffiemolen,keukentrap`,
+school:`potlood,pen,gum,liniaal,puntenslijper,slijper,schrift,boek,schoolboek,leerboek,werkboek,rugzak,schooltas,tas,rekenmachine,schaar,lijm,lijmstift,nietmachine,nietje,plakband,markeerstift,stift,viltstift,krijtje,waskrijt,kleurpotlood,penseel,kwast,verf,krijt,schoolbord,krijtbord,whiteboard,digibord,bureau,tafel,stoel,kluisje,kaart,landkaart,wereldbol,globe,computer,laptop,tablet,chromebook,beamer,klok,bel,schoolbel,leraar,juf,meester,leerling,scholier,student,directeur,rector,klaslokaal,lokaal,klas,bibliotheek,mediatheek,gymzaal,gymles,kantine,schoolplein,speelplaats,huiswerk,toets,proefwerk,examen,diploma,passer,geodriehoek,map,ordner,multomap,papier,woordenboek,encyclopedie,microscoop,bekerglas,reageerbuis,etui,pennenzak,post it,paperclip,punaise,prikbord,rooster,lesrooster,rapport,schoolbus,pauze,speelkwartier,les,overhoring,atlas,flitskaart,werkblad,whiteboardstift,vulpen,inkt,balpen,vulpotlood,labjas,veiligheidsbril,bunsenbrander,periodiek systeem,skelet,tekenlokaal,muzieklokaal,practicumlokaal,laboratorium,gang,docentenkamer,lerarenkamer,gymleraar,nablijven,strafwerk,schoolreisje,excursie,sportdag,schoolfeest,eindmusical,diploma uitreiking,jaarboek,klasgenoot,vriend,vriendin,opstel,werkstuk,spreekbeurt,presentatie,boekverslag,dictee,tafels,alfabet,poster,certificaat,cijfer,mentor,klassenboek,agenda,planner,kapstok,fietsenstalling,ruitjespapier,lijntjespapier,tekenpapier,tekenblok,bordenwisser,schoolkrant,schoolfoto,leerlingenraad,ouderavond,rapportgesprek,mentorles,schooltuin,zandbak,glijbaan,schommel,klimrek,voetbalveld,schoolkamp,eindtoets,cito`,
+beach:`zand,zee,oceaan,golf,schelp,krab,zonnebrand,zonnebrandcreme,handdoek,strandlaken,parasol,strandstoel,emmer,schep,zandkasteel,surfplank,bodyboard,strandwacht,badmeester,badpak,bikini,zonnebril,slipper,teenslipper,meeuw,zeester,kwal,zeewier,steen,rots,getijdenpoel,pier,boulevard,strandopgang,vuurtoren,boot,zeilboot,kajak,kano,volleybal,beachvolleybal,frisbee,ijsje,ijs,koelbox,zon,palmboom,kokosnoot,hangmat,ligstoel,strandbal,snorkel,zwemvlies,duikbril,vlieger,duin,zandduin,wrakhout,kiezel,eb,vloed,getijde,reddingsboei,jetski,pelikaan,dolfijn,haai,zonnehoed,picknick,picknickmand,sandaal,zonnebrandolie,aftersun,strandbed,strandhuisje,strandtent,strandpaviljoen,surfer,zwemmer,toerist,kleurtje,zonsondergang,zonsopgang,horizon,baai,inham,klif,rif,koraal,koraalrif,vis,bananenboot,waterfiets,supboard,sup,wetsuit,zwemvest,reddingsvest,slotgracht,voetstap,flessenpost,schat,heremietkreeft,zeeschildpad,schildpad,walvis,mossel,oester,kokkel,zanddollar,branding,schuim,bries,wind,windscherm,strandbar,cocktail,smoothie,kibbeling,patat,waterijsje,raketje,waterfles,koeltas,strandmat,strandtas,opblaasbeest,luchtbed,zwemband,zwembandjes,zwemmouwtjes,jacht,hengel,metaaldetector,scheepswrak,eiland,strandpaal,zeehond,garnaal,strandjutter,zeilwagen,kitesurfer,golfbreker,havenhoofd,zonnescherm,strandlaken,schelpenketting,zandvorm,emmertje,schepje,krabbetje,zonnestraal,zeelucht,strandwandeling`,
+brands:null,
+vehicles:`auto,wagen,bus,vrachtwagen,vrachtauto,busje,bestelbus,fiets,rijwiel,motor,motorfiets,scooter,brommer,bromfiets,snorfiets,skateboard,trein,tram,metro,taxi,ambulance,brandweerauto,brandweerwagen,politieauto,politiewagen,tractor,trekker,bulldozer,graafmachine,kraan,hijskraan,heftruck,vliegtuig,straalvliegtuig,straaljager,jumbojet,helikopter,zweefvliegtuig,luchtballon,heteluchtballon,zeppelin,luchtschip,raket,ruimteschip,spaceshuttle,boot,schip,jacht,zeilboot,kano,kajak,veerboot,pont,onderzeeer,duikboot,cruiseschip,jetski,hovercraft,speedboot,vlot,gondel,limousine,cabrio,pick up,minibus,jeep,suv,caravan,camper,kampeerauto,tank,golfkar,segway,eenwieler,driewieler,monorail,kabelbaan,sneeuwscooter,slee,slede,arrenslee,riksja,tuktuk,koets,postkoets,huifkar,kiepwagen,betonmolen,betonwagen,vuilniswagen,vuilnisauto,takelwagen,sleepwagen,wals,stoomwals,quad,kart,crossmotor,hoverboard,trolleybus,dubbeldekker,touringcar,schoolbus,catamaran,sleepboot,goederentrein,hogesnelheidstrein,sneltrein,stoomtrein,intercity,sprinter,waterfiets,elektrische step,step,rolschaats,skeeler,mountainbike,racefiets,bakfiets,ligfiets,tandem,elektrische fiets,ebike,raceauto,sportauto,vrachtschip,containerschip,tanker,olietanker,vliegdekschip,slagschip,oorlogsschip,watervliegtuig,tweedekker,drone,ruimtestation,maanwagen,marsrover,ijscowagen,foodtruck,bestelwagen,pendelbus,sloep,reddingsboot,roeiboot,woonboot,rondvaartboot,binnenvaartschip,aak,praam,ijsbreker,sneeuwschuiver,strooiwagen,maaidorser,oogstmachine,shovel,graafkraan,pantserwagen,stationwagen,hatchback,sedan,coupe,elektrische auto,hybride auto,stoeltjeslift,skilift,gondellift,zweeftrein,rolstoel,scootmobiel,kinderwagen,buggy,autoped,bolderkar,solex,canta,fietstaxi,vouwfiets,omafiets,opoefiets,driewielfiets,loopfiets,brandweerboot,politieboot,zeilschip,tjalk,botter,platbodem`
+}};
+WORDS.nl.cars=WORDS.en.cars;
+WORDS.nl.brands=WORDS.en.brands+`,albert heijn,ah,jumbo,hema,action,kruidvat,etos,bol,coolblue,grolsch,bavaria,amstel,douwe egberts,unox,calve,verkade,tony chocolonely,de ruijter,venz,ziggo,kpn,odido,ns,klm,ing,rabobank,abn amro,asml,unilever,tomtom,gazelle,batavus,sparta,vanmoof,blokker,intertoys,bart smit,wehkamp,zeeman,c and a,we fashion,scotch and soda,g star,mexx,suitsupply,dille en kamille,gamma,praxis,karwei,hornbach,plus,dirk,vomar,spar,lidl,aldi,ekoplaza,new york pizza,febo,smullers,kwekkeboom,mora,croky,lays,chio,tuc,liga,sultana,peijnenburg,blue band,becel,mona,campina,friesche vlag,optimel,chocomel,fristi,spa,chaudfontaine,sourcy,hero,dubbelfrisss,wicky,roosvicee,tic tac,mentos,king,klene,venco,red band,autodrop,katja,haribo,lonka,fruittella,verkade,lu,bolletje,brinta,wasa,senseo,nespresso,pickwick,lipton,thuisbezorgd,picnic,flink,marktplaats,funda,buienradar,nu nl,telegraaf,efteling,walibi,duinrell,center parcs,landal,transavia,corendon,tui,sunweb,arke,swapfiets,ov fiets,arriva,connexxion,gvb,ret,htm,qbuzz`;
+const CATS=[
+ {id:'food',en:['Name a type of','FOOD','food'],nl:['Noem een soort','ETEN','eten']},
+ {id:'cars',en:['Name a','CAR BRAND','car brand'],nl:['Noem een','AUTOMERK','automerk']},
+ {id:'animals',en:['Name an','ANIMAL','animal'],nl:['Noem een','DIER','dier']},
+ {id:'countries',en:['Name a','COUNTRY','country'],nl:['Noem een','LAND','land']},
+ {id:'cities',en:['Name a','CITY','city'],nl:['Noem een','STAD','stad']},
+ {id:'fruit',en:['Name a','FRUIT','fruit'],nl:['Noem een soort','FRUIT','fruit']},
+ {id:'veg',en:['Name a','VEGETABLE','vegetable'],nl:['Noem een','GROENTE','groente']},
+ {id:'sports',en:['Name a','SPORT','sport'],nl:['Noem een','SPORT','sport']},
+ {id:'jobs',en:['Name a','JOB','job'],nl:['Noem een','BEROEP','beroep']},
+ {id:'instruments',en:['Name a','MUSICAL INSTRUMENT','instrument'],nl:['Noem een','MUZIEKINSTRUMENT','instrument']},
+ {id:'clothing',en:['Name a piece of','CLOTHING','piece of clothing'],nl:['Noem een','KLEDINGSTUK','kledingstuk']},
+ {id:'kitchen',en:['Name something in a','KITCHEN','kitchen thing'],nl:['Noem iets in de','KEUKEN','keukenspul']},
+ {id:'school',en:['Name something at','SCHOOL','school thing'],nl:['Noem iets op','SCHOOL','schoolding']},
+ {id:'beach',en:['Name something at the','BEACH','beach thing'],nl:['Noem iets op het','STRAND','strandding']},
+ {id:'brands',en:['Name a famous','BRAND','brand'],nl:['Noem een bekend','MERK','merk']},
+ {id:'vehicles',en:['Name a','VEHICLE','vehicle'],nl:['Noem een','VOERTUIG','voertuig']},
+];
+const CATBY={};for(const c of CATS)CATBY[c.id]=c;
+const catTxt=(id,l)=>{const a=(CATBY[id]||CATS[0])[l]||CATBY[id].en;return{q:a[0],big:a[1],short:a[2]}};
+const CD={en:{},nl:{}};
+function addWords(c,str){for(const w of str.split(',')){const d=w.trim();if(!d)continue;const k=norm(d);if(k.length<2||c.map.has(k))continue;c.map.set(k,d);c.list.push([k,d])}}
+for(const L of['en','nl'])for(const c of CATS){const o={map:new Map(),list:[]};addWords(o,WORDS[L][c.id]);CD[L][c.id]=o}
+for(const L of['en','nl']){addWords(CD[L].food,WORDS[L].fruit);addWords(CD[L].food,WORDS[L].veg)}
+
+function bases(k,L){
+  const out=[k];
+  if(k.endsWith('s'))out.push(k.slice(0,-1));
+  if(L==='en'){if(k.endsWith('es'))out.push(k.slice(0,-2));if(k.endsWith('ies'))out.push(k.slice(0,-3)+'y')}
+  else{
+    if(k.endsWith('eren'))out.push(k.slice(0,-4));
+    if(k.endsWith('en')){const b=k.slice(0,-2);out.push(b);const V='aeiou';
+      if(b.length>2&&b[b.length-1]===b[b.length-2]&&!V.includes(b[b.length-1]))out.push(b.slice(0,-1));
+      const v=b[b.length-2];if(b.length>2&&'aeou'.includes(v)&&!V.includes(b[b.length-1])&&!V.includes(b[b.length-3]))out.push(b.slice(0,-1)+v+b[b.length-1]);
+      if(b.endsWith('v'))out.push(b.slice(0,-1)+'f');if(b.endsWith('z'))out.push(b.slice(0,-1)+'s')}
+    if(k.endsWith('n'))out.push(k.slice(0,-1));
+    if(k.endsWith('tje')||k.endsWith('pje'))out.push(k.slice(0,-3));
+    if(k.endsWith('je'))out.push(k.slice(0,-2));
+  }
+  return out;
+}
+function checkWord(L,catId,raw,letter,used){
+  const key=norm(raw);const cat=CD[L][catId];
+  if(key.length<2)return{ok:false,code:'short'};
+  if(letter&&key[0]!==letter.toLowerCase())return{ok:false,code:'letter',l:letter};
+  let base=null;for(const k of bases(key,L))if(cat.map.has(k)){base=k;break}
+  if(!base)return{ok:false,code:'unknown',w:String(raw).trim().slice(0,24),c:catId};
+  if(used.has(catId+':'+base))return{ok:false,code:'used'};
+  return{ok:true,base,key,len:key.length};
+}
+
+/* ================= modes & difficulty ================= */
+const START_H=8;
+const MODES={
+ classic:{time:()=>18,rise:r=>5.5+0.55*(r-1)},
+ rush:{time:r=>Math.max(6,16-r),rise:r=>6+0.8*(r-1)},
+ letter:{time:()=>22,rise:r=>4.5+0.5*(r-1)},
+ mega:{time:(r,m)=>m?26:16,rise:r=>(r%3===0?2.2:1)*(4.2+0.45*(r-1)),mega:r=>r%3===0},
+};
+const DIFFS={
+ easy:{delay:[3200,7500],cps:3.2,fail:.22,from:[0,.5]},
+ normal:{delay:[2000,5000],cps:5,fail:.1,from:[0,1]},
+ hard:{delay:[1200,3200],cps:7.5,fail:.04,from:[.55,1]},
+ insane:{delay:[600,1700],cps:11,fail:0,from:[.88,1]},
+};
+const BOTNAMES=['Noodle','Pixel','Mango','Turbo','Biscuit','Waffles','Pepper','Ziggy','Nova','Blaze','Coco','Bubbles','Sprocket','Taco','Pickle','Rocket','Muffin','Jelly','Sparky','Peanut','Gizmo','Doodle'];
+const BOTNAMES_NL=['Pindakaas','Stroopwafel','Kroket','Bitterbal','Poffertje','Hagelslag','Drop','Knakworst','Muisje','Pepernoot','Tompouce','Klompje','Dropje','Frikandel','Oliebol','Speculaas','Sprinkhaan','Tulp','Molentje','Kaasje','Spekkie','Appelflap'];
+
+/* ================= engine ================= */
+class Game{
+  constructor(settings,roster,hooks){
+    this.set=settings;this.hooks=hooks||{};this.used={};this.pending={};this.recent=[];this.bots={};this.speed=1;
+    this.lang=settings.lang==='nl'?'nl':'en';
+    this.mode=MODES[settings.mode]||MODES.classic;
+    this.state={phase:'intro',round:0,cat:null,letter:null,timeLeft:0,timeTotal:1,lava:0,nextRise:0,map:settings.map,mode:settings.mode,lang:this.lang,mega:false,results:null,
+      players:roster.map(p=>({id:p.id,name:p.name,look:p.look,isBot:!!p.isBot,diff:p.diff||null,height:START_H,alive:true,blocks:[],locked:false,word:'',typing:0,deathRound:0,longest:'',total:0,gone:false}))};
+    this.nextRound();
+  }
+  emit(imp){this.hooks.onState&&this.hooks.onState(this.state,imp)}
+  usedOf(id){return this.used[id]||(this.used[id]=new Set())}
+  nextRound(){
+    const st=this.state;st.round++;st.phase='intro';st.timeLeft=st.timeTotal=st.round===1?3200:2200;
+    st.mega=this.mode.mega?this.mode.mega(st.round):false;
+    st.nextRise=Math.max(1,Math.round(this.mode.rise(st.round)));
+    st.cat=null;st.letter=null;
+    for(const p of st.players){p.locked=false;p.word='';p.typing=0}
+    this.emit(true);
+  }
+  pickCategory(){
+    const st=this.state;
+    for(let tries=0;tries<60;tries++){
+      const pool=CATS.filter(c=>!this.recent.includes(c.id));
+      const c=pick(pool.length?pool:CATS);
+      if(st.mode==='letter'){
+        const counts={};
+        for(const[k]of CD[this.lang][c.id].list)counts[k[0]]=(counts[k[0]]||0)+1;
+        const ok=Object.keys(counts).filter(l=>counts[l]>=5);
+        if(!ok.length)continue;
+        st.letter=pick(ok).toUpperCase();
+      }
+      st.cat=c.id;this.recent.push(c.id);if(this.recent.length>6)this.recent.shift();return;
+    }
+    st.cat='animals';st.letter=null;
+  }
+  startQuestion(){
+    const st=this.state;this.pickCategory();this.pending={};
+    st.phase='question';st.timeLeft=st.timeTotal=this.mode.time(st.round,st.mega)*1000;
+    this.bots={};for(const p of st.players)if(p.isBot&&p.alive)this.planBot(p);
+    this.emit(true);
+  }
+  available(p){
+    const st=this.state;const used=this.usedOf(p.id);
+    return CD[this.lang][st.cat].list.filter(([k])=>!used.has(st.cat+':'+k)&&(!st.letter||k[0]===st.letter.toLowerCase()));
+  }
+  planBot(p,at){
+    const D=DIFFS[p.diff]||DIFFS.normal;const av=this.available(p);
+    const b={at:at!=null?at:rand(D.delay[0],D.delay[1]),typed:0,word:null};
+    if(av.length&&(at!=null||Math.random()>=D.fail)){
+      av.sort((a,b)=>a[0].length-b[0].length);
+      const i0=Math.floor(D.from[0]*(av.length-1)),i1=Math.max(i0+1,Math.ceil(D.from[1]*av.length));
+      b.word=pick(av.slice(i0,i1))[1];
+    }
+    this.bots[p.id]=b;
+  }
+  updateBots(dt){
+    const st=this.state;const el=st.timeTotal-st.timeLeft;
+    for(const p of st.players){
+      if(!p.isBot||!p.alive||p.locked)continue;
+      const b=this.bots[p.id];if(!b||el<b.at)continue;
+      const D=DIFFS[p.diff]||DIFFS.normal;
+      if(!b.word){p.typing=Math.floor(((el-b.at)/350)%4);continue}
+      b.typed+=D.cps*dt/1000;p.typing=Math.min(norm(b.word).length,Math.floor(b.typed));
+      if(b.typed>=b.word.length){const r=this.submit(p.id,b.word);if(!r.ok)this.planBot(p,el+rand(300,900))}
+    }
+  }
+  setTyping(id,n){const p=this.state.players.find(x=>x.id===id);if(p&&!p.locked)p.typing=clamp(n|0,0,40)}
+  markGone(id){const p=this.state.players.find(x=>x.id===id);if(p)p.gone=true}
+  submit(id,raw){
+    const st=this.state;const p=st.players.find(x=>x.id===id);
+    if(!p||!p.alive)return{ok:false,code:'out'};
+    if(st.phase!=='question')return{ok:false,code:'wait'};
+    if(p.locked)return{ok:false,code:'locked'};
+    const used=this.usedOf(id);
+    const r=checkWord(this.lang,st.cat,raw,st.letter,used);
+    if(!r.ok)return r;
+    used.add(st.cat+':'+r.base);
+    const word=String(raw).trim().slice(0,40);
+    p.locked=true;p.typing=0;
+    this.pending[id]={word,key:r.key,len:r.len};
+    this.emit(true);
+    return{ok:true,len:r.len,word};
+  }
+  reveal(){
+    const st=this.state;
+    for(const p of st.players){const a=this.pending[p.id];p.typing=0;if(!a||!p.alive)continue;
+      p.word=a.word;p.blocks.push({w:a.key.toUpperCase(),n:a.len});p.height+=a.len;p.total+=a.len;
+      if(a.len>norm(p.longest).length)p.longest=a.word}
+    this.pending={};
+  }
+  update(dt){
+    const st=this.state;if(st.phase==='over')return;
+    st.timeLeft-=dt;
+    if(st.phase==='intro'){if(st.timeLeft<=0)this.startQuestion()}
+    else if(st.phase==='question'){
+      this.updateBots(dt);
+      const pending=st.players.filter(p=>p.alive&&!p.locked&&!p.gone);
+      if(st.timeLeft<=0||pending.length===0){
+        st.phase='reveal';st.timeLeft=st.timeTotal=2600;this.reveal();this.emit(true);
+      }
+    }else if(st.phase==='reveal'){
+      if(st.timeLeft<=0){st.phase='rise';st.timeLeft=st.timeTotal=2800;st.lava+=st.nextRise;this.deathsDone=false;this.emit(true)}
+    }else if(st.phase==='rise'){
+      if(!this.deathsDone&&st.timeLeft<=1500){
+        this.deathsDone=true;
+        for(const p of st.players)if(p.alive&&p.height<st.lava){p.alive=false;p.deathRound=st.round}
+        this.emit(true);
+      }
+      if(st.timeLeft<=0){
+        const alive=st.players.filter(p=>p.alive).length,n=st.players.length;
+        if((n>1&&alive<=1)||(n===1&&alive===0))this.finish();else this.nextRound();
+      }
+    }
+    this.emit(false);
+  }
+  finish(){
+    const st=this.state;st.phase='over';
+    const sorted=st.players.slice().sort((a,b)=>(b.alive-a.alive)||((b.deathRound||1e9)-(a.deathRound||1e9))||(b.height-a.height));
+    st.results=sorted.map((p,i)=>({id:p.id,name:p.name,look:p.look,isBot:p.isBot,place:i+1,height:p.height,longest:p.longest,rounds:p.alive?st.round:p.deathRound-1}));
+    this.emit(true);
+  }
+}
+let tickLast=performance.now();
+setInterval(()=>{const now=performance.now();const dt=Math.min(1000,now-tickLast);tickLast=now;if(game&&role!=='client'){const steps=game.speed>1?game.speed:1;for(let i=0;i<steps;i++)game.update(dt)}},50);
+
+/* ================= looks ================= */
+const SKINS=['#ffe0c4','#f6cba3','#e8b48a','#d39a6a','#b07a4f','#8d5a3b','#6b4129','#4a2c1c'];
+const HAIRC=['#1f1a17','#4a2f1d','#7a4a26','#b5762f','#e3b552','#f2dc9b','#c4432c','#e8e6e3','#7d7d85','#ff7ab6','#5aa8ff','#5fd36a'];
+const COLORS=['#ff5a5f','#ff8c42','#ffd23f','#5fd36a','#2ec4b6','#3a86ff','#7b5cff','#c45bff','#ff6fb5','#ffffff','#9aa3ad','#3d3d4d','#8b5a2b','#1f7a4d'];
+const HAIRS=['bald','short','spiky','long','bun','curly','mohawk','ponytail','afro'];
+const EYES=['dots','big','happy','sleepy','wink','angry'];
+const MOUTHS=['smile','grin','open','smirk','tongue'];
+const HATS=['none','cap','beanie','crown','tophat','party','cowboy','headphones','viking'];
+const GLASSES=['none','round','shades','star','nerd'];
+const nice=v=>t('vals')[v]||v;
+function randomLook(){return{skin:pick(SKINS),hair:pick(HAIRS),hairColor:pick(HAIRC),eyes:pick(EYES),mouth:pick(MOUTHS),shirt:pick(COLORS),pants:pick(COLORS),hat:Math.random()<.5?'none':pick(HATS),hatColor:pick(COLORS),glasses:Math.random()<.7?'none':pick(GLASSES)}}
+function sanitizeLook(l){
+  const d=randomLook();l=l&&typeof l==='object'?l:{};const hex=v=>typeof v==='string'&&/^#[0-9a-f]{6}$/i.test(v);
+  return{skin:hex(l.skin)?l.skin:d.skin,hair:HAIRS.includes(l.hair)?l.hair:d.hair,hairColor:hex(l.hairColor)?l.hairColor:d.hairColor,eyes:EYES.includes(l.eyes)?l.eyes:d.eyes,mouth:MOUTHS.includes(l.mouth)?l.mouth:d.mouth,shirt:hex(l.shirt)?l.shirt:d.shirt,pants:hex(l.pants)?l.pants:d.pants,hat:HATS.includes(l.hat)?l.hat:'none',hatColor:hex(l.hatColor)?l.hatColor:d.hatColor,glasses:GLASSES.includes(l.glasses)?l.glasses:'none'};
+}
+const cleanName=n=>(String(n||'').replace(/[<>&"]/g,'').trim().slice(0,14))||'Player';
+
+/* ================= character drawing ================= */
+function rr(c,x,y,w,h,r){r=Math.max(0,Math.min(r,w/2,h/2));c.beginPath();c.moveTo(x+r,y);c.arcTo(x+w,y,x+w,y+h,r);c.arcTo(x+w,y+h,x,y+h,r);c.arcTo(x,y+h,x,y,r);c.arcTo(x,y,x+w,y,r);c.closePath()}
+function ell(c,x,y,rx,ry,rot){c.beginPath();c.ellipse(x,y,Math.abs(rx),Math.abs(ry),rot||0,0,Math.PI*2)}
+function circ(c,x,y,r){c.beginPath();c.arc(x,y,r,0,Math.PI*2)}
+function star(c,x,y,r){c.beginPath();for(let i=0;i<10;i++){const a=-Math.PI/2+i*Math.PI/5,rr2=i%2?r*.45:r;c.lineTo(x+Math.cos(a)*rr2,y+Math.sin(a)*rr2)}c.closePath()}
+const OL='rgba(30,20,40,.38)',DARK='#2a2233';
+
+function drawChar(c,L,x,y,s,pose,t,ph,rot){
+  ph=ph||0;c.save();c.translate(x,y);c.scale(s,s);c.lineJoin='round';c.lineCap='round';
+  const sway=Math.sin(t*2.2+ph);
+  if(pose!=='dead'){c.fillStyle='rgba(0,0,0,.22)';ell(c,0,0,22,5);c.fill()}
+  if(rot)c.rotate(rot);
+  const jump=pose==='cheer'?-Math.abs(Math.sin(t*8+ph))*7:0;c.translate(0,jump);
+  const lk=pose==='panic'?Math.sin(t*18+ph)*3:0;
+  c.fillStyle=L.pants;c.strokeStyle=OL;c.lineWidth=2;
+  rr(c,-13,-24-lk,11,24+lk,5);c.fill();c.stroke();rr(c,2,-24+lk,11,24-lk,5);c.fill();c.stroke();
+  c.fillStyle='#2d2a3a';ell(c,-8,-2,8,4.5);c.fill();ell(c,8,-2,8,4.5);c.fill();
+  const bob=pose==='panic'?Math.sin(t*20+ph)*1.5:pose==='dead'?0:sway*1.2;c.translate(0,bob);
+  let aL,aR;
+  if(pose==='cheer'){aL=2.6+Math.sin(t*10+ph)*.25;aR=2.6+Math.sin(t*10+ph+1)*.25}
+  else if(pose==='panic'||pose==='dead'){aL=2.4+Math.sin(t*22+ph)*.5;aR=2.4+Math.sin(t*22+ph+2)*.5}
+  else if(pose==='type'){aL=-.5+Math.sin(t*26+ph)*.2;aR=-.5+Math.sin(t*26+ph+1.6)*.2}
+  else{aL=.18+sway*.06;aR=.18-sway*.06}
+  const arm=(side,a)=>{const sx=side*15,sy=-47,len=21;const dx=side*Math.sin(a)*len,dy=Math.cos(a)*len;
+    c.strokeStyle=OL;c.lineWidth=11;c.beginPath();c.moveTo(sx,sy);c.lineTo(sx+dx,sy+dy);c.stroke();
+    c.strokeStyle=L.skin;c.lineWidth=8;c.beginPath();c.moveTo(sx+dx*.45,sy+dy*.45);c.lineTo(sx+dx,sy+dy);c.stroke();
+    c.strokeStyle=L.shirt;c.lineWidth=9;c.beginPath();c.moveTo(sx,sy);c.lineTo(sx+dx*.5,sy+dy*.5);c.stroke();
+    c.fillStyle=L.skin;c.strokeStyle=OL;c.lineWidth=1.5;circ(c,sx+dx,sy+dy,5.5);c.fill();c.stroke()};
+  c.fillStyle=L.shirt;c.strokeStyle=OL;c.lineWidth=2;rr(c,-18,-55,36,36,13);c.fill();c.stroke();
+  c.fillStyle=shade(L.pants,-10);rr(c,-17,-25,34,5,2);c.fill();
+  c.fillStyle=shade(L.shirt,-14);c.beginPath();c.moveTo(-6,-55);c.lineTo(0,-48);c.lineTo(6,-55);c.closePath();c.fill();
+  arm(-1,aL);arm(1,aR);
+  const hy=-77,hc=L.hairColor;
+  c.fillStyle=hc;
+  if(L.hair==='long'){rr(c,-26,hy-14,52,50,18);c.fill()}
+  else if(L.hair==='afro'){circ(c,0,hy-8,33);c.fill();for(let i=0;i<9;i++){const a=Math.PI*.8+i*Math.PI*1.4/8;circ(c,Math.cos(a)*30,hy-8+Math.sin(a)*30,9);c.fill()}}
+  else if(L.hair==='ponytail'){ell(c,25,hy+4,8,17,.35);c.fill()}
+  else if(L.hair==='bun'){circ(c,0,hy-27,10);c.fill()}
+  c.fillStyle=L.skin;c.strokeStyle=OL;c.lineWidth=2;
+  ell(c,-22,hy+2,4.5,6);c.fill();c.stroke();ell(c,22,hy+2,4.5,6);c.fill();c.stroke();
+  circ(c,0,hy,23);c.fill();c.stroke();
+  c.fillStyle='rgba(255,90,110,.25)';ell(c,-13,hy+8,4.5,3);c.fill();ell(c,13,hy+8,4.5,3);c.fill();
+  const ey=hy-1,blink=((t+ph)%4.2)<.12;
+  const dot=(ex)=>{if(blink){c.strokeStyle=DARK;c.lineWidth=2.4;c.beginPath();c.moveTo(ex-3,ey);c.lineTo(ex+3,ey);c.stroke();return}c.fillStyle=DARK;ell(c,ex,ey,2.8,3.8);c.fill();c.fillStyle='#fff';circ(c,ex+.9,ey-1.3,.9);c.fill()};
+  const arcEye=(ex)=>{c.strokeStyle=DARK;c.lineWidth=2.6;c.beginPath();c.arc(ex,ey+2,4,Math.PI*1.15,Math.PI*1.85);c.stroke()};
+  if(pose==='dead'){c.strokeStyle=DARK;c.lineWidth=2.4;for(const ex of[-8.5,8.5]){c.beginPath();c.moveTo(ex-3,ey-3);c.lineTo(ex+3,ey+3);c.moveTo(ex+3,ey-3);c.lineTo(ex-3,ey+3);c.stroke()}}
+  else if(L.eyes==='big'){for(const ex of[-8.5,8.5]){c.fillStyle='#fff';c.strokeStyle=OL;c.lineWidth=1.5;ell(c,ex,ey,5.5,blink?1:6.2);c.fill();c.stroke();if(!blink){c.fillStyle=DARK;ell(c,ex+Math.sin(t*.7+ph)*1.2,ey+1,3,3.4);c.fill();c.fillStyle='#fff';circ(c,ex+1.4,ey-.6,1.1);c.fill()}}}
+  else if(L.eyes==='happy'){arcEye(-8.5);arcEye(8.5)}
+  else if(L.eyes==='sleepy'){for(const ex of[-8.5,8.5]){c.fillStyle=DARK;ell(c,ex,ey+1,2.8,2.6);c.fill();c.strokeStyle=DARK;c.lineWidth=2;c.beginPath();c.moveTo(ex-4,ey-.5);c.lineTo(ex+4,ey-.5);c.stroke()}}
+  else if(L.eyes==='wink'){dot(-8.5);arcEye(8.5)}
+  else{dot(-8.5);dot(8.5);if(L.eyes==='angry'){c.strokeStyle=DARK;c.lineWidth=2.4;c.beginPath();c.moveTo(-13,ey-8);c.lineTo(-5,ey-5);c.moveTo(13,ey-8);c.lineTo(5,ey-5);c.stroke()}}
+  c.fillStyle=shade(L.skin,-16);ell(c,0,hy+4,2.4,1.8);c.fill();
+  const m=pose==='cheer'?'open':(pose==='panic'||pose==='dead')?'o':L.mouth;
+  c.strokeStyle=DARK;c.lineWidth=2.4;c.fillStyle='#5a2333';
+  if(m==='open'){ell(c,0,hy+12,6,6.5);c.fill();c.fillStyle='#ff7b8a';ell(c,0,hy+15.5,3.5,2.2);c.fill()}
+  else if(m==='o'){ell(c,0,hy+12.5,3.4,4.4);c.fill()}
+  else if(m==='grin'){c.beginPath();c.arc(0,hy+8,7.5,0,Math.PI);c.closePath();c.fill();c.fillStyle='#fff';c.fillRect(-6,hy+8,12,2.6)}
+  else if(m==='smirk'){c.beginPath();c.moveTo(-6,hy+11);c.quadraticCurveTo(2,hy+14,7,hy+8);c.stroke()}
+  else{c.beginPath();c.arc(0,hy+7,7,.2*Math.PI,.8*Math.PI);c.stroke();if(m==='tongue'){c.fillStyle='#ff7b8a';ell(c,2.5,hy+14,3,3.4);c.fill()}}
+  c.fillStyle=hc;
+  const capHair=()=>{c.beginPath();c.arc(0,hy,24.5,Math.PI*1.02,Math.PI*1.98);c.lineTo(20,hy-9);c.quadraticCurveTo(5,hy-17,-6,hy-10);c.quadraticCurveTo(-14,hy-14,-22,hy-6);c.closePath();c.fill()};
+  if(['short','long','bun','ponytail','spiky'].includes(L.hair))capHair();
+  if(L.hair==='long'){rr(c,-26,hy-8,8,28,4);c.fill();rr(c,18,hy-8,8,28,4);c.fill()}
+  if(L.hair==='spiky'){for(const i of[-16,-8,0,8,16]){c.beginPath();c.moveTo(i-7,hy-17+Math.abs(i)*.35);c.lineTo(i*1.25,hy-35+Math.abs(i)*.55);c.lineTo(i+7,hy-17+Math.abs(i)*.35);c.closePath();c.fill()}}
+  if(L.hair==='curly'){for(let i=0;i<8;i++){const a=Math.PI*1.0+i*Math.PI/7;circ(c,Math.cos(a)*21,hy+Math.sin(a)*21,8);c.fill()}}
+  if(L.hair==='mohawk'){rr(c,-5,hy-39,10,28,5);c.fill()}
+  if(L.hair==='afro'){for(let i=0;i<6;i++){const a=Math.PI*1.12+i*Math.PI*.76/5;circ(c,Math.cos(a)*20,hy+Math.sin(a)*20,8);c.fill()}}
+  if(L.hair==='bald'){c.fillStyle='rgba(255,255,255,.35)';ell(c,-8,hy-14,6,3,-.4);c.fill()}
+  const gy=ey;c.strokeStyle=DARK;c.lineWidth=2.2;
+  if(L.glasses==='round'){circ(c,-9,gy,7);c.stroke();circ(c,9,gy,7);c.stroke();c.beginPath();c.moveTo(-2,gy);c.lineTo(2,gy);c.stroke()}
+  else if(L.glasses==='shades'){c.fillStyle='#151320';rr(c,-17,gy-5,14,10,4);c.fill();rr(c,3,gy-5,14,10,4);c.fill();c.beginPath();c.moveTo(-3,gy-2);c.lineTo(3,gy-2);c.stroke();c.fillStyle='rgba(255,255,255,.35)';rr(c,-14,gy-3,4,2,1);c.fill();rr(c,6,gy-3,4,2,1);c.fill()}
+  else if(L.glasses==='star'){c.fillStyle='#ff6fb5';c.lineWidth=1.5;star(c,-9,gy,9);c.fill();c.stroke();star(c,9,gy,9);c.fill();c.stroke();c.fillStyle='rgba(30,10,30,.55)';circ(c,-9,gy,3.5);c.fill();circ(c,9,gy,3.5);c.fill()}
+  else if(L.glasses==='nerd'){c.lineWidth=3;rr(c,-17,gy-6,14,12,2);c.stroke();rr(c,3,gy-6,14,12,2);c.stroke();c.beginPath();c.moveTo(-3,gy-1);c.lineTo(3,gy-1);c.stroke()}
+  const H2=L.hatColor;c.strokeStyle=OL;c.lineWidth=2;
+  if(L.hat==='cap'){c.fillStyle=H2;c.beginPath();c.arc(0,hy-7,24,Math.PI,0);c.closePath();c.fill();c.stroke();c.fillStyle=shade(H2,-18);ell(c,0,hy-7,30,6);c.fill();c.stroke();c.fillStyle=shade(H2,-10);circ(c,0,hy-30,3);c.fill()}
+  else if(L.hat==='beanie'){c.fillStyle=H2;c.beginPath();c.arc(0,hy-5,25,Math.PI,0);c.closePath();c.fill();c.stroke();c.fillStyle=shade(H2,-15);rr(c,-26,hy-11,52,10,5);c.fill();c.stroke();c.fillStyle='#fff';circ(c,0,hy-32,7);c.fill();c.stroke()}
+  else if(L.hat==='crown'){c.fillStyle='#ffcc33';c.beginPath();c.moveTo(-19,hy-14);c.lineTo(-21,hy-37);c.lineTo(-10,hy-26);c.lineTo(0,hy-41);c.lineTo(10,hy-26);c.lineTo(21,hy-37);c.lineTo(19,hy-14);c.closePath();c.fill();c.stroke();c.fillStyle=H2;circ(c,0,hy-21,3.5);c.fill();circ(c,-11,hy-19,2.6);c.fill();circ(c,11,hy-19,2.6);c.fill()}
+  else if(L.hat==='tophat'){c.fillStyle='#24212e';ell(c,0,hy-17,31,6);c.fill();rr(c,-16,hy-54,32,38,4);c.fill();c.fillStyle=H2;rr(c,-16,hy-26,32,7,2);c.fill()}
+  else if(L.hat==='party'){c.save();c.translate(4,hy-18);c.rotate(.15);c.fillStyle=H2;c.beginPath();c.moveTo(-14,0);c.lineTo(0,-38);c.lineTo(14,0);c.closePath();c.fill();c.stroke();c.strokeStyle='rgba(255,255,255,.8)';c.lineWidth=3;c.beginPath();c.moveTo(-9,-12);c.lineTo(8,-16);c.moveTo(-5,-24);c.lineTo(5,-27);c.stroke();c.fillStyle='#ffd23f';circ(c,0,-39,5);c.fill();c.restore()}
+  else if(L.hat==='cowboy'){c.fillStyle='#8b5a2b';ell(c,0,hy-15,40,8);c.fill();c.stroke();rr(c,-17,hy-42,34,29,10);c.fill();c.stroke();c.fillStyle=H2;rr(c,-17,hy-22,34,5,2);c.fill()}
+  else if(L.hat==='headphones'){c.strokeStyle=H2;c.lineWidth=6;c.beginPath();c.arc(0,hy,27,Math.PI*1.08,Math.PI*1.92);c.stroke();c.fillStyle=H2;c.strokeStyle=OL;c.lineWidth=2;rr(c,-32,hy-9,11,19,5);c.fill();c.stroke();rr(c,21,hy-9,11,19,5);c.fill();c.stroke()}
+  else if(L.hat==='viking'){c.fillStyle='#f3ead7';for(const sd of[-1,1]){c.beginPath();c.moveTo(sd*20,hy-12);c.quadraticCurveTo(sd*38,hy-18,sd*36,hy-42);c.quadraticCurveTo(sd*28,hy-24,sd*14,hy-20);c.closePath();c.fill();c.stroke()}c.fillStyle='#9aa3ad';c.beginPath();c.arc(0,hy-6,25,Math.PI,0);c.closePath();c.fill();c.stroke();c.fillStyle='#7d858f';rr(c,-26,hy-11,52,7,3);c.fill()}
+  c.restore();
+}
+function avatar(look,size){
+  size=size||40;const cv=document.createElement('canvas');cv.width=cv.height=size*2;const c=cv.getContext('2d');c.scale(2,2);
+  c.save();circ(c,size/2,size/2,size/2);c.clip();c.fillStyle='#ffe9d6';c.fillRect(0,0,size,size);
+  const s=size/58;drawChar(c,look,size/2,size*0.5+77*s,s,'idle',0);c.restore();
+  cv.style.width=cv.style.height=size+'px';return cv;
+}
+
+/* ================= maps ================= */
+function mtn(c,W,base,amp,freq,seed,col){c.fillStyle=col;c.beginPath();c.moveTo(0,base+600);for(let x=0;x<=W+20;x+=20){c.lineTo(x,base-amp*(.5+.5*Math.sin(x*freq+seed))*(.6+.4*Math.sin(x*freq*2.3+seed*2)))}c.lineTo(W,base+600);c.closePath();c.fill()}
+function liquid(c,y,W,H,T,stops,surf,amp){
+  if(y>H+20)return;c.beginPath();c.moveTo(0,H+5);
+  for(let x=0;x<=W+16;x+=16)c.lineTo(x,y+Math.sin(x*.018+T*1.8)*amp+Math.sin(x*.043-T*2.6)*amp*.6);
+  c.lineTo(W,H+5);c.closePath();
+  const g=c.createLinearGradient(0,y-amp,0,Math.max(y+200,H));stops.forEach((s,i)=>g.addColorStop(i/(stops.length-1),s));
+  c.fillStyle=g;c.fill();
+  c.strokeStyle=surf;c.lineWidth=3;c.beginPath();
+  for(let x=0;x<=W+16;x+=16){const yy=y+Math.sin(x*.018+T*1.8)*amp+Math.sin(x*.043-T*2.6)*amp*.6;x?c.lineTo(x,yy):c.moveTo(x,yy)}c.stroke();
+}
+const surfAt=(x,y,T,amp)=>y+Math.sin(x*.018+T*1.8)*amp+Math.sin(x*.043-T*2.6)*amp*.6;
+const MAPS={
+ volcano:{sw:['#4a1020','#ff6a00'],splash:['#ffd23f','#ff7a00','#ff4000'],
+  bg(c,W,H,T,o){
+    const g=c.createLinearGradient(0,0,0,H);g.addColorStop(0,'#14060c');g.addColorStop(.5,'#4a1020');g.addColorStop(1,'#a83a1c');c.fillStyle=g;c.fillRect(0,0,W,H);
+    c.fillStyle='rgba(255,220,200,.45)';for(let i=0;i<50;i++)c.fillRect((i*137.5)%W,(i*71.3)%(H*.5),1.6,1.6);
+    const vb=H*.78+o,cx=W*.5,gy=vb-H*.32;
+    const rg=c.createRadialGradient(cx,gy,0,cx,gy,W*.22);rg.addColorStop(0,'rgba(255,170,40,.75)');rg.addColorStop(1,'rgba(255,80,0,0)');c.fillStyle=rg;c.fillRect(cx-W*.25,gy-W*.25,W*.5,W*.5);
+    for(let i=0;i<7;i++){const k=(T*.1+i/7)%1;c.fillStyle=`rgba(70,45,50,${.55*(1-k)})`;circ(c,cx+Math.sin(i*2+T*.3)*40*k,gy-k*H*.4,18+k*70);c.fill()}
+    c.fillStyle='#2b0c12';c.beginPath();c.moveTo(cx-W*.65,vb+H);c.lineTo(cx-W*.07,gy);c.lineTo(cx+W*.07,gy);c.lineTo(cx+W*.65,vb+H);c.closePath();c.fill();
+    c.strokeStyle='rgba(255,120,30,.7)';c.lineWidth=4;for(const s of[-1,1]){c.beginPath();c.moveTo(cx+s*W*.03,gy);c.quadraticCurveTo(cx+s*W*.07,gy+H*.12,cx+s*W*.13,gy+H*.32);c.stroke()}
+    mtn(c,W,vb+H*.12,H*.13,.012,1,'#1e080d');
+  },
+  haz(c,y,W,H,T){const g=c.createLinearGradient(0,y-80,0,y);g.addColorStop(0,'rgba(255,120,0,0)');g.addColorStop(1,'rgba(255,120,0,.35)');c.fillStyle=g;c.fillRect(0,y-80,W,80);
+    liquid(c,y,W,H,T,['#ffd23f','#ff7a00','#c42a00','#5a0d00'],'#fff3a0',4);
+    for(let i=0;i<8;i++){const x=((i*173+T*12*(i%2?1:-1))%W+W)%W,yy=y+30+(i%4)*28;c.fillStyle='rgba(255,230,120,.35)';ell(c,x,yy,26,6);c.fill()}},
+  pillar(c,x,y,w,h){c.fillStyle='#3b2a2e';c.fillRect(x,y,w,h);c.fillStyle='#4d383c';c.fillRect(x,y,w*.3,h);c.strokeStyle='rgba(255,110,30,.5)';c.lineWidth=2;c.beginPath();for(let yy=y+18;yy<y+h&&yy<y+2000;yy+=44){c.moveTo(x+w*.2,yy);c.lineTo(x+w*.5,yy+10);c.lineTo(x+w*.4,yy+22)}c.stroke();c.fillStyle='#5a4448';rr(c,x-4,y-6,w+8,10,4);c.fill()},
+  amb(dt,W,H,ly){if(Math.random()<dt*.03)particles.push({x:rand(0,W),y:Math.min(H,ly)+rand(-5,10),vx:rand(-.02,.02),vy:rand(-.12,-.05),g:0,life:3000,max:3000,r:rand(1.5,3),col:pick(['#ffd23f','#ff8c42','#ff5a00'])})}
+ },
+ shark:{sw:['#58b9f5','#0b5394'],splash:['#ffffff','#bfe9ff','#4cc9f0'],
+  bg(c,W,H,T,o){
+    const g=c.createLinearGradient(0,0,0,H);g.addColorStop(0,'#3aa4ee');g.addColorStop(1,'#c9ecff');c.fillStyle=g;c.fillRect(0,0,W,H);
+    const sx=W*.82,sy=H*.16+o*.3;const sg=c.createRadialGradient(sx,sy,0,sx,sy,120);sg.addColorStop(0,'rgba(255,250,200,.9)');sg.addColorStop(1,'rgba(255,250,200,0)');c.fillStyle=sg;c.fillRect(sx-120,sy-120,240,240);c.fillStyle='#fff6b0';circ(c,sx,sy,36);c.fill();
+    c.fillStyle='rgba(255,255,255,.9)';for(let i=0;i<5;i++){const x=((i*W/3.5+T*12*(1+i%2*.5))%(W+300))-150,y=H*(.1+i*.07)+o*.4;ell(c,x,y,50,16);c.fill();ell(c,x+30,y-10,34,18);c.fill();ell(c,x-30,y+2,30,12);c.fill()}
+    c.strokeStyle='#2c3e50';c.lineWidth=2;for(let i=0;i<4;i++){const x=((i*260+T*40)%(W+200))-100,y=H*.25+Math.sin(T+i)*12+i*20+o*.3,w=8+Math.sin(T*8+i)*3;c.beginPath();c.moveTo(x-10,y-w*.3);c.quadraticCurveTo(x-5,y-w,x,y);c.quadraticCurveTo(x+5,y-w,x+10,y-w*.3);c.stroke()}
+    const hz=H*.72+o;c.fillStyle='#7fd0f0';c.fillRect(0,hz,W,H);
+    c.fillStyle='#f4dc9a';ell(c,W*.2,hz,W*.12,18);c.fill();c.strokeStyle='#7a5230';c.lineWidth=6;c.beginPath();c.moveTo(W*.2,hz-10);c.quadraticCurveTo(W*.21,hz-60,W*.19,hz-100);c.stroke();
+    c.fillStyle='#2e9a4f';for(let i=0;i<5;i++){c.save();c.translate(W*.19,hz-100);c.rotate(-1.4+i*.7);ell(c,24,0,26,7);c.fill();c.restore()}
+  },
+  haz(c,y,W,H,T){liquid(c,y,W,H,T,['#4cc9f0','#1d8fd1','#0b5394','#062a55'],'rgba(255,255,255,.9)',5);
+    for(let i=0;i<3;i++){const dir=i%2?1:-1;const x=((dir*T*55+i*W/3)%(W+160)+W+160)%(W+160)-80;const yy=surfAt(x,y,T,5)+2;c.fillStyle='#5d6d7e';c.beginPath();c.moveTo(x-dir*14,yy);c.quadraticCurveTo(x-dir*2,yy-30,x+dir*12,yy-30);c.quadraticCurveTo(x+dir*6,yy-14,x+dir*16,yy);c.closePath();c.fill();c.strokeStyle='rgba(255,255,255,.7)';c.lineWidth=2;c.beginPath();c.moveTo(x-22,yy+3);c.lineTo(x+22,yy+3);c.stroke()}},
+  pillar(c,x,y,w,h){c.fillStyle='#8a5a33';c.fillRect(x+w*.08,y,w*.84,h);c.fillStyle='#a46e42';c.fillRect(x+w*.08,y,w*.25,h);c.strokeStyle='rgba(60,35,15,.45)';c.lineWidth=2;c.beginPath();for(let yy=y+14;yy<y+h&&yy<y+2000;yy+=26){c.moveTo(x+w*.08,yy);c.lineTo(x+w*.92,yy+3)}c.stroke();c.fillStyle='#6f4526';rr(c,x-2,y-6,w+4,10,4);c.fill()},
+  amb(){}
+ },
+ toxic:{sw:['#24313f','#6fe02a'],splash:['#c6ff4a','#6fe02a','#e6ffb0'],
+  bg(c,W,H,T,o){
+    const g=c.createLinearGradient(0,0,0,H);g.addColorStop(0,'#0f151d');g.addColorStop(1,'#26323f');c.fillStyle=g;c.fillRect(0,0,W,H);
+    c.strokeStyle='rgba(255,255,255,.05)';c.lineWidth=2;for(let x=0;x<W;x+=90){c.beginPath();c.moveTo(x,0);c.lineTo(x,H);c.stroke()}for(let y=(o%90);y<H;y+=90){c.beginPath();c.moveTo(0,y);c.lineTo(W,y);c.stroke()}
+    for(let i=0;i<3;i++){const y=H*(.18+i*.22)+o;c.fillStyle='#4a5563';c.fillRect(0,y,W,16);c.fillStyle='#5d6979';c.fillRect(0,y,W,5);for(let x=60+i*40;x<W;x+=220){c.fillStyle='#3a434f';c.fillRect(x,y-4,14,24)}}
+    for(let i=0;i<6;i++){const x=(i*W/6+40),y=H*.1+o*.5+(i%2)*30;const on=Math.sin(T*3+i*1.7)>0;c.fillStyle=on?(i%2?'#ff4d4d':'#7dff5a'):'#333';circ(c,x,y,5);c.fill();if(on){c.fillStyle=i%2?'rgba(255,77,77,.25)':'rgba(125,255,90,.25)';circ(c,x,y,14);c.fill()}}
+    const vy=H*.7+o;for(let i=0;i<3;i++){const x=W*(.15+i*.35);c.fillStyle='rgba(120,255,80,.12)';rr(c,x-40,vy-110,80,140,16);c.fill();c.strokeStyle='#5d6979';c.lineWidth=4;rr(c,x-40,vy-110,80,140,16);c.stroke();c.fillStyle='rgba(140,255,60,.35)';rr(c,x-36,vy-50+Math.sin(T+i)*5,72,76,12);c.fill()}
+  },
+  haz(c,y,W,H,T){const g=c.createLinearGradient(0,y-70,0,y);g.addColorStop(0,'rgba(140,255,60,0)');g.addColorStop(1,'rgba(140,255,60,.28)');c.fillStyle=g;c.fillRect(0,y-70,W,70);
+    liquid(c,y,W,H,T,['#c6ff4a','#6fe02a','#2f9a12','#123d07'],'#efffb8',5);
+    for(let i=0;i<10;i++){const x=(i*W/10+37)%W,k=(T*.6+i*.37)%1;c.strokeStyle=`rgba(230,255,180,${.8*(1-k)})`;c.lineWidth=2;circ(c,x,surfAt(x,y,T,5)-k*14,3+k*6);c.stroke()}},
+  pillar(c,x,y,w,h){c.fillStyle='#59636e';c.fillRect(x,y,w,h);c.fillStyle='#6d7884';c.fillRect(x,y,w*.3,h);c.fillStyle='#3e4650';for(let yy=y+14;yy<y+h&&yy<y+2000;yy+=34){circ(c,x+6,yy,2.4);c.fill();circ(c,x+w-6,yy,2.4);c.fill()}
+    c.save();c.beginPath();c.rect(x-3,y-6,w+6,14);c.clip();c.fillStyle='#ffd23f';c.fillRect(x-3,y-6,w+6,14);c.fillStyle='#222';for(let k=-20;k<w+20;k+=14){c.beginPath();c.moveTo(x+k,y-6);c.lineTo(x+k+7,y-6);c.lineTo(x+k-7,y+8);c.lineTo(x+k-14,y+8);c.closePath();c.fill()}c.restore()},
+  amb(){}
+ },
+ candy:{sw:['#ffb8de','#7a4024'],splash:['#a0603a','#ffffff','#7a4024'],
+  bg(c,W,H,T,o){
+    const g=c.createLinearGradient(0,0,0,H);g.addColorStop(0,'#ffb8de');g.addColorStop(1,'#bfe6ff');c.fillStyle=g;c.fillRect(0,0,W,H);
+    c.fillStyle='rgba(255,255,255,.85)';for(let i=0;i<4;i++){const x=((i*W/3+T*8)%(W+300))-150,y=H*(.12+i*.08)+o*.4;ell(c,x,y,46,18);c.fill();ell(c,x+28,y-10,30,18);c.fill()}
+    const hb=H*.75+o;const cols=['#ff9ecf','#b39cff','#9de0c9','#ffd59e','#ff8fa3'];
+    for(let i=0;i<7;i++){c.fillStyle=cols[i%5];circ(c,W*(i/6),hb+40,W*.13+(i%3)*30);c.fill()}
+    for(let i=0;i<4;i++){const x=W*(.12+i*.26),y=hb-80-(i%2)*40;c.strokeStyle='#fff';c.lineWidth=6;c.beginPath();c.moveTo(x,y);c.lineTo(x,y+130);c.stroke();c.fillStyle=cols[(i+2)%5];circ(c,x,y,26);c.fill();c.strokeStyle='rgba(255,255,255,.85)';c.lineWidth=4;c.beginPath();for(let a=0;a<12;a+=.3){const r=a*2;c.lineTo(x+Math.cos(a+T)*r,y+Math.sin(a+T)*r)}c.stroke()}
+  },
+  haz(c,y,W,H,T){liquid(c,y,W,H,T,['#a0603a','#7a4024','#4a2414','#2b120a'],'#c98b5f',4);
+    for(let i=0;i<6;i++){const x=((i*W/6+T*14)%(W+40))-20,yy=surfAt(x,y,T,4);c.save();c.translate(x,yy+2);c.rotate(Math.sin(T+i)*.3);c.fillStyle='#fff';rr(c,-9,-9,18,16,5);c.fill();c.fillStyle='#ffe3ef';rr(c,-9,-9,18,5,3);c.fill();c.restore()}},
+  pillar(c,x,y,w,h){c.save();c.beginPath();c.rect(x,y,w,h);c.clip();c.fillStyle='#fff';c.fillRect(x,y,w,h);c.fillStyle='#ff4d6d';const top=y,bot=Math.min(y+h,y+2200);for(let k=top-w;k<bot;k+=22){c.beginPath();c.moveTo(x,k);c.lineTo(x+w,k-w*.6);c.lineTo(x+w,k-w*.6+10);c.lineTo(x,k+10);c.closePath();c.fill()}c.restore();c.fillStyle='#ffd1dc';rr(c,x-3,y-6,w+6,10,4);c.fill()},
+  amb(dt,W){if(Math.random()<dt*.015)particles.push({x:rand(0,W),y:-10,vx:rand(-.02,.02),vy:rand(.04,.09),g:0,life:9000,max:9000,r:rand(2,3.5),col:pick(['#ff4d6d','#ffd23f','#5aa8ff','#5fd36a','#c45bff']),rect:true})}
+ }
+};
+const mapTxt=id=>t('maps')[id]||I18N.en.maps[id];
+
+/* ================= global state ================= */
+let screen='home',role=null,game=null,view=null,myId='me',overShown=false,T=0;
+let profile=load('tos_profile',null);
+if(!profile||!profile.look)profile={name:'Player'+ri(10,99),look:randomLook()};
+profile.look=sanitizeLook(profile.look);profile.name=cleanName(profile.name);
+let soloSettings=Object.assign({map:'volcano',mode:'classic',bots:3,diff:'normal'},load('tos_solo',{}));
+let muted=load('tos_mute',false);
+function saveProfile(){store('tos_profile',profile);$('#who').textContent=t('playingAs',{n:profile.name})}
+
+/* ================= sound ================= */
+let AC=null;
+function tone(f,d,type,v,f2,delay){const t0=AC.currentTime+(delay||0);const o=AC.createOscillator(),g=AC.createGain();o.type=type||'sine';o.frequency.setValueAtTime(f,t0);if(f2)o.frequency.exponentialRampToValueAtTime(f2,t0+d);g.gain.setValueAtTime(.0001,t0);g.gain.exponentialRampToValueAtTime(v||.1,t0+.01);g.gain.exponentialRampToValueAtTime(.0001,t0+d);o.connect(g).connect(AC.destination);o.start(t0);o.stop(t0+d+.05)}
+/* background music: generated live with Web Audio (no audio files needed) */
+let musicOn=load('tos_music',true);
+const MUS={timer:null,next:0,step:0,gain:null,noise:null};
+const mtof=m=>440*Math.pow(2,(m-69)/12);
+const PROG=[[57,60,64],[53,57,60],[48,52,55],[55,59,62]];
+const LEAD1=[2,-1,-1,1,-1,-1,0,-1,1,-1,2,-1,-1,1,-1,-1],LEAD2=[0,-1,1,-1,2,-1,-1,1,-1,-1,0,-1,1,-1,-1,-1];
+function initAudio(){
+  try{if(!AC)AC=new(window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume();
+    if(!MUS.gain){MUS.gain=AC.createGain();MUS.gain.gain.value=0;MUS.gain.connect(AC.destination);
+      const b=AC.createBuffer(1,AC.sampleRate*.5,AC.sampleRate),d=b.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;MUS.noise=b}
+    if(!MUS.timer){MUS.next=AC.currentTime+.1;MUS.timer=setInterval(musicTick,30)}
+    updMusicGain()}catch(e){}
+}
+function updMusicGain(){if(MUS.gain&&AC)MUS.gain.gain.setTargetAtTime((musicOn&&!muted)?.5:0,AC.currentTime,.25)}
+function mnote(f,d,type,v,t0){const o=AC.createOscillator(),g=AC.createGain();o.type=type;o.frequency.value=f;g.gain.setValueAtTime(.0001,t0);g.gain.exponentialRampToValueAtTime(v,t0+.01);g.gain.exponentialRampToValueAtTime(.0001,t0+d);o.connect(g).connect(MUS.gain);o.start(t0);o.stop(t0+d+.05)}
+function mnoise(t0,d,v,hp){const s=AC.createBufferSource();s.buffer=MUS.noise;const f=AC.createBiquadFilter();f.type='highpass';f.frequency.value=hp;const g=AC.createGain();g.gain.setValueAtTime(v,t0);g.gain.exponentialRampToValueAtTime(.0001,t0+d);s.connect(f).connect(g).connect(MUS.gain);s.start(t0);s.stop(t0+d+.02)}
+function mkick(t0){const o=AC.createOscillator(),g=AC.createGain();o.frequency.setValueAtTime(140,t0);o.frequency.exponentialRampToValueAtTime(45,t0+.15);g.gain.setValueAtTime(.5,t0);g.gain.exponentialRampToValueAtTime(.0001,t0+.2);o.connect(g).connect(MUS.gain);o.start(t0);o.stop(t0+.25)}
+function musicTick(){
+  if(!AC)return;if(!(musicOn&&!muted)){MUS.next=AC.currentTime+.1;return}
+  try{
+    const inGame=screen==='hud'&&view;const hurry=inGame&&view.phase==='question'&&view.timeLeft<5000;
+    const spb=60/(inGame?(hurry?150:128):106)/4;
+    if(MUS.next<AC.currentTime)MUS.next=AC.currentTime+.05;
+    while(MUS.next<AC.currentTime+.2){
+      const s=MUS.step,bar=Math.floor(s/16)%4,st=s%16,ch=PROG[bar],t0=MUS.next;
+      if(st%4===0)mnote(mtof(ch[0]-24),spb*3.2,'triangle',.35,t0);
+      if(st%4===2)mnote(mtof(ch[0]-12),spb*1.2,'triangle',.16,t0);
+      if(st%2===0)mnote(mtof(ch[(st/2)%3]+12),spb*1.5,'square',.03,t0);
+      const L=(bar%2?LEAD2:LEAD1)[st];if(L>=0)mnote(mtof(ch[L]+24),spb*2.2,'triangle',.09,t0);
+      if(inGame){if(st%8===0)mkick(t0);if(st%4===2)mnoise(t0,.05,.1,7000);if(st===4||st===12)mnoise(t0,.12,.16,1500)}
+      else if(st%8===4)mnoise(t0,.04,.05,8000);
+      MUS.next+=spb;MUS.step++;
+    }
+  }catch(e){}
+}
+addEventListener('pointerdown',initAudio);addEventListener('keydown',initAudio);
+function sfx(k){if(muted)return;try{initAudio();if(!AC)return;
+ switch(k){
+ case'lock':tone(700,.08,'triangle',.08);tone(1050,.12,'triangle',.08,null,.07);break;
+ case'reveal':for(let i=0;i<8;i++)tone(180+i*45,.06,'square',.03,null,i*.05);[523,659,784].forEach(f=>tone(f,.3,'triangle',.07,null,.42));break;case'key':tone(900+Math.random()*250,.035,'square',.025);break;
+ case'good':[523,659,784,1047].forEach((f,i)=>tone(f,.16,'triangle',.12,null,i*.06));break;
+ case'pop':tone(600,.09,'triangle',.05,900);break;
+ case'bad':tone(220,.22,'sawtooth',.06,120);break;
+ case'rise':tone(70,1.4,'sawtooth',.07,45);tone(110,1.2,'sine',.08,70);break;
+ case'die':tone(520,.7,'square',.05,60);break;
+ case'splash':tone(320,.3,'sine',.05,80);break;
+ case'tick':tone(1250,.05,'sine',.06);break;
+ case'go':tone(660,.12,'triangle',.1);tone(990,.18,'triangle',.1,null,.1);break;
+ case'win':[523,659,784,1047,784,1047].forEach((f,i)=>tone(f,.22,'triangle',.12,null,i*.12));break;
+ case'click':tone(520,.05,'triangle',.05);break}}catch(e){}}
+
+/* ================= rendering ================= */
+const cv=$('#cv'),ctx=cv.getContext('2d');let W=0,H=0,DPR=1;
+function resize(){DPR=Math.min(2,window.devicePixelRatio||1);W=innerWidth;H=innerHeight;cv.width=W*DPR;cv.height=H*DPR;cv.style.width=W+'px';cv.style.height=H+'px'}
+addEventListener('resize',resize);resize();
+const vis=new Map(),particles=[],floaters=[],sharks=[];
+const cam={bottom:0,unit:18,init:false};let dispLava=0,sceneKey='',lastPopT=0;
+let myPick={round:-1,word:'',len:0};
+function resetVis(){vis.clear();particles.length=0;floaters.length=0;sharks.length=0;cam.init=false}
+let demo=null;
+function menuScene(){
+  if(!demo){const names=lang==='nl'?BOTNAMES_NL:BOTNAMES;
+    demo={players:t('demo').map((ws,i)=>{const blocks=ws.map(w=>({w,n:w.length}));return{id:'d'+i+lang,name:i?pick(names):'',look:i?randomLook():profile.look,height:START_H+blocks.reduce((a,b)=>a+b.n,0),blocks,alive:true,typing:0,locked:false,word:''}})}}
+  demo.players[0].look=profile.look;
+  let map;if(screen==='solo')map=soloSettings.map;else if(screen==='lobby'&&net.lobby)map=net.lobby.settings.map;else{const ks=Object.keys(MAPS);map=ks[Math.floor(T/9)%ks.length]}
+  demo.map=map;demo.lava=5+Math.sin(T*.6)*1.5;demo.phase='menu';return demo;
+}
+function getScene(){return(view&&(screen==='hud'||screen==='over'))?view:menuScene()}
+function addFeed(txt){const f=$('#feed');const d=document.createElement('div');d.textContent=txt;f.prepend(d);while(f.children.length>4)f.lastChild.remove();setTimeout(()=>d.remove(),4600)}
+
+function render(dt){
+  const sc=getScene();const key=sc===demo?'menu'+lang:'game';
+  if(key!==sceneKey){sceneKey=key;resetVis();dispLava=sc.lava}
+  const M=MAPS[sc.map]||MAPS.volcano;const inMenu=sc===demo;
+  const k=1-Math.exp(-dt*.0022);dispLava+=(sc.lava-dispLava)*k;
+  const ps=sc.players,n=ps.length;
+  let maxTop=-1e9;
+  for(const p of ps){
+    let v=vis.get(p.id);
+    if(!v){v={h:p.height,blocks:p.blocks.length,alive:p.alive,deadT:p.alive?0:9999,ph:Math.random()*6,lockT:-9};vis.set(p.id,v)}
+    v.h+=(p.height-v.h)*(1-Math.exp(-dt*.007));
+    if(p.alive)maxTop=Math.max(maxTop,v.h);
+  }
+  if(maxTop<-1e8)maxTop=Math.max(dispLava+6,...ps.map(p=>vis.get(p.id).h));
+  const colW=Math.min(130,(inMenu&&W>820?W*.55:W*.96)/Math.max(n,1));
+  const cs=clamp(Math.min(colW/100,H/820),.42,1.05);
+  const charPx=118*cs;
+  const baseY=H*.9,bottom=dispLava-4;
+  const topLimit=(screen==='hud'?(W<640?250:190):H*.2)+charPx+70;
+  const unitT=clamp((baseY-topLimit)/Math.max(6,maxTop-bottom),5,30);
+  if(!cam.init){cam.bottom=bottom;cam.unit=unitT;cam.init=true}
+  cam.bottom+=(bottom-cam.bottom)*Math.min(1,k*1.6);cam.unit+=(unitT-cam.unit)*k;
+  const wy=y=>baseY-(y-cam.bottom)*cam.unit;
+  ctx.setTransform(DPR,0,0,DPR,0,0);
+  M.bg(ctx,W,H,T,Math.min(Math.max(0,cam.bottom)*2.2,H*.6));
+  const cx=inMenu&&W>820?W*.68:W/2;
+  const bw=Math.min(colW*.66,64);
+  const ly=wy(dispLava);
+  ctx.textAlign='center';ctx.textBaseline='middle';
+  const pos=[];
+  ps.forEach((p,i)=>{
+    const v=vis.get(p.id);const x=cx+(i-(n-1)/2)*colW;v.x=x;pos.push(x);
+    if(p.blocks.length>v.blocks){const b=p.blocks[p.blocks.length-1];v.blocks=p.blocks.length;v.lockT=T;floaters.push({x,y:wy(v.h)-charPx-10,text:'+'+b.n,t:0});if(!inMenu){if(p.id===myId)sfx('good');else if(T-lastPopT>.15){lastPopT=T;sfx('pop')}}}
+    if(v.alive&&!p.alive){v.alive=false;v.deadT=0;if(!inMenu){addFeed(`${p.name} ${mapTxt(sc.map)[3]}`);sfx(p.id===myId?'die':'splash');
+      for(let j=0;j<22;j++)particles.push({x:x+rand(-14,14),y:ly,vx:rand(-.12,.12),vy:rand(-.45,-.15),g:.0011,life:1200,max:1200,r:rand(2,5),col:pick(M.splash)});
+      if(sc.map==='shark')sharks.push({x,t:0})}}
+    const tb=wy(START_H);if(tb<H+10)M.pillar(ctx,x-bw/2,tb,bw,H-tb+10);
+    let y=START_H;const fs=Math.min(cam.unit*.72,bw*.55);ctx.font=`700 ${fs}px Fredoka, sans-serif`;
+    for(let wi=0;wi<p.blocks.length;wi++){const b=p.blocks[wi];const base=p.look.shirt;const col=wi%2?shade(base,-16):shade(base,4);const tc=lum(base)>.6?'#2a2233':'#fff';
+      for(let j=0;j<b.n;j++){const y0=y+j;if(y0>=v.h-.001)break;const yb=wy(y0),yt=wy(Math.min(y0+1,v.h));if(yt>H||yb<-40)continue;
+        ctx.fillStyle=col;rr(ctx,x-bw/2+1,yt+.5,bw-2,yb-yt-1,Math.min(5,(yb-yt)/3));ctx.fill();ctx.strokeStyle='rgba(0,0,0,.28)';ctx.lineWidth=1.5;ctx.stroke();
+        ctx.fillStyle='rgba(255,255,255,.18)';ctx.fillRect(x-bw/2+3,yt+2,bw-6,Math.max(1,(yb-yt)*.18));
+        if(cam.unit>=11&&yb-yt>cam.unit*.9){ctx.fillStyle=tc;ctx.fillText(b.w[b.n-1-j]||'',x,(yt+yb)/2+1)}}
+      y+=b.n}
+    const feet=wy(v.h);
+    if(p.alive){
+      let pose='idle';
+      if(sc.phase==='question'&&!p.locked&&p.typing>0)pose='type';
+      if(T-v.lockT<1.4)pose='cheer';
+      if((sc.phase==='intro'||sc.phase==='question')&&!p.locked&&p.typing===0&&p.height<sc.lava+sc.nextRise)pose='panic';
+      if(sc.phase==='rise'&&p.height<sc.lava)pose='panic';
+      if(sc.phase==='over')pose='cheer';
+      drawChar(ctx,p.look,x,feet,cs,pose,T,v.ph);
+    }else{
+      v.deadT+=dt;const tt=v.deadT/1000;const hop=-Math.sin(Math.min(1,tt/.45)*Math.PI)*34*cs;const sink=tt>.45?Math.min(1,(tt-.45)/.9)*140*cs:0;
+      if(tt<2.2&&sc.map!=='shark'||tt<.8)drawChar(ctx,p.look,x,Math.max(feet,ly)+hop+sink,cs,'dead',T,v.ph,Math.min(1,tt)*.5);
+    }
+  });
+  M.haz(ctx,ly,W,H,T);
+  M.amb(dt,W,H,ly);
+  for(let i=sharks.length-1;i>=0;i--){const s=sharks[i];s.t+=dt;const p=s.t/1200;if(p>=1){sharks.splice(i,1);continue}
+    const xx=s.x-70*cs+p*140*cs,yy=ly-Math.sin(p*Math.PI)*110*cs+20*cs;drawShark(ctx,xx,yy,cs*1.1,-Math.cos(p*Math.PI)*.9)}
+  if(!inMenu){
+    ps.forEach((p,i)=>{if(!p.alive)return;const v=vis.get(p.id);const x=pos[i];const top=wy(v.h)-charPx-6;
+      const f=Math.round(clamp(13*cs/.8,10,15));ctx.font=`600 ${f}px Fredoka, sans-serif`;
+      const nm=p.id===myId?t('YOU'):p.name;const tw=ctx.measureText(nm).width+14;
+      ctx.fillStyle=p.id===myId?'#ff6b2c':'rgba(20,16,30,.6)';rr(ctx,x-tw/2,top-f*.8,tw,f*1.6,f*.8);ctx.fill();ctx.fillStyle='#fff';ctx.fillText(nm,x,top+1);
+      let bubble=null,bc='#fff',btc='#2a2233';
+      if(sc.phase==='question'){
+        if(p.locked){if(p.id===myId&&myPick.round===sc.round){bubble=myPick.word.toUpperCase();bc='#22a866';btc='#fff'}else{bubble=t('ready');bc='#ffd23f'}}
+        else if(p.typing>0)bubble='•'.repeat(1+Math.floor(T*4+i)%3);
+        else{bubble='...';bc='rgba(255,255,255,.75)'}
+      }else if((sc.phase==='reveal'||sc.phase==='rise')&&p.word){bubble=p.word.toUpperCase();bc='#22a866';btc='#fff'}
+      if(bubble){const bf=Math.round(f*1.05);ctx.font=`700 ${bf}px Fredoka, sans-serif`;let txt=bubble;const maxW=Math.max(colW*1.6,90);while(ctx.measureText(txt).width>maxW&&txt.length>3)txt=txt.slice(0,-2)+'…';
+        const bw2=ctx.measureText(txt).width+16,by=top-f*1.9;ctx.fillStyle=bc;rr(ctx,x-bw2/2,by-bf*.8,bw2,bf*1.6,8);ctx.fill();ctx.beginPath();ctx.moveTo(x-5,by+bf*.8);ctx.lineTo(x+5,by+bf*.8);ctx.lineTo(x,by+bf*.8+5);ctx.fill();ctx.fillStyle=btc;ctx.fillText(txt,x,by+1)}
+    });
+  }
+  for(let i=particles.length-1;i>=0;i--){const q=particles[i];q.life-=dt;if(q.life<=0||q.y>H+20){particles.splice(i,1);continue}q.vy+=q.g*dt;q.x+=q.vx*dt;q.y+=q.vy*dt;ctx.globalAlpha=Math.min(1,q.life/q.max*1.5);ctx.fillStyle=q.col;if(q.rect){ctx.save();ctx.translate(q.x,q.y);ctx.rotate(q.life*.003);ctx.fillRect(-q.r,-q.r*.4,q.r*2,q.r*.8);ctx.restore()}else{circ(ctx,q.x,q.y,q.r);ctx.fill()}}
+  ctx.globalAlpha=1;
+  for(let i=floaters.length-1;i>=0;i--){const f=floaters[i];f.t+=dt;if(f.t>1300){floaters.splice(i,1);continue}ctx.globalAlpha=1-f.t/1300;ctx.font=`700 ${Math.round(26*cs+6)}px Fredoka, sans-serif`;ctx.lineWidth=5;ctx.strokeStyle='rgba(0,0,0,.5)';ctx.strokeText(f.text,f.x,f.y-f.t*.05);ctx.fillStyle='#ffd23f';ctx.fillText(f.text,f.x,f.y-f.t*.05)}
+  ctx.globalAlpha=1;
+}
+function drawShark(c,x,y,s,rot){c.save();c.translate(x,y);c.rotate(rot);c.scale(s,s);
+  c.fillStyle='#6f7f8f';c.beginPath();c.moveTo(-40,0);c.lineTo(-66,-22);c.lineTo(-56,0);c.lineTo(-66,22);c.closePath();c.fill();
+  c.beginPath();c.moveTo(-8,-15);c.lineTo(6,-40);c.lineTo(18,-14);c.closePath();c.fill();
+  ell(c,0,0,48,19);c.fill();c.fillStyle='#e8eef2';ell(c,4,7,38,10);c.fill();
+  c.fillStyle='#5a1a2a';c.beginPath();c.moveTo(26,3);c.lineTo(50,-9);c.lineTo(50,14);c.closePath();c.fill();
+  c.fillStyle='#fff';for(let i=0;i<4;i++){c.beginPath();c.moveTo(30+i*5,1-i*1.6);c.lineTo(33+i*5,5-i*1.6);c.lineTo(36+i*5,-.5-i*1.6);c.fill()}
+  c.fillStyle='#1d1b2e';circ(c,24,-7,3);c.fill();c.restore()}
+
+/* ================= HUD ================= */
+const hc={};
+function setT(id,txt){if(hc[id]!==txt){hc[id]=txt;$('#'+id).textContent=txt}}
+let lastPhase=null,lastRound=0,lastSec=-1,fbTimer=null;
+const inp=$('#answer');
+function meP(){return view&&view.players.find(p=>p.id===myId)}
+function updateHUD(){
+  if(screen!=='hud'||!view)return;
+  const st=view,me=meP(),gl=st.lang||'en';
+  if(st.phase!==lastPhase||st.round!==lastRound){onPhase(st);lastPhase=st.phase;lastRound=st.round}
+  const alive=st.players.filter(p=>p.alive).length;setT('aliveBox',t('alive',{a:alive,n:st.players.length}));
+  const mega=st.mega?t('mega'):'';
+  const tf=$('#timerFill');
+  if(st.phase==='intro'){setT('pRound',t('round',{n:st.round})+mega);setT('pQ',st.round===1?t('getReady'):t('nextQ'));setT('pBig',String(Math.max(1,Math.ceil(st.timeLeft/1000))));$('#pLetter').style.display='none';$('#timer').style.visibility='hidden'}
+  else if(st.phase==='question'){const c=st.cat?catTxt(st.cat,gl):null;setT('pRound',t('round',{n:st.round})+mega);setT('pQ',c?c.q:'');setT('pBig',c?c.big:'');
+    const pl=$('#pLetter');if(st.letter){pl.style.display='block';setT('pLetter',t('mustStart',{l:st.letter}))}else pl.style.display='none';
+    $('#timer').style.visibility='visible';const fr=clamp(st.timeLeft/st.timeTotal,0,1);tf.style.width=(fr*100)+'%';tf.style.background=fr<.3?'#e5484d':fr<.6?'#ffb703':'#22a866';
+    const sec=Math.ceil(st.timeLeft/1000);if(sec!==lastSec){lastSec=sec;if(sec<=3&&sec>0)sfx('tick')}}
+  else if(st.phase==='reveal'){const c=st.cat?catTxt(st.cat,gl):null;setT('pRound',t('round',{n:st.round})+mega);setT('pQ',t('timeUp'));setT('pBig',c?c.big:'');$('#pLetter').style.display='none';$('#timer').style.visibility='hidden'}
+  else if(st.phase==='rise'){setT('pRound',t('round',{n:st.round})+mega);setT('pQ',`+${st.nextRise}m`);setT('pBig',mapTxt(st.map)[2].toUpperCase());$('#pLetter').style.display='none';$('#timer').style.visibility='hidden'}
+  const pn=$('#pNeed');
+  if(me&&me.alive&&st.phase==='reveal'){const m=me.height-st.lava-st.nextRise;setT('pNeed',m>=0?t('willSurvive',{n:m}):t('willSink'));pn.className=m>=0?'ok':'bad'}
+  else if(me&&me.alive&&(st.phase==='intro'||st.phase==='question')){const extra=(st.phase==='question'&&me.locked&&myPick.round===st.round)?myPick.len:0;const need=st.lava+st.nextRise-me.height-extra;
+    if(need>0){setT('pNeed',t('needBad',{r:st.nextRise,n:need}));pn.className='bad'}else{setT('pNeed',t('needOk',{r:st.nextRise,n:-need}));pn.className='ok'}}
+  else if(me&&me.alive&&st.phase==='rise'){const m=me.height-st.lava;setT('pNeed',m>=0?t('survived',{n:m}):t('uhoh'));pn.className=m>=0?'ok':'bad'}
+  else{setT('pNeed',me&&!me.alive?t('sank'):'');pn.className='bad'}
+  const canType=st.phase==='question'&&me&&me.alive&&!me.locked;
+  if(inp.disabled===canType){inp.disabled=!canType;$('#sendBtn').disabled=!canType;if(canType){inp.value='';setTimeout(()=>inp.focus({preventScroll:true}),30)}}
+  const ph=canType?(W<500?t('phTypeS'):t('phType')):me&&me.locked&&st.phase==='question'?t('phLocked'):st.phase==='rise'?t('phHold'):t('phReady');
+  if(inp.placeholder!==ph)inp.placeholder=ph;
+  const dead=!me||!me.alive;$('#inRow').style.display=dead?'none':'flex';$('#deadBar').style.display=dead?'flex':'none';
+  const humansAlive=st.players.some(p=>!p.isBot&&p.alive&&!p.gone);
+  $('#skipBtn').style.display=(role!=='client'&&!humansAlive&&st.phase!=='over')?'inline-block':'none';
+  setT('deadTxt',me?t('spectating'):t('spect'));
+}
+function onPhase(st){
+  if(st.phase==='question'){sfx('go');$('#fb').textContent='';}
+  if(st.phase==='rise')sfx('rise');
+  if(st.phase==='reveal')sfx('reveal');
+  if(st.phase==='over'&&!overShown){overShown=true;setTimeout(showResults,1500)}
+}
+function fbText(r){
+  if(r.ok)return t('fbLock',{n:r.len,w:String(r.word).toUpperCase()});
+  if(r.code==='unknown')return t('unknown',{w:r.w,c:catTxt(r.c,lang).short});
+  if(r.code==='letter')return t('letter',{l:r.l});
+  return t(r.code||'wait');
+}
+function feedback(r){
+  const fb=$('#fb');clearTimeout(fbTimer);fb.textContent=fbText(r);
+  if(r.ok){fb.className='good';inp.value='';myPick={round:view?view.round:-1,word:String(r.word),len:r.len};sfx('lock')}
+  else{fb.className='bad';sfx('bad');const row=$('#inRow');row.classList.remove('shake');void row.offsetWidth;row.classList.add('shake')}
+  fbTimer=setTimeout(()=>{fb.textContent=''},2600);
+}
+function submitAnswer(){
+  const txt=inp.value.trim();if(!txt||inp.disabled)return;
+  if(role==='client'){if(net.host&&net.host.open)net.host.send({t:'answer',w:txt.slice(0,40)})}
+  else if(game)feedback(game.submit(myId,txt));
+}
+inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();submitAnswer()}});
+let lastTypSend=0;
+inp.addEventListener('input',()=>{sfx('key');const n=norm(inp.value).length;
+  if(role==='client'){const now=performance.now();if(now-lastTypSend>150&&net.host&&net.host.open){lastTypSend=now;net.host.send({t:'typing',n})}}
+  else if(game)game.setTyping(myId,n)});
+$('#sendBtn').onclick=submitAnswer;
+$('#quitBtn').onclick=()=>{if(confirm(t('quitQ')))toMenu()};
+function updMute(){$('#muteBtn').innerHTML=muted?'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M17 9l5 6M22 9l-5 6"/></svg>':'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19.5 5.5a9 9 0 0 1 0 13"/></svg>';
+  document.querySelectorAll('#soundSeg button').forEach(b=>b.classList.toggle('sel',(b.dataset.snd==='off')===muted));
+  document.querySelectorAll('#musicSeg button').forEach(b=>b.classList.toggle('sel',(b.dataset.mus==='on')===musicOn));updMusicGain()}
+function setMuted(m){muted=m;store('tos_mute',muted);updMute()}
+document.querySelectorAll('#musicSeg button').forEach(b=>b.onclick=()=>{musicOn=b.dataset.mus==='on';store('tos_music',musicOn);initAudio();updMute()});
+$('#muteBtn').onclick=()=>setMuted(!muted);
+document.querySelectorAll('#soundSeg button').forEach(b=>b.onclick=()=>{setMuted(b.dataset.snd==='off');sfx('click')});
+$('#skipBtn').onclick=()=>{if(game)game.speed=8};
+
+/* ================= results ================= */
+function showResults(){
+  const st=view;if(!st||!st.results)return;showScreen('over');
+  const res=st.results,w=res[0],mine=res.find(r=>r.id===myId);
+  if(res.length===1){$('#resTitle').textContent=t('gameOver');const best=Math.max(load('tos_best',0),w.height);store('tos_best',best);$('#resSub').textContent=t('soloRes',{h:w.height,r:w.rounds,b:best})}
+  else{$('#resTitle').textContent=w.id===myId?t('youWin'):t('wins',{n:w.name});$('#resSub').textContent=mine?t('placed',{p:mine.place,n:res.length}):''}
+  if(w.id===myId)sfx('win');
+  const L=$('#resList');L.innerHTML='';
+  for(const r of res){const row=document.createElement('div');row.className='prow'+(r.id===myId?' me':'');
+    const pl=document.createElement('div');pl.className='place';pl.textContent=ordinal(r.place);
+    const nm=document.createElement('div');nm.className='nm';nm.textContent=r.name+(r.isBot?t('botTag'):'');
+    const stt=document.createElement('div');stt.className='stat';stt.textContent=`${r.height}m${r.longest?' · '+t('best',{w:r.longest}):''}`;
+    row.append(pl,avatar(r.look,40),nm,stt);L.appendChild(row)}
+  const host=role!=='client';$('#resAgain').style.display=host?'':'none';$('#resWait').style.display=host?'none':'block';
+  $('#resAgain').textContent=role==='host'?t('toLobby'):t('again');
+}
+$('#resAgain').onclick=()=>{if(role==='solo')startSolo();else if(role==='host'){game=null;view=null;showScreen('lobby');renderLobby();broadcastLobby()}};
+$('#resMenu').onclick=()=>toMenu();
+
+/* ================= screens ================= */
+function showScreen(id){screen=id;document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('active',s.id===id));
+  if(id==='solo')renderSolo();if(id==='custom')renderCustom();if(id==='online')$('#onlineStatus').textContent='';if(id==='settings')renderLangSeg();
+  if(id==='hud'){lastPhase=null;lastRound=0;$('#feed').innerHTML='';$('#fb').textContent='';for(const k in hc)delete hc[k]}}
+document.querySelectorAll('[data-go]').forEach(b=>b.addEventListener('click',()=>{sfx('click');showScreen(b.dataset.go)}));
+function toMenu(){role=null;game=null;view=null;leaveNet();showScreen('home')}
+
+function renderLangSeg(){document.querySelectorAll('#langSeg button').forEach(b=>b.classList.toggle('sel',b.dataset.lang===lang));updMute()}
+function applyLang(){
+  document.documentElement.lang=lang;document.title=lang==='nl'?'Typ of Zink':'Type or Sink';
+  document.querySelectorAll('[data-i18n]').forEach(el=>{el.textContent=t(el.dataset.i18n)});
+  document.querySelectorAll('[data-i18n-ph]').forEach(el=>{el.placeholder=t(el.dataset.i18nPh)});
+  const ol=$('#howtoList');ol.innerHTML='';for(const h of t('howtoList')){const li=document.createElement('li');li.innerHTML=h;ol.appendChild(li)}
+  $('#who').textContent=t('playingAs',{n:profile.name});
+  for(const k in hc)delete hc[k];
+  demo=null;renderLangSeg();
+  if(screen==='solo')renderSolo();if(screen==='custom')renderCustom();if(screen==='lobby')renderLobby();
+}
+document.querySelectorAll('#langSeg button').forEach(b=>b.onclick=()=>{lang=b.dataset.lang;store('tos_lang',lang);sfx('click');applyLang()});
+
+function renderSettings(el,s,editable,onChange,maxBots){
+  el.innerHTML='';const add=(tag,cls,txt)=>{const d=document.createElement(tag);if(cls)d.className=cls;if(txt!=null)d.textContent=txt;return d};
+  const set=(k,v)=>{sfx('click');onChange(Object.assign({},s,{[k]:v}))};
+  el.appendChild(add('div','label',t('map')));const maps=add('div','cards');
+  for(const[id,m]of Object.entries(MAPS)){const mt=mapTxt(id);const b=add('button','card'+(s.map===id?' sel':''));b.disabled=!editable;const sw=add('span','sw');sw.style.background=`linear-gradient(135deg,${m.sw[0]},${m.sw[1]})`;b.append(sw,add('b',null,mt[0]),add('small',null,mt[1]));if(editable)b.onclick=()=>set('map',id);maps.appendChild(b)}
+  el.appendChild(maps);
+  el.appendChild(add('div','label',t('mode')));const modes=add('div','cards');
+  for(const id of Object.keys(MODES)){const mt=t('modes')[id];const b=add('button','card'+(s.mode===id?' sel':''));b.disabled=!editable;b.append(add('b',null,mt[0]),add('small',null,mt[1]));if(editable)b.onclick=()=>set('mode',id);modes.appendChild(b)}
+  el.appendChild(modes);
+  el.appendChild(add('div','label',t('botsL')));const st=add('div','stepper');const mi=add('button',null,'−'),pl=add('button',null,'+'),sp=add('span',null,String(s.bots));
+  mi.disabled=pl.disabled=!editable;mi.onclick=()=>set('bots',Math.max(0,s.bots-1));pl.onclick=()=>set('bots',Math.min(maxBots,s.bots+1));st.append(mi,sp,pl);el.appendChild(st);
+  el.appendChild(add('div','label',t('diff')));const seg=add('div','seg');
+  for(const d of['easy','normal','hard','insane','mixed']){const b=add('button',s.diff===d?'sel':'',d==='mixed'?t('mixed'):t('diffs')[d]);b.disabled=!editable;if(editable)b.onclick=()=>set('diff',d);seg.appendChild(b)}
+  el.appendChild(seg);
+}
+function renderSolo(){renderSettings($('#soloSettings'),soloSettings,true,s=>{soloSettings=s;store('tos_solo',s);renderSolo()},7)}
+
+function startGame(settings,humans){
+  const names=shuffle((settings.lang==='nl'?BOTNAMES_NL:BOTNAMES).slice());const roster=humans.slice();
+  for(let i=0;i<settings.bots;i++)roster.push({id:'bot'+i,name:names[i%names.length],look:randomLook(),isBot:true,diff:settings.diff==='mixed'?pick(['easy','normal','hard','insane']):settings.diff});
+  shuffle(roster);
+  game=new Game(settings,roster,{onState:(st,imp)=>{if(role==='host')sendState(st,imp)}});
+  view=game.state;overShown=false;resetVis();sceneKey='';showScreen('hud');
+}
+function startSolo(){role='solo';myId='me';startGame(Object.assign({},soloSettings,{lang}),[{id:'me',name:profile.name,look:profile.look}])}
+$('#soloStart').onclick=()=>{sfx('go');startSolo()};
+
+/* customize */
+const CUST=[{k:'skin',o:SKINS,c:1},{k:'hair',o:HAIRS},{k:'hairColor',o:HAIRC,c:1},{k:'eyes',o:EYES},{k:'mouth',o:MOUTHS},{k:'shirt',o:COLORS,c:1},{k:'pants',o:COLORS,c:1},{k:'hat',o:HATS},{k:'hatColor',o:COLORS,c:1},{k:'glasses',o:GLASSES}];
+let custCheer=-9;
+function renderCustom(){
+  $('#nameIn').value=profile.name;const el=$('#custOpts');el.innerHTML='';
+  for(const o of CUST){const d=document.createElement('div');d.className='opt';const l=document.createElement('div');l.className='ol';l.textContent=t('cust')[o.k];d.appendChild(l);
+    const setv=v=>{profile.look[o.k]=v;saveProfile();custCheer=T;sfx('click');renderCustom()};
+    if(o.c){const s=document.createElement('div');s.className='sws';for(const col of o.o){const b=document.createElement('button');b.style.background=col;if(profile.look[o.k]===col)b.className='sel';b.onclick=()=>setv(col);s.appendChild(b)}d.appendChild(s)}
+    else{const s=document.createElement('div');s.className='cyc';const i=o.o.indexOf(profile.look[o.k]);const a=document.createElement('button');a.textContent='‹';const b=document.createElement('button');b.textContent='›';const sp=document.createElement('span');sp.textContent=nice(profile.look[o.k]);
+      a.onclick=()=>setv(o.o[(i-1+o.o.length)%o.o.length]);b.onclick=()=>setv(o.o[(i+1)%o.o.length]);s.append(a,sp,b);d.appendChild(s)}
+    el.appendChild(d)}
+}
+$('#nameIn').addEventListener('input',e=>{profile.name=cleanName(e.target.value);saveProfile()});
+$('#randBtn').onclick=()=>{profile.look=randomLook();saveProfile();custCheer=T;sfx('click');renderCustom()};
+const pcv=$('#pcv'),pctx=pcv.getContext('2d');
+function drawPreview(){const w=240,h=280;if(pcv.width!==w*DPR){pcv.width=w*DPR;pcv.height=h*DPR}pctx.setTransform(DPR,0,0,DPR,0,0);
+  const g=pctx.createRadialGradient(w/2,h*.45,10,w/2,h*.45,180);g.addColorStop(0,'#fff6ec');g.addColorStop(1,'#ffd9b8');pctx.fillStyle=g;pctx.fillRect(0,0,w,h);
+  pctx.fillStyle='rgba(0,0,0,.06)';ell(pctx,w/2,h-26,70,12);pctx.fill();
+  drawChar(pctx,profile.look,w/2,h-26,1.65,T-custCheer<1.2?'cheer':'idle',T)}
+
+/* ================= online multiplayer (room codes) ================= */
+const PREFIX='typeorsink-v2-';
+const net={peer:null,conns:new Map(),host:null,lobby:null,lastSend:0};
+function status(m){$('#onlineStatus').textContent=m}
+function loadPeer(){return new Promise((res,rej)=>{if(window.Peer)return res();const s=document.createElement('script');s.src='https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js';s.onload=()=>res();s.onerror=()=>rej(new Error(t('libErr')));document.head.appendChild(s)})}
+const makeCode=()=>Array.from({length:5},()=>'ABCDEFGHJKMNPQRSTUVWXYZ23456789'[Math.floor(Math.random()*31)]).join('');
+function broadcast(m){for(const c of net.conns.values()){try{if(c.open)c.send(m)}catch(e){}}}
+function broadcastLobby(){broadcast({t:'lobby',lobby:net.lobby})}
+function sendState(st,imp){const now=performance.now();if(imp||now-net.lastSend>110){net.lastSend=now;broadcast({t:'state',s:st})}}
+function leaveNet(){try{if(net.host)net.host.close()}catch(e){}try{if(net.peer)net.peer.destroy()}catch(e){}net.peer=null;net.host=null;net.conns.clear();net.lobby=null}
+async function createRoom(){
+  status(t('connecting'));try{await loadPeer()}catch(e){status(e.message);return}
+  leaveNet();const code=makeCode();const peer=new Peer(PREFIX+code);net.peer=peer;
+  peer.on('open',()=>{role='host';myId='host';net.lobby={code,players:[{id:'host',name:profile.name,look:profile.look}],settings:Object.assign({},soloSettings,{bots:Math.min(soloSettings.bots,2),lang})};showScreen('lobby');renderLobby()});
+  peer.on('connection',conn=>{conn.on('data',d=>hostOnData(conn,d));conn.on('close',()=>hostOnClose(conn));conn.on('error',()=>hostOnClose(conn))});
+  peer.on('error',e=>{if(e.type==='unavailable-id'&&role!=='host'){createRoom();return}if(role!=='host')status(t('connErr',{e:e.type}))});
+  peer.on('disconnected',()=>{try{if(!peer.destroyed)peer.reconnect()}catch(e){}});
+}
+function hostOnData(conn,d){
+  if(!d||typeof d!=='object'||!net.lobby)return;
+  if(d.t==='hello'){
+    if(game){conn.send({t:'err',code:'started'});setTimeout(()=>conn.close(),400);return}
+    const L=net.lobby;if(L.players.length>=8){conn.send({t:'err',code:'full'});setTimeout(()=>conn.close(),400);return}
+    if(L.players.some(p=>p.id===conn.peer))return;
+    net.conns.set(conn.peer,conn);L.players.push({id:conn.peer,name:cleanName(d.name),look:sanitizeLook(d.look)});
+    L.settings.bots=Math.min(L.settings.bots,8-L.players.length);
+    conn.send({t:'welcome',id:conn.peer});broadcastLobby();renderLobby();sfx('pop');
+  }else if(d.t==='answer'&&game){const r=game.submit(conn.peer,String(d.w||'').slice(0,40));try{conn.send(Object.assign({t:'fb'},r))}catch(e){}}
+  else if(d.t==='typing'&&game)game.setTyping(conn.peer,d.n|0);
+}
+function hostOnClose(conn){
+  if(!net.conns.has(conn.peer))return;net.conns.delete(conn.peer);if(!net.lobby)return;
+  const p=net.lobby.players.find(x=>x.id===conn.peer);net.lobby.players=net.lobby.players.filter(x=>x.id!==conn.peer);
+  if(game){game.markGone(conn.peer);if(p)addFeed(t('left',{n:p.name}))}else{broadcastLobby();renderLobby()}
+}
+async function joinRoom(){
+  const code=$('#joinCode').value.toUpperCase().replace(/[^A-Z0-9]/g,'');if(code.length<4){status(t('enterCode'));return}
+  status(t('connecting'));try{await loadPeer()}catch(e){status(e.message);return}
+  leaveNet();const peer=new Peer();net.peer=peer;let got=false;
+  const to=setTimeout(()=>{if(!got){status(t('noReach'));leaveNet()}},12000);
+  peer.on('open',()=>{const conn=peer.connect(PREFIX+code,{reliable:true,serialization:'json'});net.host=conn;
+    conn.on('open',()=>conn.send({t:'hello',name:profile.name,look:profile.look}));
+    conn.on('data',d=>{got=true;clearTimeout(to);clientOnData(d)});
+    conn.on('close',()=>{if(role==='client'){role=null;game=null;view=null;leaveNet();showScreen('online');status(t('disc'))}})});
+  peer.on('error',e=>{clearTimeout(to);status(e.type==='peer-unavailable'?t('noRoom'):t('connErr',{e:e.type}))});
+}
+function clientOnData(d){
+  if(!d||typeof d!=='object')return;
+  switch(d.t){
+    case'welcome':role='client';myId=d.id;break;
+    case'lobby':net.lobby=d.lobby;view=null;if(screen!=='lobby')showScreen('lobby');renderLobby();break;
+    case'start':view=null;overShown=false;resetVis();sceneKey='';break;
+    case'state':view=d.s;if(screen!=='hud'&&screen!=='over'&&d.s.phase!=='over')showScreen('hud');break;
+    case'fb':feedback(d);break;
+    case'err':status(t(d.code==='full'?'full':'started'));role=null;leaveNet();break;
+  }
+}
+function renderLobby(){
+  const L=net.lobby;if(!L)return;$('#roomCode').textContent=L.code;
+  const list=$('#lobbyPlayers');list.innerHTML='';
+  for(const p of L.players){const row=document.createElement('div');row.className='prow';const nm=document.createElement('div');nm.className='nm';nm.textContent=p.name+(p.id===myId?t('you'):'');row.append(avatar(p.look,40),nm);
+    if(p.id==='host'){const pl=document.createElement('span');pl.className='pill host';pl.textContent=t('host');row.appendChild(pl)}list.appendChild(row)}
+  if(L.settings.bots>0){const row=document.createElement('div');row.className='prow';const nm=document.createElement('div');nm.className='nm';const dn=L.settings.diff==='mixed'?t('mixed'):t('diffs')[L.settings.diff];nm.textContent=L.settings.bots>1?t('botsN',{n:L.settings.bots,d:dn}):t('bots1',{d:dn});row.appendChild(nm);list.appendChild(row)}
+  $('#lobbyLang').textContent=t('qLang',{l:I18N[L.settings.lang==='nl'?'nl':'en'].langName});
+  const isHost=role==='host';
+  renderSettings($('#lobbySettings'),L.settings,isHost,s=>{L.settings=s;broadcastLobby();renderLobby()},8-L.players.length);
+  $('#lobbyStart').style.display=isHost?'':'none';$('#lobbyWait').style.display=isHost?'none':'block';
+}
+$('#createBtn').onclick=()=>{sfx('click');createRoom()};
+$('#joinBtn').onclick=()=>{sfx('click');joinRoom()};
+$('#joinCode').addEventListener('keydown',e=>{if(e.key==='Enter')joinRoom()});
+$('#copyCode').onclick=()=>{try{navigator.clipboard.writeText(net.lobby.code);$('#copyCode').textContent=t('copied');setTimeout(()=>$('#copyCode').textContent=t('copy'),1500)}catch(e){}};
+$('#lobbyLeave').onclick=()=>toMenu();
+$('#lobbyStart').onclick=()=>{if(role!=='host'||!net.lobby)return;sfx('go');net.lobby.settings.lang=lang;broadcast({t:'start'});startGame(net.lobby.settings,net.lobby.players.map(p=>({id:p.id,name:p.name,look:p.look})))};
+
+/* ================= main loop ================= */
+let last=performance.now();
+function frame(tm){const dt=Math.min(50,tm-last);last=tm;T=tm/1000;
+  if(role==='client'&&view&&view.timeLeft>0)view.timeLeft-=dt;
+  try{render(dt);updateHUD();if(screen==='custom')drawPreview()}catch(e){console.error(e)}
+  requestAnimationFrame(frame)}
+applyLang();saveProfile();updMute();requestAnimationFrame(frame);
+</script>
+</body>
+</html>
