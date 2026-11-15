@@ -70,7 +70,7 @@ html.gz-gate body > *:not(#gz-gate), html.gz-playing body > *:not(#gz-play) { di
         : ['Firefox on a computer can\'t install apps.', 'Open this page in <b>Microsoft Edge</b> (it\'s on every Windows PC) or <b>Google Chrome</b> and press the download button there.'])
       : safari ? ['In the menu bar at the top of your screen, click <b>File</b>.', 'Click <b>Add to Dock…</b>, then <b>Add</b>.']
       : android ? [samsung ? 'Tap the <b>☰</b> menu at the bottom.' : 'Tap the <b>⋮</b> menu at the top right.', 'Tap <b>Install app</b> or <b>Add to Home screen</b>.', 'Tap <b>Install</b>.']
-      : edge ? ['Click the <b>···</b> button at the top right of Edge.', 'Click <b>Apps</b>, then <b>Install Game Zone</b>.', 'Or click the small <b>app icon</b> at the right end of the address bar.']
+      : edge ? ['Click the <b>···</b> button at the top right of Edge.', 'Click <b>More tools</b>, then <b>Apps</b>, then <b>Install Game Zone</b> (in older Edge, <b>Apps</b> is right in the menu).', 'Or click the small <b>app icon</b> at the right end of the address bar.']
       : ['Click the <b>⋮</b> button at the top right of Chrome.', 'Click <b>Cast, save and share</b>, then <b>Install page as app…</b> (or <b>Install Game Zone…</b>).', 'Or click the small <b>install icon</b> at the right end of the address bar.'];
 
     async function install() {
