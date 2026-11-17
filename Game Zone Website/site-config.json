@@ -1,7 +1,7 @@
 {
   "v": 1,
   "pw": "c35ce56b9f43384dd502f93cc7c2a83f901c9a4d72e60b53fe34594250916aa9",
-  "updated": "2026-11-12T19:35:20.834Z",
+  "updated": "2026-11-17T10:04:44.759Z",
   "countdowns": [
     {
       "id": "cd-1793052855240",
@@ -95,7 +95,16 @@
     }
   },
   "badges": {},
-  "news": [],
+  "news": [
+    {
+      "id": "adm-1794909881719",
+      "game": "",
+      "date": "2026-11-17",
+      "title": "Game Zone Multiplayer is not available at this time!",
+      "text": "Due to the recent change from the website to the app, we discovered that every single game that has a multiplayer feature in them just broke. We are doing our best to try and resolve this. We will update you further when we have more news. For now only singleplayer",
+      "days": 2
+    }
+  ],
   "gotw": {
     "on": true,
     "fb": null,
