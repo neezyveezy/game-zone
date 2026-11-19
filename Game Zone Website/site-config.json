@@ -1,7 +1,7 @@
 {
   "v": 1,
   "pw": "c35ce56b9f43384dd502f93cc7c2a83f901c9a4d72e60b53fe34594250916aa9",
-  "updated": "2026-11-19T10:17:17.397Z",
+  "updated": "2026-11-19T10:18:29.446Z",
   "countdowns": [
     {
       "id": "cd-1793052855240",
@@ -96,8 +96,13 @@
   },
   "badges": {
     "tumble-lab.html": {
-      "color": "#22e4ff",
+      "color": "#62e6a0",
       "text": "🔥 Overhaul",
+      "until": "2026-11-23T11:00:00.000Z"
+    },
+    "beatstorm.html": {
+      "color": "#ff3d81",
+      "text": "Version 10 Update",
       "until": "2026-11-23T11:00:00.000Z"
     }
   },
