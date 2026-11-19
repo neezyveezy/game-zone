@@ -1,7 +1,7 @@
 {
   "v": 1,
   "pw": "c35ce56b9f43384dd502f93cc7c2a83f901c9a4d72e60b53fe34594250916aa9",
-  "updated": "2026-11-19T10:18:29.446Z",
+  "updated": "2026-11-19T10:19:12.827Z",
   "countdowns": [
     {
       "id": "cd-1793052855240",
@@ -103,6 +103,16 @@
     "beatstorm.html": {
       "color": "#ff3d81",
       "text": "Version 10 Update",
+      "until": "2026-11-23T11:00:00.000Z"
+    },
+    "flopfight3d.html": {
+      "color": "#ff3d81",
+      "text": "✨ New game",
+      "until": "2026-11-23T11:00:00.000Z"
+    },
+    "type-or-sink.html": {
+      "color": "#ffffff",
+      "text": "✨ New game",
       "until": "2026-11-23T11:00:00.000Z"
     }
   },
