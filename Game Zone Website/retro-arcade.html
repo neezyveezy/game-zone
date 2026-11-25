@@ -1,7 +1,6 @@
 <!doctype html>
 <html lang="en">
 <head>
-<script src="gz-lock.js"></script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
 <title>Retro Arcade</title>
@@ -94,7 +93,7 @@ body.crt h1,body.crt .name,body.crt #title{text-shadow:2px 0 #ff3fa499,-2px 0 #3
 
 <div id="menu">
   <h1 id="logo"></h1>
-  <p class="coin">INSERT COIN · UPDATE 1 IS HERE</p>
+  <p class="coin">INSERT COIN · VERSION 1.2</p>
   <div class="toolbar">
     <div class="seg" id="diffSeg"><span>Difficulty</span><button data-d="easy">Easy</button><button data-d="normal">Normal</button><button data-d="hard">Hard</button></div>
     <button class="tb" id="bMusic">🎵 Music</button>
@@ -109,7 +108,7 @@ body.crt h1,body.crt .name,body.crt #title{text-shadow:2px 0 #ff3fa499,-2px 0 #3
   <div class="grid" id="gridNew"></div>
   <h2 class="sec">CLASSICS</h2>
   <div class="grid" id="gridOld"></div>
-  <p class="foot"><kbd>Esc</kbd> menu · <kbd>P</kbd> pause · <kbd>M</kbd> sound · <kbd>N</kbd> music<br>Retro Arcade v1.1 · Update 1</p>
+  <p class="foot"><kbd>Esc</kbd> menu · <kbd>P</kbd> pause · <kbd>M</kbd> sound · <kbd>N</kbd> music<br>Retro Arcade v1.2 · All games are original Retro Arcade versions inspired by classic arcade genres.<br>Font: Press Start 2P (SIL Open Font License) · Online play: PeerJS (MIT License)</p>
 </div>
 
 <div id="play">
@@ -135,20 +134,31 @@ body.crt h1,body.crt .name,body.crt #title{text-shadow:2px 0 #ff3fa499,-2px 0 #3
 <!-- Patch notes -->
 <div class="modal" id="m-patch"><div class="box">
   <h3>📜 PATCH NOTES</h3>
+  <h4>v1.2 · NEW NAMES, NEW LOOKS</h4>
+  <ul>
+    <li>🏷️ <b>Every game now has its own Retro Arcade name:</b> Paddle Ball, Brick Smash, Block Drop, Gap Glider, Rock Blaster, Alien Raid, Mole Bonk, Sky Shield, Neon Trails, Echo Lights, Soft Landing, Mine Field and Garden Crawler.</li>
+    <li>🔷 <b>Block Drop</b> has a new neon look, a wider 12-column board and colors that change with every piece.</li>
+    <li>✈️ <b>Gap Glider</b>: fly a paper plane through crystal pillars.</li>
+    <li>💡 <b>Echo Lights</b>: a new pad layout, colors and sounds.</li>
+    <li>👾 New alien designs in <b>Alien Raid</b> and <b>Star Swarm</b>, plus new ships.</li>
+    <li>🌼 <b>Garden Crawler</b> now takes place in a flower bed.</li>
+    <li>💾 Your best scores carry over to the renamed games.</li>
+    <li>⚠️ Online rooms only connect players on the same version, so make sure your friend has v1.2 too.</li>
+  </ul>
   <h4>v1.1 · UPDATE 1 — "THE BIG ONE"</h4>
   <ul>
-    <li>🎮 <b>10 new games:</b> Missile Command, Robo Dash, Light Cycles, Simon Says, Lunar Lander, Sky Hopper, Minesweeper, Centipede, Tank Battle and Star Swarm.</li>
-    <li>🌐 <b>Online 2-player with room codes</b> for Pong, Light Cycles and Tank Battle. Create a room, send the code to a friend, play.</li>
+    <li>🎮 <b>10 new games:</b> Sky Shield, Robo Dash, Neon Trails, Echo Lights, Soft Landing, Sky Hopper, Mine Field, Garden Crawler, Tank Battle and Star Swarm.</li>
+    <li>🌐 <b>Online 2-player with room codes</b> for Paddle Ball, Neon Trails and Tank Battle. Create a room, send the code to a friend, play.</li>
     <li>👥 <b>2 players on one keyboard</b> for the same games.</li>
     <li>🎚️ <b>Difficulty levels:</b> Easy, Normal and Hard for every game.</li>
     <li>🎵 <b>Chiptune background music</b> (press N to toggle).</li>
     <li>📺 <b>CRT mode</b> with scanlines and screen glow.</li>
-    <li>✨ <b>Animated menu</b> with a starfield and marching invaders.</li>
+    <li>✨ <b>Animated menu</b> with a starfield and marching aliens.</li>
     <li>📜 <b>Patch notes</b> — you're reading them!</li>
   </ul>
   <h4>v1.0 · LAUNCH</h4>
   <ul>
-    <li>8 classics: Pong, Breakout, Snake, Tetris, Flappy Bird, Asteroids, Space Invaders and Whack-a-Mole.</li>
+    <li>8 classic-style games: Paddle Ball, Brick Smash, Snake, Block Drop, Gap Glider, Rock Blaster, Alien Raid and Mole Bonk.</li>
     <li>Saved high scores, sound effects and touch controls.</li>
   </ul>
   <div class="row"><button class="tb close">Let's play!</button></div>
@@ -185,8 +195,8 @@ body.crt h1,body.crt .name,body.crt #title{text-shadow:2px 0 #ff3fa499,-2px 0 #3
 <div id="toast"></div>
 
 <script>
-const VERSION = '1.1';
-const PEER_PREFIX = 'retroarcade-v1-';
+const VERSION = '1.2';
+const PEER_PREFIX = 'retroarcade-v12-';
 const cv=document.getElementById('c'),ctx=cv.getContext('2d'),W=800,H=600;
 const $=id=>document.getElementById(id);
 
@@ -342,7 +352,7 @@ function restartOnline(){cur.init();over=null;netSend({t:'restart'})}
 // ---------- GAMES ----------
 const GAMES={
 
-pong:{name:'Pong',icon:'🏓',two:true,desc:'First to 7 points wins.',controls:'P1: W/S or mouse · P2: ↑/↓',
+paddle:{name:'Paddle Ball',icon:'🏓',two:true,desc:'First to 7 points wins.',controls:'P1: W/S or mouse · P2: ↑/↓',
   init(){this.py=250;this.ay=250;this.ps=0;this.as=0;this.serve(Math.random()<.5?1:-1)},
   serve(d){const k=mode==='ai'?DK():1;this.b={x:W/2,y:H/2,vx:340*k*d,vy:rnd(-180,180)};this.wait=.8},
   update(dt,inp){
@@ -372,7 +382,7 @@ pong:{name:'Pong',icon:'🏓',two:true,desc:'First to 7 points wins.',controls:'
     ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(this.b.x,this.b.y,8,0,7);ctx.fill();
   }},
 
-breakout:{name:'Breakout',icon:'🧱',desc:'Smash every brick. 3 lives.',controls:'←/→ or mouse · Space/click to launch',
+bricks:{name:'Brick Smash',icon:'🧱',desc:'Smash every brick. 3 lives.',controls:'←/→ or mouse · Space/click to launch',
   init(){this.lives=3;this.level=1;this.pw={easy:130,normal:100,hard:80}[diff];this.px=W/2-this.pw/2;this.build();this.reset()},
   build(){const cols=['#ff3fa4','#ff8a3d','#ffe14d','#3dff8a','#39f','#a970ff'];this.bricks=[];
     for(let r=0;r<6;r++)for(let c=0;c<10;c++)this.bricks.push({x:25+c*75,y:70+r*26,w:70,h:20,col:cols[r],pts:(6-r)*10})},
@@ -434,20 +444,22 @@ snake:{name:'Snake',icon:'🐍',desc:"Eat, grow, and don't bite yourself.",contr
     this.s.forEach((p,i)=>{ctx.fillStyle=i?'#3dff8a':'#b8ffd4';ctx.fillRect(p.x*20+1,p.y*20+1,18,18)});
   }},
 
-tetris:{name:'Tetris',icon:'🟪',desc:"Clear lines. Don't reach the top.",controls:'←/→ move · ↑ rotate · ↓ soft drop · Space hard drop',
-  P:{I:[[1,1,1,1]],O:[[1,1],[1,1]],T:[[0,1,0],[1,1,1]],S:[[0,1,1],[1,1,0]],Z:[[1,1,0],[0,1,1]],J:[[1,0,0],[1,1,1]],L:[[0,0,1],[1,1,1]]},
-  COL:{I:'#3df5ff',O:'#ffe14d',T:'#a970ff',S:'#3dff8a',Z:'#ff3f5a',J:'#3399ff',L:'#ff8a3d'},
-  init(){this.b=Array.from({length:20},()=>Array(10).fill(null));this.lines=0;this.level=1;this.t=0;this.bag=[];this.next=this.rand();this.spawn()},
-  rand(){if(!this.bag.length)this.bag='IOTSZJL'.split('').sort(()=>Math.random()-.5);return this.bag.pop()},
-  spawn(){const k=this.next;this.next=this.rand();const m=this.P[k].map(r=>r.slice());
-    this.p={k,m,x:Math.floor((10-m[0].length)/2),y:0};
+blocks:{name:'Block Drop',icon:'🔷',desc:'Rotate the falling blocks and clear full rows.',controls:'←/→ move · ↑ rotate · ↓ faster · Space drop',
+  SHAPES:[[[1,1,1,1]],[[1,1],[1,1]],[[0,1,0],[1,1,1]],[[0,1,1],[1,1,0]],[[1,1,0],[0,1,1]],[[1,0,0],[1,1,1]],[[0,0,1],[1,1,1]]],
+  NEON:['#ff3fa4','#3df5ff','#3dff8a','#ffe14d','#a970ff','#ff8a3d'],
+  C:12,R:20,S:26,
+  init(){this.b=Array.from({length:this.R},()=>Array(this.C).fill(null));this.lines=0;this.level=1;this.t=0;this.bag=[];this.next=this.rand();this.spawn()},
+  rand(){if(!this.bag.length)this.bag=this.SHAPES.map((_,i)=>i).sort(()=>Math.random()-.5);
+    return{m:this.SHAPES[this.bag.pop()],c:this.NEON[Math.floor(Math.random()*this.NEON.length)]}},
+  spawn(){const n=this.next;this.next=this.rand();const m=n.m.map(r=>r.slice());
+    this.p={m,c:n.c,x:Math.floor((this.C-m[0].length)/2),y:0};
     if(this.hit(m,this.p.x,0))end('GAME OVER')},
   hit(m,x,y){for(let r=0;r<m.length;r++)for(let c=0;c<m[r].length;c++)if(m[r][c]){const X=x+c,Y=y+r;
-    if(X<0||X>=10||Y>=20||(Y>=0&&this.b[Y][X]))return true}return false},
+    if(X<0||X>=this.C||Y>=this.R||(Y>=0&&this.b[Y][X]))return true}return false},
   rot(m){return m[0].map((_,c)=>m.map(r=>r[c]).reverse())},
   lock(){const p=this.p;
-    p.m.forEach((r,ri)=>r.forEach((v,ci)=>{if(v&&p.y+ri>=0)this.b[p.y+ri][p.x+ci]=p.k}));
-    let n=0;for(let r=19;r>=0;r--)if(this.b[r].every(v=>v)){this.b.splice(r,1);this.b.unshift(Array(10).fill(null));n++;r++}
+    p.m.forEach((r,ri)=>r.forEach((v,ci)=>{if(v&&p.y+ri>=0)this.b[p.y+ri][p.x+ci]=p.c}));
+    let n=0;for(let r=this.R-1;r>=0;r--)if(this.b[r].every(v=>v)){this.b.splice(r,1);this.b.unshift(Array(this.C).fill(null));n++;r++}
     if(n){this.lines+=n;this.score+=[0,100,300,500,800][n]*this.level;this.level=1+Math.floor(this.lines/10);beep(500+n*150,.15)}
     else beep(200,.04);
     this.spawn()},
@@ -461,20 +473,22 @@ tetris:{name:'Tetris',icon:'🟪',desc:"Clear lines. Don't reach the top.",contr
     this.t+=dt;if(this.t>=iv){this.t=0;if(this.hit(p.m,p.x,p.y+1))this.lock();else{p.y++;if(soft)this.score+=1}}
   },
   draw(){
-    clear('#05050f');const S=26,ox=270,oy=40;
-    ctx.fillStyle='#111126';ctx.fillRect(ox,oy,260,520);
-    const cell=(x,y,col,a=1)=>{ctx.globalAlpha=a;ctx.fillStyle=col;ctx.fillRect(ox+x*S+1,oy+y*S+1,S-2,S-2);ctx.globalAlpha=1};
-    this.b.forEach((r,y)=>r.forEach((v,x)=>v&&cell(x,y,this.COL[v])));
-    const p=this.p;let gy=p.y;while(!this.hit(p.m,p.x,gy+1))gy++;
-    p.m.forEach((r,ri)=>r.forEach((v,ci)=>{if(v){cell(p.x+ci,gy+ri,this.COL[p.k],.2);if(p.y+ri>=0)cell(p.x+ci,p.y+ri,this.COL[p.k])}}));
-    ctx.strokeStyle='#39f';ctx.lineWidth=2;ctx.strokeRect(ox,oy,260,520);
-    txt('NEXT',640,70,12);const n=this.P[this.next];
-    n.forEach((r,ri)=>r.forEach((v,ci)=>{if(v){ctx.fillStyle=this.COL[this.next];ctx.fillRect(640-n[0].length*S/2+ci*S,100+ri*S,S-2,S-2)}}));
-    txt('LINES',140,100,12);txt(this.lines,140,135,20,'#ffe14d');
-    txt('LEVEL',140,200,12);txt(this.level,140,235,20,'#ffe14d');
+    clear('#07051a');const S=this.S,C=this.C,R=this.R,ox=(W-C*S)/2,oy=(H-R*S)/2;
+    ctx.fillStyle='#0f0b26';ctx.fillRect(ox,oy,C*S,R*S);
+    ctx.strokeStyle='#1c1740';ctx.lineWidth=1;ctx.beginPath();
+    for(let x=1;x<C;x++){ctx.moveTo(ox+x*S,oy);ctx.lineTo(ox+x*S,oy+R*S)}for(let y=1;y<R;y++){ctx.moveTo(ox,oy+y*S);ctx.lineTo(ox+C*S,oy+y*S)}ctx.stroke();
+    const gem=(X,Y,col)=>{ctx.fillStyle=col+'2e';ctx.fillRect(X+2,Y+2,S-4,S-4);ctx.strokeStyle=col;ctx.lineWidth=2;ctx.strokeRect(X+3,Y+3,S-6,S-6);
+      ctx.fillStyle=col;ctx.fillRect(X+S/2-2,Y+S/2-2,4,4)};
+    this.b.forEach((r,y)=>r.forEach((v,x)=>v&&gem(ox+x*S,oy+y*S,v)));
+    const p=this.p;p.m.forEach((r,ri)=>r.forEach((v,ci)=>{if(v&&p.y+ri>=0)gem(ox+(p.x+ci)*S,oy+(p.y+ri)*S,p.c)}));
+    ctx.strokeStyle='#ff3fa4';ctx.lineWidth=3;ctx.strokeRect(ox,oy,C*S,R*S);
+    txt('NEXT',665,90,12);const n=this.next.m;
+    n.forEach((r,ri)=>r.forEach((v,ci)=>{if(v)gem(665-n[0].length*S/2+ci*S,115+ri*S,this.next.c)}));
+    txt('ROWS',115,110,12);txt(this.lines,115,145,20,'#fff27a');
+    txt('LEVEL',115,210,12);txt(this.level,115,245,20,'#fff27a');
   }},
 
-flappy:{name:'Flappy Bird',icon:'🐤',desc:'Flap through the gaps between pipes.',controls:'Space, ↑ or click/tap to flap',
+glider:{name:'Gap Glider',icon:'✈️',desc:'Steer a paper plane through gaps in the crystal pillars.',controls:'Space, ↑ or click/tap to lift',
   init(){this.y=H/2;this.vy=0;this.pipes=[];this.t=1;this.started=false;this.ground=0;this.gap={easy:200,normal:170,hard:145}[diff];this.sp=200*Math.sqrt(DK())},
   update(dt){
     const flap=pressed.has('Space')||pressed.has('ArrowUp')||pressed.has('KeyW')||mouse.clicked;
@@ -490,23 +504,24 @@ flappy:{name:'Flappy Bird',icon:'🐤',desc:'Flap through the gaps between pipes
     if(this.y+14>H-60||this.y<-60){beep(120,.3,'sawtooth');end('GAME OVER')}
   },
   draw(){
-    const g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,'#1a2a6c');g.addColorStop(1,'#4ec0e9');ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
-    for(const p of this.pipes){ctx.fillStyle='#3dbb4a';ctx.fillRect(p.x,0,70,p.top);ctx.fillRect(p.x,p.top+this.gap,70,H-60-p.top-this.gap);
-      ctx.fillStyle='#2a8f36';ctx.fillRect(p.x-5,p.top-24,80,24);ctx.fillRect(p.x-5,p.top+this.gap,80,24)}
-    ctx.fillStyle='#ded895';ctx.fillRect(0,H-60,W,60);ctx.fillStyle='#c2b86a';
-    for(let x=-this.ground;x<W;x+=40)ctx.fillRect(x,H-60,20,8);
-    ctx.save();ctx.translate(200,this.y);ctx.rotate(this.started?clamp(this.vy/600,-.5,1.2):0);
-    ctx.fillStyle='#ffe14d';ctx.beginPath();ctx.arc(0,0,16,0,7);ctx.fill();
-    ctx.fillStyle='#f5c400';ctx.beginPath();ctx.ellipse(-6,4,8,5,0,0,7);ctx.fill();
-    ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(6,-5,6,0,7);ctx.fill();
-    ctx.fillStyle='#000';ctx.beginPath();ctx.arc(8,-5,3,0,7);ctx.fill();
-    ctx.fillStyle='#ff8a3d';ctx.beginPath();ctx.moveTo(12,0);ctx.lineTo(24,4);ctx.lineTo(12,8);ctx.fill();
+    const g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,'#3b1d6e');g.addColorStop(1,'#ff9a8b');ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+    ctx.fillStyle='#ffffff22';for(let i=0;i<5;i++){const x=((i*190-this.ground*2)%(W+200)+W+200)%(W+200)-100;ctx.beginPath();ctx.ellipse(x,90+i*37%120,60,16,0,0,7);ctx.fill()}
+    for(const p of this.pipes){const cg=ctx.createLinearGradient(p.x,0,p.x+70,0);cg.addColorStop(0,'#6fd3ff');cg.addColorStop(1,'#8e44ff');ctx.fillStyle=cg;
+      ctx.beginPath();ctx.moveTo(p.x,0);ctx.lineTo(p.x+70,0);ctx.lineTo(p.x+70,p.top-18);ctx.lineTo(p.x+35,p.top);ctx.lineTo(p.x,p.top-18);ctx.closePath();ctx.fill();
+      const b=p.top+this.gap;ctx.beginPath();ctx.moveTo(p.x,H-60);ctx.lineTo(p.x,b+18);ctx.lineTo(p.x+35,b);ctx.lineTo(p.x+70,b+18);ctx.lineTo(p.x+70,H-60);ctx.closePath();ctx.fill();
+      ctx.fillStyle='#ffffff55';ctx.fillRect(p.x+10,0,6,p.top-24);ctx.fillRect(p.x+10,b+24,6,H-60-b-24)}
+    ctx.fillStyle='#2b1748';ctx.fillRect(0,H-60,W,60);ctx.fillStyle='#4a2a78';
+    for(let x=-this.ground;x<W;x+=40)ctx.fillRect(x,H-60,20,6);
+    ctx.save();ctx.translate(200,this.y);ctx.rotate(this.started?clamp(this.vy/700,-.5,.9):0);
+    ctx.fillStyle='#fff';ctx.beginPath();ctx.moveTo(20,0);ctx.lineTo(-16,-13);ctx.lineTo(-9,0);ctx.lineTo(-16,12);ctx.closePath();ctx.fill();
+    ctx.fillStyle='#d6d6f0';ctx.beginPath();ctx.moveTo(20,0);ctx.lineTo(-9,0);ctx.lineTo(-16,12);ctx.closePath();ctx.fill();
+    ctx.strokeStyle='#9a9ac8';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(20,0);ctx.lineTo(-9,0);ctx.stroke();
     ctx.restore();
     txt(this.score,W/2,70,40,'#fff');
-    if(!this.started)txt('SPACE / CLICK TO FLAP',W/2,H/2+80,14,'#fff');
+    if(!this.started)txt('SPACE / CLICK TO LIFT',W/2,H/2+80,14,'#fff');
   }},
 
-asteroids:{name:'Asteroids',icon:'☄️',desc:'Blast rocks and survive the waves.',controls:'←/→ rotate · ↑ thrust · Space shoot',
+rocks:{name:'Rock Blaster',icon:'☄️',desc:'Blast rocks and survive the waves.',controls:'←/→ rotate · ↑ thrust · Space shoot',
   init(){this.lives=3;this.wave=0;this.bul=[];this.rocks=[];this.parts=[];this.newShip();this.nextWave()},
   newShip(){this.s={x:W/2,y:H/2,a:-Math.PI/2,vx:0,vy:0,inv:2.5};this.cd=0},
   rock(x,y,size){const pts=[];for(let i=0;i<10;i++)pts.push(rnd(.7,1.2));const a=rnd(0,7),sp=rnd(40,100)*(4-size)/2*DK();
@@ -540,7 +555,8 @@ asteroids:{name:'Asteroids',icon:'☄️',desc:'Blast rocks and survive the wave
     if(!this.rocks.length)this.nextWave();
   },
   ship(x,y,a,k,flame){ctx.save();ctx.translate(x,y);ctx.rotate(a);ctx.scale(k,k);ctx.strokeStyle='#3df5ff';ctx.lineWidth=2;
-    ctx.beginPath();ctx.moveTo(16,0);ctx.lineTo(-12,-10);ctx.lineTo(-7,0);ctx.lineTo(-12,10);ctx.closePath();ctx.stroke();
+    ctx.beginPath();ctx.moveTo(16,0);ctx.lineTo(-4,-12);ctx.lineTo(-12,-12);ctx.lineTo(-6,0);ctx.lineTo(-12,12);ctx.lineTo(-4,12);ctx.closePath();
+    ctx.fillStyle='#3df5ff33';ctx.fill();ctx.stroke();
     if(flame){ctx.strokeStyle='#ffb000';ctx.beginPath();ctx.moveTo(-8,-5);ctx.lineTo(-20-Math.random()*6,0);ctx.lineTo(-8,5);ctx.stroke()}
     ctx.restore()},
   draw(){
@@ -553,11 +569,11 @@ asteroids:{name:'Asteroids',icon:'☄️',desc:'Blast rocks and survive the wave
     txt('WAVE '+this.wave,W-20,30,12,'#fff','right');
   }},
 
-invaders:{name:'Space Invaders',icon:'👾',desc:'Stop the alien invasion. Hide behind shields.',controls:'←/→ move · Space shoot',
+aliens:{name:'Alien Raid',icon:'👾',desc:'Stop the alien raid. Hide behind shields.',controls:'←/→ move · Space shoot',
   SPR:[
-    ['00011000','00111100','01111110','11011011','11111111','00100100','01011010','10100101'],
-    ['00100100','00011000','00111100','01011010','11111111','10111101','10100101','00011000'],
-    ['00111100','01111110','11111111','11011011','11111111','00100100','01011010','01000010']],
+    ['00111100','01111110','11100111','11100111','11111111','01111110','00100100','01100110'],
+    ['10000001','01011010','00111100','01100110','11111111','00111100','01000010','10000001'],
+    ['00111100','01111110','10011001','11111111','11111111','11011011','10000001','01000010']],
   COLS:['#ff3fa4','#3df5ff','#a970ff'],
   init(){this.lives=3;this.wave=0;this.px=W/2;this.shots=[];this.bombs=[];this.fx=[];this.cd=0;this.shields=[];
     for(let s=0;s<4;s++){const bx=115+s*180;for(let r=0;r<4;r++)for(let c=0;c<8;c++){if(r===3&&c>1&&c<6)continue;this.shields.push({x:bx+c*10,y:470+r*10})}}
@@ -607,7 +623,7 @@ invaders:{name:'Space Invaders',icon:'👾',desc:'Stop the alien invasion. Hide 
     txt('LIVES '+this.lives,20,H-12,10,'#fff','left');txt('WAVE '+this.wave,W-20,H-12,10,'#fff','right');
   }},
 
-whack:{name:'Whack-a-Mole',icon:'🔨',cursor:'pointer',desc:'Bonk moles for 30 seconds. Gold = +5, avoid bombs!',controls:'Click / tap · or keys 1–9',
+bonk:{name:'Mole Bonk',icon:'🔨',cursor:'pointer',desc:'Bonk moles for 30 seconds. Gold = +5, avoid bombs!',controls:'Click / tap · or keys 1–9',
   init(){this.time=30;this.holes=[];this.pops=[];this.flash=0;this.spawnT=.5;
     for(let r=0;r<3;r++)for(let c=0;c<3;c++)this.holes.push({x:220+c*180,y:190+r*150,up:0,t:0,gold:false,bomb:false,hit:0})},
   update(dt){
@@ -658,7 +674,7 @@ whack:{name:'Whack-a-Mole',icon:'🔨',cursor:'pointer',desc:'Bonk moles for 30 
 
 /* ===================== UPDATE 1 GAMES ===================== */
 
-missile:{name:'Missile Command',icon:'🚀',isNew:true,cursor:'none',desc:'Defend your 6 cities from falling missiles.',controls:'Mouse aim + click · or arrows + Space',
+defense:{name:'Sky Shield',icon:'🚀',isNew:true,cursor:'none',desc:'Defend your 6 cities from falling missiles.',controls:'Mouse aim + click · or arrows + Space',
   init(){this.cities=[130,210,290,510,590,670].map(x=>({x,alive:true}));this.silos=[50,400,750].map(x=>({x,ammo:10,alive:true}));
     this.wave=0;this.cx=W/2;this.cy=H/2;this.pm=[];this.em=[];this.ex=[];this.lastBonus=0;this.nextWave()},
   nextWave(){this.wave++;this.toSpawn=6+this.wave*3;this.spawnT=1.5;this.silos.forEach(s=>{s.ammo=10;s.alive=true});this.msgT=2},
@@ -768,7 +784,7 @@ runner:{name:'Robo Dash',icon:'🤖',isNew:true,desc:'Neon endless runner: doubl
     if(!this.started)txt('PRESS SPACE / TAP TO RUN',W/2,H/2-40,16,'#fff');
   }},
 
-tron:{name:'Light Cycles',icon:'🏍️',isNew:true,two:true,desc:'Trap your rival with your light trail. First to 3 rounds.',controls:'P1: WASD · P2: arrow keys',
+trails:{name:'Neon Trails',icon:'🏍️',isNew:true,two:true,desc:'Trap your rival with your light trail. First to 3 rounds.',controls:'P1: WASD · P2: arrow keys',
   init(){this.wins=[0,0];this.roundId=0;this.stamp=0;this.vis=new Uint32Array(7500);this.newRound()},
   newRound(){this.roundId++;this.grid=new Uint8Array(7500);this.log=[];this.t=0;this.wait=1.3;this.msgT=0;
     this.p=[{x:20,y:37,dx:1,dy:0,alive:true},{x:79,y:37,dx:-1,dy:0,alive:true}];this.p.forEach((p,i)=>this.mark(p.x,p.y,i+1))},
@@ -818,9 +834,10 @@ tron:{name:'Light Cycles',icon:'🏍️',isNew:true,two:true,desc:'Trap your riv
     if(this.msgT>0){const a=this.p[0].alive,b=this.p[1].alive;txt(a===b?'DRAW!':pname(a?0:1)+' WINS THE ROUND',W/2,H/2-60,18,a===b?'#fff':a?'#3df5ff':'#ff8a3d')}
   }},
 
-simon:{name:'Simon Says',icon:'🔴',isNew:true,cursor:'pointer',desc:'Watch the light pattern, then repeat it.',controls:'Click pads · or keys 1–4 / ↑ → ↓ ←',
-  PADS:[{c:'#1f9e33',l:'#7dff8a',f:659.25,k:['Digit1','Numpad1','ArrowUp','KeyQ']},{c:'#c0302a',l:'#ff9a90',f:440,k:['Digit2','Numpad2','ArrowRight','KeyW']},
-        {c:'#1a55b0',l:'#7fc4ff',f:329.63,k:['Digit3','Numpad3','ArrowDown','KeyS']},{c:'#c9a600',l:'#fff59a',f:277.18,k:['Digit4','Numpad4','ArrowLeft','KeyA']}],
+echo:{name:'Echo Lights',icon:'💡',isNew:true,cursor:'pointer',desc:'Watch the lights, then play the pattern back.',controls:'Click pads · or keys Q W A S / 1–4',
+  PADS:[{c:'#5a24b8',l:'#c9a6ff',f:523.25,k:['KeyQ','Digit1','Numpad1']},{c:'#006b80',l:'#8ff0ff',f:587.33,k:['KeyW','Digit2','Numpad2']},
+        {c:'#a8480a',l:'#ffc48f',f:659.25,k:['KeyA','Digit3','Numpad3']},{c:'#991a5f',l:'#ffa3d4',f:783.99,k:['KeyS','Digit4','Numpad4']}],
+  rect(i){return{x:i%2?412:188,y:i<2?96:320,w:200,h:200}},
   init(){this.seq=[];this.lit=-1;this.litT=0;this.addStep()},
   addStep(){this.seq.push(Math.floor(Math.random()*4));this.phase='wait';this.timer=.9;this.i=0},
   flash(p,t){this.lit=p;this.litT=t;beep(this.PADS[p].f,Math.max(t,.15),'triangle',.12)},
@@ -831,24 +848,24 @@ simon:{name:'Simon Says',icon:'🔴',isNew:true,cursor:'pointer',desc:'Watch the
     else if(this.phase==='show'){this.timer-=dt;if(this.timer<=0){if(this.i<this.seq.length){this.flash(this.seq[this.i],spd*.75);this.i++;this.timer=spd}else{this.phase='input';this.i=0}}}
     else{
       let p=-1;this.PADS.forEach((pd,i)=>{if(pd.k.some(k=>pressed.has(k)))p=i});
-      if(mouse.clicked){const dx=mouse.x-W/2,dy=mouse.y-320,d=Math.hypot(dx,dy);if(d>90&&d<230)p=dx<0?(dy<0?0:3):(dy<0?1:2)}
+      if(mouse.clicked)for(let i=0;i<4;i++){const r=this.rect(i);if(mouse.x>r.x&&mouse.x<r.x+r.w&&mouse.y>r.y&&mouse.y<r.y+r.h)p=i}
       if(p>=0){
         if(p===this.seq[this.i]){this.flash(p,.22);this.i++;if(this.i===this.seq.length){this.score=this.seq.length;this.addStep()}}
         else{this.lit=p;this.litT=.6;beep(90,.6,'sawtooth',.1);end('WRONG!')}}
     }
   },
   draw(){
-    clear('#0b0b1a');const cx=W/2,cy=320,R=230,r=90,labels=['1 ▲','2 ▶','3 ▼','4 ◀'];
-    this.PADS.forEach((p,i)=>{const a0=[Math.PI,1.5*Math.PI,0,.5*Math.PI][i],on=this.lit===i;
+    clear('#0b0b1a');const labels=['Q · 1','W · 2','A · 3','S · 4'];
+    this.PADS.forEach((p,i)=>{const r=this.rect(i),on=this.lit===i,rad=28;
       ctx.fillStyle=on?p.l:p.c;if(on){ctx.shadowColor=p.l;ctx.shadowBlur=50}
-      ctx.beginPath();ctx.arc(cx,cy,R,a0+.04,a0+Math.PI/2-.04);ctx.arc(cx,cy,r,a0+Math.PI/2-.1,a0+.1,true);ctx.closePath();ctx.fill();ctx.shadowBlur=0;
-      const mid=a0+Math.PI/4;txt(labels[i],cx+Math.cos(mid)*165,cy+Math.sin(mid)*165,12,'rgba(0,0,0,.45)')});
-    ctx.fillStyle='#15152b';ctx.beginPath();ctx.arc(cx,cy,r-6,0,7);ctx.fill();
-    txt('SIMON',cx,cy-16,12,'#8a8ab0');txt(this.score,cx,cy+16,24,'#ffe14d');
-    txt(this.phase==='input'?'YOUR TURN!':'WATCH...',cx,36,16,this.phase==='input'?'#3dff8a':'#fff');
+      ctx.beginPath();ctx.moveTo(r.x+rad,r.y);ctx.arcTo(r.x+r.w,r.y,r.x+r.w,r.y+r.h,rad);ctx.arcTo(r.x+r.w,r.y+r.h,r.x,r.y+r.h,rad);
+      ctx.arcTo(r.x,r.y+r.h,r.x,r.y,rad);ctx.arcTo(r.x,r.y,r.x+r.w,r.y,rad);ctx.closePath();ctx.fill();ctx.shadowBlur=0;
+      txt(labels[i],r.x+r.w/2,r.y+r.h/2,12,'rgba(255,255,255,.55)')});
+    txt(this.phase==='input'?'YOUR TURN!':'WATCH...',W/2,46,16,this.phase==='input'?'#3dff8a':'#fff');
+    txt('ROUND '+this.score,W/2,565,14,'#ffe14d');
   }},
 
-lander:{name:'Lunar Lander',icon:'🌙',isNew:true,desc:'Land softly on a pad. Smaller pads pay more.',controls:'←/→ rotate · ↑ or Space thrust',
+landing:{name:'Soft Landing',icon:'🌙',isNew:true,desc:'Land softly on a pad. Smaller pads pay more.',controls:'←/→ rotate · ↑ or Space thrust',
   init(){this.lives=3;this.level=0;this.fuel=1000;this.lastPts=0;this.stars=Array.from({length:70},()=>[rnd(0,W),rnd(0,H*.7),rnd(.5,2)]);this.nextLevel()},
   nextLevel(){this.level++;this.genTerrain();if(this.level>1)this.fuel=Math.min(1000,this.fuel+350);this.spawn()},
   spawn(){this.s={x:80,y:70,vx:50,vy:0,a:0};this.state='fly';this.msgT=0;this.parts=[]},
@@ -938,7 +955,7 @@ hopper:{name:'Sky Hopper',icon:'🐸',isNew:true,desc:'Bounce up from platform t
     txt('HEIGHT',80,60,10,'#8a8ab0');txt(this.score,80,90,18,'#ffe14d');txt('BEST',720,60,10,'#8a8ab0');txt(Math.max(getBest('hopper'),this.score),720,90,18,'#ffe14d');
   }},
 
-mines:{name:'Minesweeper',icon:'💣',isNew:true,cursor:'pointer',desc:'Clear the field without hitting a mine.',controls:'Click reveal · right-click / long-press flag · arrows + Space, F',
+minefield:{name:'Mine Field',icon:'💣',isNew:true,cursor:'pointer',desc:'Clear the field without hitting a mine.',controls:'Click reveal · right-click / long-press flag · arrows + Space, F',
   init(){this.n={easy:20,normal:30,hard:40}[diff];this.cells=Array.from({length:192},()=>({m:false,o:false,f:false,a:0}));this.first=true;this.time=0;this.kx=8;this.ky=6;this.flags=0;this.state='play';this.endT=0;this.opened=0},
   at(x,y){return x>=0&&y>=0&&x<16&&y<12?this.cells[y*16+x]:null},
   nbs(x,y){const r=[];for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++)if(dx||dy){const c=this.at(x+dx,y+dy);if(c)r.push([x+dx,y+dy,c])}return r},
@@ -979,7 +996,7 @@ mines:{name:'Minesweeper',icon:'💣',isNew:true,cursor:'pointer',desc:'Clear th
     if(this.first)txt('CLICK ANY SQUARE TO START',W/2,H-30,11,'#8a8ab0');
   }},
 
-centipede:{name:'Centipede',icon:'🐛',isNew:true,desc:'Blast the centipede as it winds through the mushrooms.',controls:'Arrows/WASD or mouse · Space/click shoot',
+crawler:{name:'Garden Crawler',icon:'🐛',isNew:true,desc:'Blast the bug crawler as it winds through the flower bed.',controls:'Arrows/WASD or mouse · Space/click shoot',
   init(){this.lives=3;this.wave=0;this.m=new Map();for(let i=0;i<55;i++)this.m.set(Math.floor(rnd(0,40))+','+Math.floor(rnd(2,24)),4);
     this.px=400;this.py=570;this.bul=null;this.spider=null;this.spT=6;this.fx=[];this.dead=0;this.newWave()},
   newWave(){this.wave++;this.spawn()},
@@ -1021,7 +1038,9 @@ centipede:{name:'Centipede',icon:'🐛',isNew:true,desc:'Blast the centipede as 
   draw(){
     clear();const pal=[['#ff3fa4','#3dff8a'],['#ffe14d','#3df5ff'],['#ff8a3d','#a970ff'],['#3df5ff','#ff3f5a']][(this.wave-1)%4];
     ctx.fillStyle='#ffffff08';ctx.fillRect(0,480,W,120);
-    for(const [k,hp] of this.m){const [x,y]=k.split(',').map(Number),s=4+hp*1.5;ctx.fillStyle=pal[0];ctx.beginPath();ctx.arc(x*20+10,y*20+10,s,Math.PI,0);ctx.fill();ctx.fillStyle='#ddd';ctx.fillRect(x*20+7,y*20+10,6,Math.max(2,hp*2))}
+    for(const [k,hp] of this.m){const [x,y]=k.split(',').map(Number),s=3+hp*1.6,cx=x*20+10,cy=y*20+10;ctx.fillStyle=pal[0];
+      for(let a=0;a<5;a++){ctx.beginPath();ctx.arc(cx+Math.cos(a*1.257)*s*.6,cy+Math.sin(a*1.257)*s*.6,s*.45,0,7);ctx.fill()}
+      ctx.fillStyle='#ffe14d';ctx.beginPath();ctx.arc(cx,cy,s*.3,0,7);ctx.fill()}
     for(const s of this.seg){const [sx,sy]=this.segPos(s);ctx.strokeStyle=pal[1];ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(sx-10,sy+8);ctx.lineTo(sx+10,sy-8);ctx.moveTo(sx-10,sy-8);ctx.lineTo(sx+10,sy+8);ctx.stroke();
       ctx.fillStyle=pal[1];ctx.beginPath();ctx.arc(sx,sy,9,0,7);ctx.fill();
       if(!this.seg.some(o=>o!==s&&o.x===s.x+s.dx&&o.y===s.y)){ctx.fillStyle='#ff3f5a';ctx.beginPath();ctx.arc(sx,sy,9,0,7);ctx.fill();ctx.fillStyle='#fff';ctx.fillRect(sx+s.dx*3-1,sy-4,3,3)}}
@@ -1107,16 +1126,16 @@ tanks:{name:'Tank Battle',icon:'🪖',isNew:true,two:true,desc:'Bouncing shells 
     if(this.msgT>0){const a=this.tk[0].alive,b=this.tk[1].alive;txt(a===b?'DOUBLE KO!':pname(a?0:1)+' WINS THE ROUND',W/2,H/2,18,a===b?'#fff':a?'#3df5ff':'#ff8a3d')}
   }},
 
-galaga:{name:'Star Swarm',icon:'🛸',isNew:true,desc:'Galaga-style shooter: aliens swoop in and dive at you.',controls:'←/→ move · Space shoot',
-  SPR:{bee:['00011000','10111101','11111111','01111110','00111100','01011010','10000001','00000000'],
-       red:['01000010','00100100','01111110','11011011','11111111','01111110','00100100','01000010'],
-       boss:['00111100','01111110','11011011','11111111','10111101','10100101','01000010','00100100']},
-  COL:{bee:'#ffe14d',red:'#ff3f5a',boss:'#3dff8a'},
+swarm:{name:'Star Swarm',icon:'🛸',isNew:true,desc:'Space shooter: aliens swoop into formation and dive at you.',controls:'←/→ move · Space shoot',
+  SPR:{scout:['00011000','00111100','01011010','11111111','10111101','00100100','01000010','10000001'],
+       wing:['10000001','11000011','01111110','00111100','01111110','11011011','10000001','00000000'],
+       queen:['01011010','11111111','10111101','11111111','01111110','00111100','01100110','11000011']},
+  COL:{scout:'#3df5ff',wing:'#ff8a3d',queen:'#c39bff'},
   init(){this.lives=3;this.stage=0;this.px=W/2;this.shots=[];this.eb=[];this.fx=[];this.cd=0;this.dead=0;this.time=0;
     this.stars=Array.from({length:90},()=>({x:rnd(0,W),y:rnd(0,H),s:rnd(30,160)}));this.nextStage()},
   nextStage(){this.stage++;this.en=[];this.msgT=2;this.diveT=3.5;let k=0;
-    [['boss',4],['red',8],['red',8],['bee',10],['bee',10]].forEach(([t,n],r)=>{for(let c=0;c<n;c++){const g=Math.floor(k/8);
-      this.en.push({t,hp:t==='boss'?2:1,sx:W/2+(c-(n-1)/2)*46,sy:70+r*40,x:-99,y:-99,state:'wait',delay:1.5+g*1.3+(k%8)*.14,side:g%2,u:0});k++}})},
+    [['queen',4],['wing',8],['wing',8],['scout',10],['scout',10]].forEach(([t,n],r)=>{for(let c=0;c<n;c++){const g=Math.floor(k/8);
+      this.en.push({t,hp:t==='queen'?2:1,sx:W/2+(c-(n-1)/2)*46,sy:70+r*40,x:-99,y:-99,state:'wait',delay:1.5+g*1.3+(k%8)*.14,side:g%2,u:0});k++}})},
   bz(p,t){const u=1-t;return{x:u*u*u*p[0]+3*u*u*t*p[2]+3*u*t*t*p[4]+t*t*t*p[6],y:u*u*u*p[1]+3*u*u*t*p[3]+3*u*t*t*p[5]+t*t*t*p[7]}},
   startDive(e){e.state='dive';e.u=0;e.shotsLeft=1+(this.stage>2?1:0);const dir=e.x<W/2?-1:1;
     e.path=[e.x,e.y,e.x+dir*140,e.y-80,this.px+rnd(-120,120),H-220,this.px+rnd(-200,200),H+40];beep(300,.15,'triangle')},
@@ -1144,7 +1163,7 @@ galaga:{name:'Star Swarm',icon:'🛸',isNew:true,desc:'Galaga-style shooter: ali
     }
     for(const s of this.shots)for(const e of live){if(e.dead||e.state==='wait')continue;
       if(Math.abs(s.x-e.x)<16&&Math.abs(s.y-e.y)<14){s.y=-99;e.hp--;
-        if(e.hp<=0){e.dead=true;const base={bee:50,red:80,boss:150}[e.t];this.score+=e.state==='dive'?base*2:base;this.boom(e.x,e.y,this.COL[e.t])}else{e.hurt=true;beep(500,.05)}break}}
+        if(e.hp<=0){e.dead=true;const base={scout:50,wing:80,queen:150}[e.t];this.score+=e.state==='dive'?base*2:base;this.boom(e.x,e.y,this.COL[e.t])}else{e.hurt=true;beep(500,.05)}break}}
     this.shots=this.shots.filter(s=>s.y>-20);
     for(const b of this.eb){b.x+=b.vx*dt;b.y+=b.vy*dt}
     if(this.dead<=0){
@@ -1154,10 +1173,11 @@ galaga:{name:'Star Swarm',icon:'🛸',isNew:true,desc:'Galaga-style shooter: ali
     for(const f of this.fx){f.x+=f.vx*dt;f.y+=f.vy*dt;f.l-=dt}this.fx=this.fx.filter(f=>f.l>0);
     if(this.en.every(e=>e.dead))this.nextStage();
   },
-  ship(x,y,k=1){ctx.fillStyle='#fff';ctx.fillRect(x-2*k,y-14*k,4*k,10*k);ctx.fillRect(x-8*k,y-4*k,16*k,8*k);ctx.fillStyle='#ff3f5a';ctx.fillRect(x-14*k,y,6*k,8*k);ctx.fillRect(x+8*k,y,6*k,8*k);ctx.fillStyle='#39f';ctx.fillRect(x-2*k,y-4*k,4*k,4*k)},
+  ship(x,y,k=1){ctx.fillStyle='#3df5ff';ctx.beginPath();ctx.moveTo(x,y-16*k);ctx.lineTo(x+16*k,y+10*k);ctx.lineTo(x,y+4*k);ctx.lineTo(x-16*k,y+10*k);ctx.closePath();ctx.fill();
+    ctx.fillStyle='#ffe14d';ctx.fillRect(x-9*k,y+6*k,4*k,5*k);ctx.fillRect(x+5*k,y+6*k,4*k,5*k);ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(x,y-4*k,3*k,0,7);ctx.fill()},
   draw(){
     clear('#02020c');for(const s of this.stars){ctx.fillStyle=s.s>100?'#fff':'#667';ctx.fillRect(s.x,s.y,2,2)}
-    for(const e of this.en){if(e.dead||e.state==='wait')continue;sprite(ctx,this.SPR[e.t],e.x-12,e.y-12,3,e.hurt?'#a970ff':this.COL[e.t])}
+    for(const e of this.en){if(e.dead||e.state==='wait')continue;sprite(ctx,this.SPR[e.t],e.x-12,e.y-12,3,e.hurt?'#ff3fa4':this.COL[e.t])}
     if(this.dead<=0)this.ship(this.px,H-55);
     ctx.fillStyle='#fff';for(const s of this.shots)ctx.fillRect(s.x-1.5,s.y-10,3,12);
     ctx.fillStyle='#ff3fa4';for(const b of this.eb){ctx.beginPath();ctx.arc(b.x,b.y,4,0,7);ctx.fill()}
@@ -1271,7 +1291,7 @@ function drawBg(dt,ts){
   if(shoot){shoot.x+=600*dt;shoot.y+=250*dt;shoot.l-=dt*1.5;bctx.strokeStyle=`rgba(255,255,255,${Math.max(0,shoot.l)})`;bctx.lineWidth=2;bctx.beginPath();bctx.moveTo(shoot.x,shoot.y);bctx.lineTo(shoot.x-80,shoot.y-33);bctx.stroke();if(shoot.l<=0)shoot=null}
   const span=w+600,x0=(ts*.06)%span-300,cols=['#ff3fa4','#3df5ff','#a970ff'],fr=Math.floor(ts/400)%2;
   bctx.globalAlpha=.35;
-  for(let i=0;i<7;i++)sprite(bctx,GAMES.invaders.SPR[i%3],x0+i*44,h-70+(fr?3:0),4,cols[i%3]);
+  for(let i=0;i<7;i++)sprite(bctx,GAMES.aliens.SPR[i%3],x0+i*44,h-70+(fr?3:0),4,cols[i%3]);
   bctx.globalAlpha=1;
 }
 
@@ -1317,6 +1337,10 @@ function frame(ts){
 
 // ---------- boot ----------
 $('logo').innerHTML='RETRO ARCADE'.split('').map((c,i)=>c===' '?' ':`<span style="animation-delay:${i*.08}s">${c}</span>`).join('');
+// carry best scores over from the v1.1 game ids
+for(const [o,n] of Object.entries({pong:'paddle',breakout:'bricks',tetris:'blocks',flappy:'glider',asteroids:'rocks',invaders:'aliens',whack:'bonk',
+  missile:'defense',tron:'trails',simon:'echo',lander:'landing',mines:'minefield',centipede:'crawler',galaga:'swarm'})){
+  const old=+load('arcade_best_'+o,0)||0;if(old>getBest(n))setBest(n,old);try{localStorage.removeItem('arcade_best_'+o)}catch(e){}}
 bgResize();buildMenu();applySettings();setSong('menu');
 if(load('arcade_seen_version','')!==VERSION){save('arcade_seen_version',VERSION);showModal('m-patch')}
 requestAnimationFrame(frame);
