@@ -1,7 +1,7 @@
 {
   "v": 1,
   "pw": "c35ce56b9f43384dd502f93cc7c2a83f901c9a4d72e60b53fe34594250916aa9",
-  "updated": "2026-11-19T10:19:12.827Z",
+  "updated": "2026-11-25T19:07:58.813Z",
   "countdowns": [
     {
       "id": "cd-1793052855240",
@@ -67,6 +67,19 @@
       "lockMsg": "Coming soon",
       "doneTitle": "BEATSTORM: Update 5 Now Available!",
       "doneText": "BEATSTORM: Update 5 Now Available!"
+    },
+    {
+      "id": "cd-1795633676224",
+      "until": "2026-11-26T06:50:00.000Z",
+      "title": "SkyVault Overhaul in:",
+      "kicker": "Last Update Ever",
+      "sub": "",
+      "style": "calm",
+      "game": "SkyVault.html",
+      "lock": false,
+      "lockMsg": "Maintenance · Soon",
+      "doneTitle": "SkyVault Overhaul Update is LIVE! 🎉",
+      "doneText": "The countdown is over. Go play it now, because its the last one!"
     }
   ],
   "maint": {
