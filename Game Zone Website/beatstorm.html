@@ -445,6 +445,33 @@ a.btn{text-decoration:none;display:inline-block}
 @media(max-width:800px){.edgrid{grid-template-columns:1fr}.tradecols{grid-template-columns:1fr}}
 /* hidden screens don't need to keep animating (saves a lot of repainting while you play) */
 .screen:not(.show),.screen:not(.show) *{animation-play-state:paused !important}
+/* Update 11: the 3 shops */
+.shopgroups{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.shopgroups button{font-family:var(--head);font-weight:900;font-size:15px;letter-spacing:1px;padding:11px 20px;border-radius:14px;border:2px solid var(--line);background:rgba(255,255,255,.04);color:var(--text);cursor:pointer;transition:transform .2s,border-color .2s,background .2s}
+.shopgroups button:hover{transform:translateY(-2px)}
+.shopgroups button.on{border-color:var(--c);background:color-mix(in srgb,var(--c) 22%,transparent);box-shadow:0 0 22px -6px var(--c)}
+/* Update 11: the game mode cards */
+#modes .wrap{overflow-y:auto}
+.gmgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px;width:100%;max-width:1200px;margin:0 auto;padding:12px 4px 20px}
+.gmcard{--c:#3ef0ff;position:relative;border-radius:22px;border:2px solid var(--line);background:var(--panel);padding:18px;display:flex;flex-direction:column;gap:10px;cursor:pointer;overflow:hidden;text-align:left;color:inherit;font:inherit;
+  transition:transform .3s cubic-bezier(.2,1.5,.4,1),border-color .2s,box-shadow .3s;animation:gmIn .5s both}
+.gmcard:nth-child(2){animation-delay:.08s}.gmcard:nth-child(3){animation-delay:.16s}
+@keyframes gmIn{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}
+.gmcard::after{content:'';position:absolute;inset:-40% auto -40% -60%;width:40%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.18),transparent);transform:skewX(-20deg);opacity:0;pointer-events:none}
+.gmcard:hover,.gmcard:focus-visible{transform:translateY(-10px) scale(1.03);border-color:var(--c);box-shadow:0 20px 50px -12px var(--c),0 0 0 1px var(--c) inset;outline:none}
+.gmcard:hover::after{animation:gmShine .8s ease-out}
+@keyframes gmShine{0%{left:-60%;opacity:1}100%{left:130%;opacity:1}}
+.gmcard canvas{width:100%;aspect-ratio:16/10;border-radius:14px;background:#07040f;display:block}
+.gmcard .gtop{display:flex;align-items:center;gap:12px}
+.gmcard .gi{font-size:42px;line-height:1;transition:transform .4s cubic-bezier(.2,1.6,.4,1)}
+.gmcard:hover .gi{transform:rotate(-12deg) scale(1.3)}
+.gmcard h3{font-family:var(--head);font-size:24px;letter-spacing:2px;color:var(--c);margin:0}
+.gmcard .gd{color:var(--muted);font-size:15px;line-height:1.35}
+.gmcard .gm{display:flex;gap:6px;flex-wrap:wrap}
+.gmcard .gplay{margin-top:auto;font-family:var(--head);font-weight:900;letter-spacing:2px;text-align:center;padding:12px;border-radius:12px;background:var(--c);color:#0a0614;transition:letter-spacing .3s}
+.gmcard:hover .gplay{letter-spacing:5px}
+.gmcard .glast{position:absolute;top:12px;right:12px;font-size:11px;font-weight:800;letter-spacing:1px;padding:3px 8px;border-radius:99px;background:var(--c);color:#0a0614}
+@media (max-width:820px){.gmgrid{grid-template-columns:1fr;max-width:520px}.gmcard canvas{aspect-ratio:16/7}}
 </style>
 </head>
 <body>
@@ -489,16 +516,16 @@ a.btn{text-decoration:none;display:inline-block}
   <div id="miniCard" title="Open your profile"></div>
   <div class="logo">BEATSTORM</div>
   <div class="tag">Your music · Your stage</div>
-  <div class="ver">UPDATE 10 · v10.0</div>
+  <div class="ver">UPDATE 11 · v11.0</div>
   <div class="seasonbox" id="seasonBox"></div>
   <div class="menu">
-    <button class="mbtn" data-go="solo"><span>▶ SOLO<small>One player · albums · setlists · chart editor</small></span></button>
+    <button class="mbtn" data-go="solo"><span>▶ SOLO<small>Highway · 💃 Dance · ✨ Pulse · chart editor</small></span></button>
     <button class="mbtn" data-go="boss"><span>👹 BOSS BATTLES<small>Beat 8 bosses alone, with a friend or online</small></span></button>
     <button class="mbtn" data-go="tour"><span>🌍 WORLD TOUR<small>Play gigs, earn fans, reach the festival</small></span></button>
     <button class="mbtn" data-go="duo"><span>🎮 2 PLAYERS<small>Same keyboard, gamepads or touch</small></span></button>
     <button class="mbtn" data-go="online"><span>🌐 ONLINE<small>1v1 · FFA · 2v2 · Ranked · friends</small></span></button>
     <button class="mbtn" data-go="pass"><span>🎟️ SEASON PASS<small id="passSub">Free rewards every season</small></span></button>
-    <button class="mbtn" data-go="shop"><span>🛒 SHOP<small>Skins, lanes, frames, victories & more</small></span></button>
+    <button class="mbtn" data-go="shop"><span>🛒 SHOP<small>3 shops: Highway, 💃 Dance and ✨ Pulse</small></span></button>
     <button class="mbtn" data-go="quests"><span>📋 QUESTS<span class="qbadge" id="questBadge" style="display:none"></span><small>Daily and weekly quests for coins and XP</small></span></button>
     <div class="minirow">
       <button class="mbtn mini" data-go="friends"><span>🤝 FRIENDS</span></button>
@@ -514,10 +541,18 @@ a.btn{text-decoration:none;display:inline-block}
   <button id="adminBtn" title="Admin" aria-label="Admin panel">🔧</button>
 </div>
 
+<div id="modes" class="screen">
+  <div class="wrap">
+    <div class="topbar"><button class="btn" data-back>← BACK</button><h2 id="gmTitle">CHOOSE A GAME MODE</h2></div>
+    <div class="hint" id="gmSub" style="text-align:center;margin-top:-6px"></div>
+    <div class="gmgrid" id="gmGrid"></div>
+  </div>
+</div>
+
 <div id="library" class="screen">
   <div class="wrap">
     <div class="topbar">
-      <button class="btn" data-back>← BACK</button>
+      <button class="btn" id="libBack">← BACK</button>
       <h2 id="libTitle">SOLO · SONG LIBRARY</h2>
       <button class="btn primary" id="addBtn">＋ ADD SONGS</button>
       <input type="file" id="fileIn" accept="audio/*,.mp3,.wav,.ogg,.m4a,.aac,.flac,.opus" multiple hidden>
@@ -581,8 +616,8 @@ a.btn{text-decoration:none;display:inline-block}
         <li>Long notes: <b>hold</b> the key until the tail ends.</li>
         <li>Timing: <b>PERFECT</b>, <b>GREAT</b>, <b>GOOD</b> or <b>MISS</b>.</li></ul></div>
       <div class="panel sec"><h3>✨ PULSE & 💃 DANCE MODES</h3>
-        <ul><li>In Solo, pick <b>HOW TO PLAY IT</b> above the difficulties.</li>
-        <li><b>Pulse</b>: aim at the beacon and click (or press Z / X) when the comet reaches it. Hold ⚡ charges, swipe ➤ flicks the way the arrow points (or press that arrow key), and tap 💥 bursts as fast as you can.</li>
+        <ul><li>Press <b>Solo</b> or <b>Online</b> and pick a game mode. Your songs work in every mode.</li>
+        <li><b>Pulse</b>: aim at the orb and click (or press Z / X) when its pulse ring closes onto it. Go in number order. Hold the ⚡ orbs until their band is full.</li>
         <li><b>Dance</b>: press ← ↓ ↑ → (or your lane keys) when an arrow reaches its target at the top. Hold the long ones.</li></ul></div>
       <div class="panel sec"><h3>3 · STREAKS, FIRE & OVERDRIVE</h3>
         <ul><li>Every 10 notes in a row raises your multiplier, up to <b>x4</b>.</li>
@@ -617,6 +652,7 @@ a.btn{text-decoration:none;display:inline-block}
 <div id="shop" class="screen">
   <div class="wrap">
     <div class="topbar"><button class="btn" data-back>← BACK</button><h2>🛒 SHOP</h2><div class="coinbig">🪙 <span id="shopCoins">0</span></div></div>
+    <div class="shopgroups" id="shopGroups"></div>
     <div class="seg" id="shopTabs" style="max-width:640px"></div>
     <div class="hint" id="shopHint"></div>
     <div class="body shopgrid" id="shopGrid"></div>
@@ -712,11 +748,12 @@ a.btn{text-decoration:none;display:inline-block}
 </div></div>
 
 <div id="whatsnew" class="ov"><div class="panel ovbox">
-  <h2>🎉 UPDATE 10 IS HERE!</h2>
+  <h2>🎉 UPDATE 11 IS HERE!</h2>
   <ul>
-    <li>✨ <b>Pulse Mode</b>: aim and click on a star map. Comets fly to each beacon, hold ⚡ charges, swipe ➤ flicks, mash 💥 bursts, and every part of the song draws a constellation</li>
-    <li>💃 <b>Dance Mode</b>: 4 arrows rise up to the targets, and a neon dancer copies every move you hit</li>
-    <li>Pick them in Solo, on any song, under <b>HOW TO PLAY IT</b>. Each mode keeps its own best scores</li>
+    <li>🎮 <b>Game mode screen</b>: press Solo or Online, then pick 🛣️ Highway, 💃 Dance or ✨ Pulse. Your song library works in all of them</li>
+    <li>✨ <b>Pulse Mode, rebuilt</b>: big numbered orbs, a pulse ring that closes in, click on the beat. Much easier to see and to play</li>
+    <li>🌐 <b>Dance and Pulse online</b>: the host picks the room's game mode</li>
+    <li>🛒 <b>Two new shops</b>: the 💃 Dance shop (arrows, dancers, dance floors) and the ✨ Pulse shop (orbs, cursors, cursor trails)</li>
   </ul>
   <div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn primary" id="wnOk" style="flex:1">LET'S GO!</button><button class="btn" id="wnLog">FULL UPDATE LOG</button></div>
 </div></div>
@@ -748,7 +785,7 @@ a.btn{text-decoration:none;display:inline-block}
 
 <script>
 'use strict';
-const VERSION = '10.0';
+const VERSION = '11.0';
 // =====================================================================
 // Utilities
 // =====================================================================
@@ -1095,8 +1132,8 @@ const RANKS = [[0, 'Bronze', '🥉', '#d0905a'], [1100, 'Silver', '🥈', '#d6dc
 const rankOf = r => { let k = RANKS[0]; for(const x of RANKS) if(r >= x[0]) k = x; return {min:k[0], name:k[1], icon:k[2], col:k[3]}; };
 const AVATARS = ['🎧', '🎸', '🥁', '🎤', '🎹', '🎷', '🎺', '🎻', '🦊', '🐱', '🐼', '🐙', '🦄', '🐸', '🤖', '👾', '👻', '🔥', '⚡', '🌙', '⭐', '💎', '🍕', '🚀'];
 const TITLES = [[1, 'Rookie'], [3, 'Groove Starter'], [5, 'Beat Rider'], [8, 'Rhythm Pro'], [12, 'Combo Machine'], [16, 'Stage Star'], [20, 'Festival Headliner'], [30, 'Rhythm Legend']];
-const OWN0 = () => ({skin:['classic'], theme:['classic'], banner:['midnight'], trail:['none'], hit:['sparks'], strike:['classic'], stage:['classic'], lanes:['classic', 'colorblind'], frame:['none'], victory:['confetti'], shape:['classic'], pet:['none'], od:['classic'], combo:['classic'], miss:['classic']});
-const EQ0 = () => ({skin:'classic', theme:'classic', trail:'none', hit:'sparks', strike:'classic', stage:'classic', lanes:'classic', frame:'none', victory:'confetti', shape:'classic', pet:'none', od:'classic', combo:'classic', miss:'classic'});
+const OWN0 = () => ({skin:['classic'], theme:['classic'], banner:['midnight'], trail:['none'], hit:['sparks'], strike:['classic'], stage:['classic'], lanes:['classic', 'colorblind'], frame:['none'], victory:['confetti'], shape:['classic'], pet:['none'], od:['classic'], combo:['classic'], miss:['classic'], arrow:['classic'], dancer:['neon'], floor:['classic'], orb:['classic'], cursor:['classic'], ptrail:['none']});
+const EQ0 = () => ({skin:'classic', theme:'classic', trail:'none', hit:'sparks', strike:'classic', stage:'classic', lanes:'classic', frame:'none', victory:'confetti', shape:'classic', pet:'none', od:'classic', combo:'classic', miss:'classic', arrow:'classic', dancer:'neon', floor:'classic', orb:'classic', cursor:'classic', ptrail:'none'});
 const RANK0 = () => ({r:1000, g:0, w:0, l:0, peak:1000, sg:0, sw:0, sl:0, speak:1000, season:''});
 const newFid = () => { const A = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'; let s = ''; for(let i = 0; i < 6; i++) s += A[Math.floor(Math.random() * A.length)]; return s; };
 function loadProfile(){
@@ -1239,7 +1276,7 @@ function renderSeasonBox(){
     const s = SEASONS[cur.id];
     el.className = 'seasonbox live'; el.style.setProperty('--scol', s.col);
     el.innerHTML = `<span class="sn" style="color:${s.col}">${s.icon} ${esc(s.name.toUpperCase())} EVENT</span><span class="cd">${cur.preview ? 'ADMIN PREVIEW' : 'ends in ' + fmtCountdown(cur.b - now)}</span><button class="btn sm" id="seasonShop">🛒 EVENT SHOP</button>`;
-    $('#seasonShop').onclick = () => { sfx('click'); shopTab = 'event'; renderShop(); show('shop'); };
+    $('#seasonShop').onclick = () => { sfx('click'); shopGroup = 'highway'; shopTab = 'event'; renderShop(); show('shop'); };
   } else {
     const nx = seasonNext(now), s = nx && SEASONS[nx.id];
     el.className = 'seasonbox'; el.innerHTML = s ? `<span class="sn">NEXT EVENT: ${s.icon} ${esc(s.name.toUpperCase())}</span><span class="cd">starts in ${fmtCountdown(nx.a - now)}</span>` : '';
@@ -2058,11 +2095,11 @@ document.querySelectorAll('.mbtn').forEach(b => {
   b.addEventListener('mouseenter', () => sfx('hover'));
   b.onclick = () => {
     sfx('click'); const go = b.dataset.go;
-    if(go === 'solo' || go === 'duo'){ MODE = go; $('#libTitle').textContent = (go === 'solo' ? 'SOLO' : '2 PLAYERS') + ' · SONG LIBRARY'; renderLib(); show('library'); }
+    if(go === 'solo' || go === 'online') openModes(go); // Update 11: pick Highway, Dance or Pulse first
+    else if(go === 'duo'){ MODE = go; setLibTitle(); renderLib(); show('library'); }
     else if(go === 'settings'){ renderSettings(); show('settings'); }
     else if(go === 'stats'){ renderStats(); show('stats'); }
     else if(go === 'updates'){ renderUpdates(); show('updates'); }
-    else if(go === 'online'){ show('online'); renderOnline(); if((PROF.friends || []).length) startPresence(); }
     else if(go === 'shop'){ renderShop(); show('shop'); }
     else if(go === 'profile'){ renderProfile(); show('profile'); }
     else if(go === 'tour'){ TOURVIEW = null; renderTour(); show('tour'); }
@@ -2279,8 +2316,7 @@ function renderDetail(){
   el.innerHTML = `${r.url && S.artBg ? `<div class="artbg" style="background-image:url('${r.url}')"></div>` : ''}<div class="dhead"><div class="cover" style="${coverStyle(rec)}">${r.url ? '' : initials(rec)}</div>
     <div style="min-width:0"><h3>${esc(rec.title)}</h3><div class="ra">${esc(rec.artist)}</div>
     <div class="chips">${isAnthem(rec) ? '<span class="chip ok">🎬 Music video</span><span class="chip">⭐ Comes with BEATSTORM</span>' : ''}${ready ? `<span class="chip">${fmtTime(rec.dur)}</span><span class="chip">${rec.analysis.bpm} BPM</span>${rec.analysis.swing ? '<span class="chip">Swing</span>' : ''}${ly ? '<span class="chip ok">🎤 Lyrics</span>' : ''}${plays ? `<span class="chip">Played ${plays}×</span>` : ''}` : `<span class="chip">${esc(statusText(rec))}</span>`}</div></div></div>
-    ${nP === 1 && MODE === 'solo' ? `<div class="plabel">HOW TO PLAY IT</div><div class="seg" id="pmSeg">${Object.entries(ALT_INFO).map(([k, m]) => `<button data-m="${k}" class="${pm === k ? 'on' : ''}">${m.icon} ${m.name}${k !== 'highway' ? ' <span class="chip" style="font-size:10px;padding:1px 6px;color:var(--gold)">NEW</span>' : ''}</button>`).join('')}</div>
-      <div class="hint" style="font-size:13px">${ALT_INFO[pm].desc}</div>` : ''}
+    ${nP === 1 && MODE === 'solo' ? `<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span class="chip" style="border-color:${ALT_INFO[pm].col};color:${ALT_INFO[pm].col}">${ALT_INFO[pm].icon} ${ALT_INFO[pm].name.toUpperCase()} MODE</span><button class="btn sm" id="chgMode">🔁 CHANGE MODE</button></div>` : ''}
     ${pickers}
     ${nP === 2 ? `<label class="toggle"><input type="checkbox" id="duoBattle" ${S.duoBattle ? 'checked' : ''}> <span>⚔️ <b>Battle mode</b>: earn items from Overdrive phrases and throw them at your rival</span></label>` : ''}
     <details class="modbox" ${modsOn() ? 'open' : ''}><summary>🧪 <b>MODIFIERS</b> ${modsOn() ? `<span class="chip" style="color:var(--gold)">ON: ${esc(modsLabel())}</span>` : '<span class="hint">off</span>'}</summary>
@@ -2321,7 +2357,7 @@ function renderDetail(){
   el.querySelectorAll('#modSpeed button').forEach(b => b.onclick = () => { S.mods = S.mods || {}; S.mods.rate = +b.dataset.v; saveSettings(); sfx('hover'); renderDetail(); });
   const mo = $('#modOff'); if(mo) mo.onclick = e => { e.preventDefault(); S.mods = {}; saveSettings(); renderDetail(); };
   const picks = () => Array.from({length:nP}, (_, p) => ({inst:S.inst[p] || 'lead', diff:S.pick[p]}));
-  el.querySelectorAll('#pmSeg button').forEach(b => b.onclick = () => { S.playMode = b.dataset.m; saveSettings(); sfx('hover'); renderDetail(); });
+  const cm = $('#chgMode'); if(cm) cm.onclick = () => { stopPreview(); openModes('solo'); };
   const pb = $('#playBtn'); if(pb) pb.onclick = () => { sfx('click'); stopPreview(); SETRUN = null; ALTRUN = pm !== 'highway' ? pm : null; startGame(rec, MODE, picks(), null, null, nP === 2 && S.duoBattle); };
   $('#alSel').onchange = e => {
     const v = e.target.value;
@@ -2932,16 +2968,34 @@ $('#resetStats').onclick = () => { if(!confirm('Reset ALL your stats? Your songs
 // =====================================================================
 // Shop + Profile screens
 // =====================================================================
-let shopTab = 'skin';
-const SHOP_LISTS = {skin:SKINS, lanes:LANESETS, theme:THEMES, shape:HSHAPES, od:ODFX, combo:COMBOS, miss:MISSFX, trail:TRAILS, hit:HITS, strike:STRIKES, stage:STAGES, pet:PETS, banner:BANNERS, frame:FRAMES, victory:VICTORY};
-const SHOP_TABS = [['skin', '🎵 Note skins'], ['lanes', '🌈 Lane colors'], ['theme', '🛣️ Themes'], ['shape', '📐 Highway shapes'], ['od', '⚡ Overdrive effects'], ['combo', '🔢 Combo counters'], ['miss', '💀 Miss effects'], ['pet', '🐾 Stage buddies'], ['trail', '☄️ Note trails'], ['hit', '💥 Hit effects'], ['strike', '🎯 Strike lines'], ['stage', '🎤 Crowd & stage'], ['banner', '🎨 Banners'], ['frame', '🖼️ Card frames'], ['victory', '🏆 Victory']];
-const SHOP_HINTS = {combo:'A big streak counter beside your highway that pops on every hit (it never covers your notes).', miss:'What happens when you miss a note: shattering glass, a skull, a tomato, a sad trombone…', od:'What your highway does while Overdrive is on: lightning, flames, auroras, rainbows and more. Bosses and the Season Pass give exclusive ones.', shape:'The shape of your highway: wider, deeper, flat, curved, a neon tunnel or see-through glass.', pet:'A little buddy next to your highway that dances to the beat, cheers on your streaks and gets sad when you miss.', skin:'How your notes look.',lanes:'The colors of your lanes, notes and targets.', theme:'The color and moving texture of your highway.', trail:'A streak that follows every falling note.', hit:'What bursts out when you hit a note.', strike:'The targets at the bottom of the highway.', stage:'Who\'s in the crowd and what\'s on the stage (needs the festival lights on).', banner:'The background of your profile card. Some are animated!', frame:'A frame around your profile card, seen by everyone online.', victory:'Plays on the results screen when you win (or get 3+ stars on your own). Press ▶ to preview.'};
+let shopTab = 'skin', shopGroup = 'highway';
+// Update 11: the 💃 Dance shop and the ✨ Pulse shop
+const ARROWSK = {classic:{name:'Glossy Arrows', price:0}, flat:{name:'Flat Pop', price:400}, ice:{name:'Ice Arrows', price:600}, candy:{name:'Candy Cane', price:700}, neon:{name:'Neon Outline', price:800}, chrome:{name:'Chrome', price:900}, pixel:{name:'8-Bit Arrows', price:1000}, gold:{name:'Solid Gold', price:1400}};
+const DANCERS = {neon:{name:'Neon Dancer', price:0}, shadow:{name:'Shadow', price:600}, ghost:{name:'Little Ghost', price:700}, cat:{name:'Disco Cat', price:800}, robot:{name:'Robot', price:900}, skeleton:{name:'Skeleton', price:900}, rainbow:{name:'Rainbow Dancer', price:1200}, gold:{name:'Golden King', price:1600}};
+const FLOORS = {classic:{name:'Dark Floor', price:0}, stars:{name:'Starfield', price:700}, sunset:{name:'Sunset Stage', price:800}, disco:{name:'Disco Floor', price:900}, laser:{name:'Laser Show', price:1100}};
+const ORBSK = {classic:{name:'Neon Orb', price:0}, bubble:{name:'Bubble', price:500}, frost:{name:'Frost', price:600}, pixel:{name:'Pixel Block', price:700}, lava:{name:'Lava', price:800}, heart:{name:'Hearts', price:900}, galaxy:{name:'Galaxy', price:1000}, gold:{name:'Gold Coin', price:1300}, disco:{name:'Disco Ball', price:1500}};
+const CURSORS = {classic:{name:'Ring', price:0}, dot:{name:'Dot', price:300}, cross:{name:'Crosshair', price:400}, diamond:{name:'Diamond', price:500}, star:{name:'⭐ Star', price:700}, double:{name:'Spinner', price:800}, flame:{name:'🔥 Flame', price:900}, ghost:{name:'👻 Ghost', price:900}, wand:{name:'🪄 Magic Wand', price:1100}};
+const PTRAILS = {none:{name:'No trail', price:0}, neon:{name:'Neon Streak', price:400}, stars:{name:'Star Dust', price:700}, hearts:{name:'Hearts', price:700}, fire:{name:'Fire Trail', price:800}, rainbow:{name:'Rainbow', price:1000}};
+const SHOP_LISTS = {skin:SKINS, lanes:LANESETS, theme:THEMES, shape:HSHAPES, od:ODFX, combo:COMBOS, miss:MISSFX, trail:TRAILS, hit:HITS, strike:STRIKES, stage:STAGES, pet:PETS, banner:BANNERS, frame:FRAMES, victory:VICTORY,
+  arrow:ARROWSK, dancer:DANCERS, floor:FLOORS, orb:ORBSK, cursor:CURSORS, ptrail:PTRAILS};
+const SHOP_TABS = [['skin', '🎵 Note skins'], ['lanes', '🌈 Lane colors'], ['theme', '🛣️ Themes'], ['shape', '📐 Highway shapes'], ['od', '⚡ Overdrive effects'], ['combo', '🔢 Combo counters'], ['miss', '💀 Miss effects'], ['pet', '🐾 Stage buddies'], ['trail', '☄️ Note trails'], ['hit', '💥 Hit effects'], ['strike', '🎯 Strike lines'], ['stage', '🎤 Crowd & stage'], ['banner', '🎨 Banners'], ['frame', '🖼️ Card frames'], ['victory', '🏆 Victory'],
+  ['arrow', '⬆️ Arrow skins'], ['dancer', '🕺 Dancers'], ['floor', '🪩 Dance floors'], ['orb', '🔵 Orb skins'], ['cursor', '🎯 Cursors'], ['ptrail', '✨ Cursor trails']];
+// which shop each category belongs to (the Highway shop is the original one)
+const SHOP_GROUP = {arrow:'dance', dancer:'dance', floor:'dance', orb:'pulse', cursor:'pulse', ptrail:'pulse'};
+const groupOf = tab => SHOP_GROUP[tab] || 'highway';
+const SHOP_GROUPS = [['highway', '🛣️ Highway shop'], ['dance', '💃 Dance shop'], ['pulse', '✨ Pulse shop']];
+const SHOP_HINTS = {arrow:'💃 Dance Mode: how your arrows look.', dancer:'💃 Dance Mode: the dancer next to your arrows, who strikes a pose on every hit.', floor:'💃 Dance Mode: the floor behind your arrows. Some move to the beat.', orb:'✨ Pulse Mode: how the orbs you click look.', cursor:'✨ Pulse Mode: your cursor.', ptrail:'✨ Pulse Mode: the trail behind your cursor.', combo:'A big streak counter beside your highway that pops on every hit (it never covers your notes).', miss:'What happens when you miss a note: shattering glass, a skull, a tomato, a sad trombone…', od:'What your highway does while Overdrive is on: lightning, flames, auroras, rainbows and more. Bosses and the Season Pass give exclusive ones.', shape:'The shape of your highway: wider, deeper, flat, curved, a neon tunnel or see-through glass.', pet:'A little buddy next to your highway that dances to the beat, cheers on your streaks and gets sad when you miss.', skin:'How your notes look.',lanes:'The colors of your lanes, notes and targets.', theme:'The color and moving texture of your highway.', trail:'A streak that follows every falling note.', hit:'What bursts out when you hit a note.', strike:'The targets at the bottom of the highway.', stage:'Who\'s in the crowd and what\'s on the stage (needs the festival lights on).', banner:'The background of your profile card. Some are animated!', frame:'A frame around your profile card, seen by everyone online.', victory:'Plays on the results screen when you win (or get 3+ stars on your own). Press ▶ to preview.'};
 function isEquipped(tab, id){ return tab === 'banner' ? PROF.banner === id : PROF.equip[tab] === id; }
 function renderShop(){
   $('#shopCoins').textContent = PROF.coins.toLocaleString();
   const cur = seasonNow(), nx = cur ? null : seasonNext(), ev = cur || nx, evS = ev && SEASONS[ev.id];
-  const ownedCount = Object.values(PROF.owned).reduce((s, l) => s + l.length, 0);
-  $('#shopTabs').innerHTML = [['inv', `🎒 Inventory (${ownedCount})`]].concat(SHOP_TABS, ev ? [['event', `${evS.icon} ${cur ? 'Event' : 'Next event'}`]] : []).map(([k, l]) => `<button data-t="${k}" class="${shopTab === k ? 'on' : ''}">${l}</button>`).join('');
+  // 3 shops: Highway (the original), Dance and Pulse. Each has its own categories and its own Inventory.
+  const gTabs = SHOP_TABS.filter(([k]) => groupOf(k) === shopGroup), hw = shopGroup === 'highway';
+  if(shopTab !== 'inv' && !(shopTab === 'event' && hw) && !gTabs.some(([k]) => k === shopTab)) shopTab = gTabs[0][0];
+  const gcol = {highway:'#b56cff', dance:'#ff5fa2', pulse:'#3ef0ff'};
+  $('#shopGroups').innerHTML = SHOP_GROUPS.map(([g, l]) => `<button data-g="${g}" class="${shopGroup === g ? 'on' : ''}" style="--c:${gcol[g]}">${l}</button>`).join('');
+  const ownedCount = gTabs.reduce((s, [k]) => s + PROF.owned[k].filter(id => SHOP_LISTS[k][id]).length, 0);
+  $('#shopTabs').innerHTML = [['inv', `🎒 Inventory (${ownedCount})`]].concat(gTabs, ev && hw ? [['event', `${evS.icon} ${cur ? 'Event' : 'Next event'}`]] : []).map(([k, l]) => `<button data-t="${k}" class="${shopTab === k ? 'on' : ''}">${l}</button>`).join('');
   $('#shopTabs').style.maxWidth = '1400px';
   if(shopTab === 'event' && !ev) shopTab = 'skin';
   // reward items (Season Pass, Tour, bosses, level banners, Prestige) are never for sale
@@ -2949,11 +3003,11 @@ function renderShop(){
   let entries, head = '';
   if(shopTab === 'inv'){
     // 🎒 Inventory: everything you own, by category, where you equip it
-    const cats = SHOP_TABS.filter(([k]) => PROF.owned[k].some(id => SHOP_LISTS[k][id]));
-    if(!cats.some(([k]) => k === invCat)) invCat = cats[0] ? cats[0][0] : 'skin';
+    const cats = gTabs.filter(([k]) => PROF.owned[k].some(id => SHOP_LISTS[k][id]));
+    if(!cats.some(([k]) => k === invCat)) invCat = cats[0] ? cats[0][0] : gTabs[0][0];
     head = `<div class="invcat"><div class="seg" id="invCats">${cats.map(([k, l]) => `<button data-ic="${k}" class="${invCat === k ? 'on' : ''}">${l} · ${PROF.owned[k].filter(id => SHOP_LISTS[k][id]).length}</button>`).join('')}</div></div>`;
     entries = PROF.owned[invCat].filter(id => SHOP_LISTS[invCat][id]).map(id => [invCat, id, SHOP_LISTS[invCat][id]]);
-    $('#shopHint').textContent = `Everything you own: ${ownedCount} items. Pick a category, then press EQUIP. Items you buy in the shop show up here.`;
+    $('#shopHint').textContent = `Everything you own for ${SHOP_GROUPS.find(g => g[0] === shopGroup)[1].replace(/ shop$/, '')}: ${ownedCount} items. Pick a category, then press EQUIP. Items you buy in this shop show up here.`;
   } else if(shopTab === 'event'){
     entries = [];
     for(const [tab] of SHOP_TABS) for(const [id, it] of Object.entries(SHOP_LISTS[tab])) if(it.season === ev.id && !PROF.owned[tab].includes(id)) entries.push([tab, id, it]);
@@ -2975,6 +3029,7 @@ function renderShop(){
         : `<button class="btn sm primary" data-tab="${tab}" data-buy="${id}" ${PROF.coins < it.price ? 'disabled' : ''}>🪙 ${it.price.toLocaleString()}</button>`}</div>`;
   }).join('');
   document.querySelectorAll('#shopTabs button').forEach(b => b.onclick = () => { shopTab = b.dataset.t; sfx('hover'); renderShop(); });
+  document.querySelectorAll('#shopGroups button').forEach(b => b.onclick = () => { if(shopGroup === b.dataset.g) return; shopGroup = b.dataset.g; shopTab = SHOP_TABS.find(([k]) => groupOf(k) === shopGroup)[0]; sfx('click'); renderShop(); });
   document.querySelectorAll('[data-ic]').forEach(b => b.onclick = () => { invCat = b.dataset.ic; sfx('hover'); renderShop(); });
   document.querySelectorAll('.sprev').forEach(c => drawShopPreview(c, c.dataset.tab, c.dataset.id));
   document.querySelectorAll('[data-eq]').forEach(b => b.onclick = () => { equip(b.dataset.tab, b.dataset.eq); });
@@ -3000,6 +3055,13 @@ function equip(tab, id){ if(tab === 'banner') PROF.banner = id; else PROF.equip[
 function drawShopPreview(c, tab, id){
   const x = c.getContext('2d'), w = c.width, h = c.height;
   x.fillStyle = '#0c0818'; x.fillRect(0, 0, w, h);
+  // the Dance and Pulse shops (Update 11)
+  if(tab === 'arrow'){ for(let l = 0; l < 4; l++){ x.save(); x.translate(45 + l * 70, l % 2 ? 62 : 90); x.rotate(ARROW_ROT[l]); x.drawImage(arrowSprite(LANE_COLORS[l], 'note', id), -30, -30, 60, 60); x.restore(); } return; }
+  if(tab === 'dancer'){ [[60, '0'], [150, '2'], [240, '3']].forEach(([cx, p], i) => drawDancerFigure(x, cx, h - 18, 118, POSES[p], POSES[p], 1, LANE_COLORS[[0, 2, 3][i]], 0, id, 2000)); return; }
+  if(tab === 'floor'){ const f = {w:(w - 20) / 4, x0:10}; drawDanceFloor(x, f, h, 3.3, .6, id); for(let l = 0; l < 4; l++){ x.save(); x.translate(f.x0 + (l + .5) * f.w, 34); x.rotate(ARROW_ROT[l]); x.drawImage(arrowSprite(LANE_COLORS[l], 'target', 'classic'), -24, -24, 48, 48); x.restore(); } return; }
+  if(tab === 'orb'){ [[70, 75, 0, 1], [150, 60, 1, 2], [230, 90, 2, 3]].forEach(([cx, cy, ci, num]) => { drawOrb(x, cx, cy, 30, PULSE_COLS[ci], id, 1500); x.fillStyle = id === 'frost' || id === 'bubble' || id === 'disco' ? '#10101c' : '#fff'; x.font = '900 22px Orbitron, sans-serif'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText(num, cx, cy + 1); }); return; }
+  if(tab === 'cursor'){ drawOrb(x, 190, 75, 32, PULSE_COLS[0], PROF.equip.orb || 'classic', 0); x.fillStyle = '#fff'; x.font = '900 22px Orbitron, sans-serif'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText('1', 190, 76); x.save(); x.scale(1.6, 1.6); drawCursor(x, 70, 47, id, false, 1000); x.restore(); return; }
+  if(tab === 'ptrail'){ const pts = []; for(let i = 0; i < 14; i++) pts.push([40 + i * 16, 75 + Math.sin(i * .55) * 35]); drawCursorTrail(x, pts, id, 900); drawCursor(x, pts[13][0], pts[13][1], PROF.equip.cursor || 'classic', false, 0); return; }
   if(tab === 'skin'){
     for(let l = 0; l < 5; l++) paintGem(x, l, l === 4, false, id, 34 + l * 58, l % 2 ? 62 : 92, 24);
     return;
@@ -4168,6 +4230,13 @@ function renderQuests(){
 // Update log
 // =====================================================================
 const UPDATES = [
+  {v:'v11.0', name:'UPDATE 11 · GAME MODES & NEW SHOPS', date:'November 2026', items:[
+    '<b>🎮 Game mode screen</b>: Solo and Online now start with a choice of 3 game modes: 🛣️ Highway, 💃 Dance and ✨ Pulse. Hover a card to see the mode in action. Your song library is shared by every mode, and each mode keeps its own best scores.',
+    '<b>✨ Pulse Mode, rebuilt from scratch</b>: numbered orbs pop up in a dark play area. A pulse ring closes in on each one: click (or press Z / X) when it touches the orb. ⚡ orbs are held until their band fills up. Orbs are bigger, there are fewer of them close together, and a dotted line shows where the next one is. Clicking empty space is never an overhit.',
+    '<b>🌐 Dance and Pulse online</b>: the host picks the room\'s game mode in the lobby, and everyone plays it. Battle items and bosses stay Highway only.',
+    '<b>🛒 3 shops</b>: the original shop is now the 🛣️ Highway shop. The new 💃 Dance shop sells arrow skins, dancers and dance floors, and the ✨ Pulse shop sells orb skins, cursors and cursor trails. Each shop has its own 🎒 Inventory, and you can gift and trade the new items too.',
+    'The Solo song panel shows your game mode with a 🔁 CHANGE MODE button.'
+  ]},
   {v:'v10.0', name:'UPDATE 10 · PULSE & DANCE', date:'November 2026', items:[
     '<b>✨ Pulse Mode</b>: a new way to play any song. Your notes become beacons on a star map. A comet flies along a line of light to each beacon: aim with the mouse (or tap with a finger) and click (or press Z / X) right when it arrives. The hexagon fills up like a clock so you can see the timing.',
     '<b>Pulse beacons</b>: ⚡ charges (click and hold until the ring is full), ➤ flicks (swipe through it in the arrow\'s direction, or press the matching arrow key) and 💥 bursts in the quiet parts (tap as many times as you can before it ends).',
@@ -4602,9 +4671,92 @@ let ALTRUN = null;
 const ALT_INFO = {
   highway:{icon:'🛣️', name:'Highway', desc:'The classic: notes come down the highway.'},
   dance:{icon:'💃', name:'Dance', desc:'4 arrows (← ↓ ↑ →) rise up to the targets. Your dancer copies every move.'},
-  pulse:{icon:'✨', name:'Pulse', desc:'Aim and click: a comet flies to each beacon, hit it when it arrives. Hold ⚡ charges, flick ➤ arrows, tap 💥 bursts. Every part of the song draws a constellation.'}
+  pulse:{icon:'✨', name:'Pulse', desc:'Aim and click: orbs pop up on the screen. Click each one when its pulse ring closes onto it. Hold the ⚡ ones.'}
 };
 const playMode = () => ALT_INFO[S.playMode] ? S.playMode : 'highway';
+Object.assign(ALT_INFO.highway, {col:'#b56cff', long:'Notes fly down a 3D highway. Hit them on the line with your lane keys. Overdrive, fire streaks and the full festival.', keys:'⌨️ Lane keys · 🎮 Gamepad · 📱 Touch'});
+Object.assign(ALT_INFO.dance, {col:'#ff5fa2', long:'Four arrows rise to the targets at the top. Press the matching arrow when they line up, and your neon dancer pulls a move.', keys:'⌨️ Arrow keys or lane keys · 📱 Touch'});
+Object.assign(ALT_INFO.pulse, {col:'#3ef0ff', long:'Numbered orbs pop up on the screen. Aim, and click each one when its pulse ring closes onto it. Hold the ⚡ ones.', keys:'🖱️ Mouse + click or Z / X · 📱 Tap'});
+// ---- Update 11: the GAME MODE screen (after Solo or Online) ----
+let MODESFOR = 'solo';
+function setLibTitle(){ const m = ALT_INFO[playMode()]; $('#libTitle').textContent = MODE === 'duo' ? '2 PLAYERS · SONG LIBRARY' : `SOLO · ${m.icon} ${m.name.toUpperCase()} · SONG LIBRARY`; }
+function openModes(forWhat){
+  MODESFOR = forWhat;
+  $('#gmTitle').textContent = forWhat === 'online' ? '🌐 ONLINE · CHOOSE A GAME MODE' : '▶ SOLO · CHOOSE A GAME MODE';
+  $('#gmSub').textContent = forWhat === 'online' ? 'Everyone in your room plays the same mode. Your library works in every mode.' : 'Your song library is the same in every mode. Each mode keeps its own best scores and has its own shop.';
+  const last = playMode();
+  $('#gmGrid').innerHTML = Object.entries(ALT_INFO).map(([k, m]) => `<button class="gmcard" data-gm="${k}" style="--c:${m.col}">${k === last ? '<span class="glast">LAST PLAYED</span>' : ''}
+    <canvas width="480" height="300" data-gmc="${k}"></canvas>
+    <div class="gtop"><span class="gi">${m.icon}</span><h3>${m.name.toUpperCase()}</h3></div>
+    <div class="gd">${m.long}</div><div class="gm"><span class="chip">${m.keys}</span></div>
+    <div class="gplay">▶ PLAY ${m.name.toUpperCase()}</div></button>`).join('');
+  document.querySelectorAll('.gmcard').forEach(b => {
+    const c = b.querySelector('canvas'), k = b.dataset.gm; let raf = 0, t0 = 0;
+    drawModePreview(c, k, 1.2);
+    const loop = now => { drawModePreview(c, k, 1.2 + (now - t0) / 1000); raf = requestAnimationFrame(loop); };
+    const start = () => { if(raf) return; sfx('hover'); t0 = performance.now(); raf = requestAnimationFrame(loop); };
+    const stop = () => { cancelAnimationFrame(raf); raf = 0; };
+    b.addEventListener('mouseenter', start); b.addEventListener('focus', start);
+    b.addEventListener('mouseleave', stop); b.addEventListener('blur', stop);
+    b.onclick = () => { stop(); pickMode(k); };
+  });
+  show('modes');
+}
+function pickMode(k){
+  S.playMode = k; saveSettings(); sfx('click');
+  if(MODESFOR === 'online'){ show('online'); renderOnline(); if((PROF.friends || []).length) startPresence(); }
+  else { MODE = 'solo'; setLibTitle(); renderLib(); show('library'); }
+}
+// the little looping animation on each mode card
+function drawModePreview(c, mode, tm){
+  const x = c.getContext('2d'), W = c.width, H = c.height;
+  x.clearRect(0, 0, W, H); x.fillStyle = '#07040f'; x.fillRect(0, 0, W, H);
+  const beat = .5, ph = (tm % beat) / beat;
+  if(mode === 'highway'){
+    const top = 40, bot = H - 40, wT = 90, wB = 300, cx = W / 2, L = 4;
+    const at = (lane, z) => { const y = top + (bot - top) * z, w = wT + (wB - wT) * z; return {x:cx - w / 2 + (lane + .5) * w / L, y, s:.35 + .65 * z}; };
+    x.fillStyle = '#140c2c'; x.beginPath(); x.moveTo(cx - wT / 2, top); x.lineTo(cx + wT / 2, top); x.lineTo(cx + wB / 2, bot); x.lineTo(cx - wB / 2, bot); x.closePath(); x.fill();
+    x.strokeStyle = 'rgba(181,108,255,.4)'; x.lineWidth = 1.5;
+    for(let l = 0; l <= L; l++){ x.beginPath(); x.moveTo(cx - wT / 2 + l * wT / L, top); x.lineTo(cx - wB / 2 + l * wB / L, bot); x.stroke(); }
+    for(let i = 0; i < 6; i++){ const z = ((i * .37 + tm * .55) % 1); x.strokeStyle = `rgba(255,255,255,${.08 * z})`; x.beginPath(); const a = at(0, z), b = at(L - 1, z); x.moveTo(a.x - 40 * z, a.y); x.lineTo(b.x + 40 * z, b.y); x.stroke(); }
+    const hitY = bot - 22;
+    for(let l = 0; l < L; l++){ const p = at(l, (hitY - top) / (bot - top)); x.strokeStyle = LANE_COLORS[l]; x.lineWidth = 3; x.beginPath(); x.ellipse(p.x, p.y, 22, 8, 0, 0, Math.PI * 2); x.stroke(); }
+    for(let i = 0; i < 10; i++){
+      const t = (i * .41 + tm * .7) % 1.6; if(t > 1.05) continue;
+      const l = (i * 3) % L, p = at(l, t * (hitY - top) / (bot - top)), sz = 22 * p.s;
+      x.fillStyle = LANE_COLORS[l]; x.beginPath(); x.ellipse(p.x, p.y, sz, sz * .38, 0, 0, Math.PI * 2); x.fill(); x.fillStyle = 'rgba(255,255,255,.7)'; x.beginPath(); x.ellipse(p.x, p.y - 2, sz * .5, sz * .14, 0, 0, Math.PI * 2); x.fill();
+      if(t > .97){ x.globalCompositeOperation = 'lighter'; x.drawImage(glowSprite(hexToRgb(LANE_COLORS[l])), p.x - 40, p.y - 40, 80, 80); x.globalCompositeOperation = 'source-over'; }
+    }
+  } else if(mode === 'dance'){
+    const w = 70, x0 = W / 2 - w * 2 + 50, ty = 52;
+    for(let l = 0; l < 4; l++){ const ax = x0 + (l + .5) * w; x.save(); x.translate(ax, ty); x.rotate(ARROW_ROT[l]); x.drawImage(arrowSprite(LANE_COLORS[l], 'target'), -30, -30, 60, 60); x.restore(); }
+    for(let i = 0; i < 9; i++){
+      const t = (i * .33 + tm * .5) % 1.5; if(t > 1) continue;
+      const l = [0, 2, 1, 3, 2, 0, 3, 1, 2][i], ax = x0 + (l + .5) * w, ay = ty + (1 - t) * (H - ty + 30);
+      x.save(); x.translate(ax, ay); x.rotate(ARROW_ROT[l]); x.drawImage(arrowSprite(LANE_COLORS[l], 'note'), -30, -30, 60, 60); x.restore();
+    }
+    // the dancer on the left, switching poses on the beat
+    const pose = ['0', '2', '1', '3'][Math.floor(tm / beat) % 4];
+    drawDancerFigure(x, 64, H - 50, 150, POSES[pose], POSES[pose], 1, LANE_COLORS[+pose], ph < .2 ? (1 - ph / .2) : 0, PROF.equip.dancer || 'neon', tm * 1000);
+  } else {
+    const pts = [[.25, .35], [.5, .62], [.72, .32], [.4, .3], [.62, .7]], period = .7, n = pts.length;
+    const cur = Math.floor(tm / period), R = 26;
+    let cx = 0, cy = 0;
+    for(let j = 2; j >= 0; j--){
+      const i = cur + j, [px, py] = pts[i % n], X = px * W, Y = py * H, k = 1 - (((i + 1) * period) - tm) / (period * 2.2);
+      if(k < 0) continue;
+      x.globalAlpha = clamp(k / .25, 0, 1);
+      drawOrb(x, X, Y, R, PULSE_COLS[Math.floor(i / 3) % 5], PROF.equip.orb || 'classic', tm * 1000);
+      x.fillStyle = '#fff'; x.font = '900 20px Orbitron, sans-serif'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText(i % 3 + 1, X, Y + 1);
+      if(k < 1){ x.strokeStyle = PULSE_COLS[Math.floor(i / 3) % 5]; x.lineWidth = 3; x.beginPath(); x.arc(X, Y, R * (1 + 2.4 * (1 - k)), 0, Math.PI * 2); x.stroke(); }
+      x.globalAlpha = 1;
+    }
+    // the cursor glides to the next orb
+    const a = pts[(cur + n - 1) % n], b = pts[cur % n], f = clamp((tm % period) / period * 1.6, 0, 1), e = 1 - (1 - f) * (1 - f);
+    cx = (a[0] + (b[0] - a[0]) * e) * W; cy = (a[1] + (b[1] - a[1]) * e) * H;
+    drawCursor(x, cx, cy, PROF.equip.cursor || 'classic', f > .9, tm * 1000);
+  }
+}
 // the screen area each mode uses (the HUD, combo counter and pet place themselves around it)
 function altGeo(){
   const fw = G.alt === 'dance' ? (CW < 640 ? CW * .94 : Math.min(CW * .5, 440)) : Math.min(CW * .8, CH * 1.45); // phones: Dance uses the full width (thumb-sized columns)
@@ -4627,190 +4779,226 @@ function prepareAlt(p){
     resetLanes(p, 4);
   } else if(G.alt === 'pulse'){
     p.notes = buildPulse(p.notes, p.diff); resetLanes(p, 1);
-    G.pulse = {lit:[], con:-1, conT:0, cx:CW / 2, cy:CH / 2, trail:[], hist:[], R:Math.max(TOUCH.used ? 26 : 14, Math.min(CW, CH) * ({easy:.058, medium:.052, hard:.047, expert:.042}[p.diff] || .05) * (TOUCH.used ? 1.3 : 1)), app:{easy:1.5, medium:1.2, hard:.95, expert:.8}[p.diff] || 1.1};
+    G.pulse = {cx:CW / 2, cy:CH / 2, trail:[], fx:[], down:false, diff:p.diff, app:PULSE_APP[p.diff] || 1.1};
   }
   p.times = p.notes.map(n => n.t); p.phSize = phraseSizes(p.notes); p.ideal = idealScore(p.notes); p.next = 0; p.rstart = 0;
 }
-// ---- ✨ PULSE: the song's notes become beacons on a star map ----
+// ---- ✨ PULSE (rebuilt in Update 11): orbs pop up, a pulse ring closes in, click when it touches the orb ----
+const PULSE_APP = {easy:1.35, medium:1.1, hard:.9, expert:.75};      // seconds an orb is on screen before its moment
+const PULSE_GAP = {easy:.5, medium:.34, hard:.24, expert:.17};        // the shortest time between two orbs
+const PULSE_SIZE = {easy:.085, medium:.075, hard:.066, expert:.058}; // orb size (part of the play area)
+const PULSE_COLS = ['#3ef0ff', '#ff5fa2', '#ffd23f', '#8dff8a', '#b56cff'];
 function buildPulse(notes, diff){
-  const R = rng(G.rec.id + ':pulse:' + diff), out = [], secs = G.an.sections || [];
+  // the same song always gets the same layout (for everyone online too)
+  const R = rng(String(G.rec.title || G.rec.id) + ':' + Math.round(G.dur || 0) + ':pulse2:' + diff), out = [], secs = G.an.sections || [];
   const secOf = t => { let k = 0; secs.forEach((s, i) => { if(t >= s.t) k = i; }); return k; };
-  let x = .5, y = .5, ang = R() * 6.28, prevT = -9, prevLane = 0, con = -1, idx = 0, lastSec = -1;
-  for(let i = 0; i < notes.length; i++){
-    const n = notes[i]; if(i > 0 && Math.abs(n.t - notes[i - 1].t) < .003) continue; // a chord is one beacon
-    const gap = n.t - prevT, sec = secOf(n.t);
-    // a long quiet gap gets a 💥 burst core in the middle of the screen
-    if(prevT > 0 && gap > 2.8) out.push({kind:'burst', t0:prevT + .7, t:n.t - .8, x:.5, y:.5, lane:0, len:0, ph:-1, j:0, hold:0, need:Math.max(4, Math.round((n.t - .8 - prevT - .7) * 3.2)), clicks:0, con});
-    // every part of the song starts a new constellation somewhere else on the map
-    if(sec !== lastSec || gap > 2.8){ con++; lastSec = sec; x = .2 + R() * .6; y = .25 + R() * .5; ang = R() * 6.28; idx = 0; }
-    else {
-      const dist = clamp(gap * .33, .07, .34);
-      ang += (n.lane - prevLane) * .55 + (R() - .5) * .9;
-      let nx = x + Math.cos(ang) * dist, ny = y + Math.sin(ang) * dist * .9;
-      if(nx < .06 || nx > .94){ ang = Math.PI - ang; nx = x + Math.cos(ang) * dist; }
-      if(ny < .08 || ny > .92){ ang = -ang; ny = y + Math.sin(ang) * dist * .9; }
-      x = clamp(nx, .06, .94); y = clamp(ny, .08, .92);
+  const minGap = PULSE_GAP[diff] || .3, spd = {easy:.26, medium:.32, hard:.38, expert:.44}[diff] || .32, maxD = {easy:.24, medium:.3, hard:.36, expert:.4}[diff] || .3;
+  let x = .5, y = .5, ang = R() * 6.28, freeAt = -9, lastT = -9, lastSec = -1, grp = -1, num = 0;
+  for(const n of notes){
+    if(n.t < freeAt) continue; // too close to the last orb (or still holding one): leave it out, so it's never a wall of orbs
+    const gap = n.t - lastT, sec = secOf(n.t);
+    if(sec !== lastSec || gap > 1.6 || num >= 8){
+      // a new group: new color, numbers start at 1 again
+      grp++; num = 0; lastSec = sec;
+      if(gap > 1.6 || lastT < 0){ x = .2 + R() * .6; y = .25 + R() * .5; }
+    } else {
+      const dist = clamp(gap * spd, .12, maxD);
+      ang += (R() - .5) * 1.5;
+      let nx = x + Math.cos(ang) * dist, ny = y + Math.sin(ang) * dist;
+      if(nx < .08 || nx > .92){ ang = Math.PI - ang; nx = x + Math.cos(ang) * dist; }
+      if(ny < .1 || ny > .9){ ang = -ang; ny = y + Math.sin(ang) * dist; }
+      x = clamp(nx, .08, .92); y = clamp(ny, .1, .9);
     }
-    let nj = i + 1; while(nj < notes.length && notes[nj].t - n.t < .003) nj++; // the next beacon (skip the rest of a chord)
-    const after = nj < notes.length ? notes[nj].t - n.t : 9, canFlick = gap > .22 && after > .22, roll = R();
-    // long notes become ⚡ charges; songs without long notes still get some on a pause after a note
-    const kind = n.len >= .35 ? 'charge' : after >= .6 && gap > .2 && roll < .35 ? 'charge' : canFlick && roll > .9 ? 'flick' : 'tap';
-    const len = kind !== 'charge' ? 0 : n.len >= .35 ? n.len : Math.round(clamp(after * .45, .3, 1.2) * 1000) / 1000;
-    out.push({t:n.t, x, y, kind, len, ph:n.ph, lane:0, col:n.lane, dir:ang, j:0, hold:0, con, idx:idx++});
-    prevT = n.t + (kind === 'charge' ? n.len : 0); prevLane = n.lane;
+    const hold = n.len >= .4, len = hold ? Math.min(n.len, 3) : 0;
+    out.push({t:n.t, x, y, kind:hold ? 'hold' : 'tap', len, ph:n.ph, lane:0, col:grp % PULSE_COLS.length, num:++num, j:0, hold:0});
+    lastT = n.t; freeAt = n.t + len + minGap;
   }
-  return out.sort((a, b) => a.t - b.t);
+  return out;
 }
-function pulseField(){ const fw = Math.min(CW * .82, CH * 1.45), fh = CH * .64; return {x0:CW / 2 - fw / 2, y0:CH * .2, w:fw, h:fh}; }
+function pulseField(){ const fw = Math.min(CW * .88, CH * 1.4), fh = CH * .6; return {x0:CW / 2 - fw / 2, y0:CH * .21, w:fw, h:fh}; }
 const pulseXY = (f, n) => ({x:f.x0 + n.x * f.w, y:f.y0 + n.y * f.h});
-// a click (or Z / X / a lane key) where the cursor is
+function pulseR(f){ const P = G.pulse; return Math.max(TOUCH.used ? 26 : 18, Math.min(f.w, f.h) * (PULSE_SIZE[P.diff] || .07) * (TOUCH.used ? 1.15 : 1)); }
+// a click (or Z / X / a lane key) where the cursor is: hits the earliest orb under the cursor.
+// Clicking empty space does nothing (it's never an overhit in Pulse).
 function pulsePress(p, t){
-  const P = G.pulse, f = pulseField(), win = WIN.o * G.rate;
-  P.down = true;
-  let best = null, bd = 1, onFlick = false;
-  for(let i = p.next; i < p.notes.length; i++){
-    const n = p.notes[i]; if(n.t > t + win && n.kind !== 'burst') break;
-    if(n.j) continue;
-    if(n.kind === 'burst'){
-      if(t >= n.t0 && t <= n.t){ const c = pulseXY(f, n); if(Math.hypot(P.cx - c.x, P.cy - c.y) < P.R * 2.6){ n.clicks++; sfx('tick'); addParticles(c.x + (Math.random() - .5) * P.R, c.y + (Math.random() - .5) * P.R, '#ffd23f', 6, 260); return; } }
-      continue;
-    }
-    const c = pulseXY(f, n), d = Math.abs(n.t - t);
-    if(n.kind === 'flick'){ if(d <= win && Math.hypot(P.cx - c.x, P.cy - c.y) <= P.R * 1.6) onFlick = true; continue; } // a click to start a swipe is never an overhit
-    if(d <= win && d < bd && Math.hypot(P.cx - c.x, P.cy - c.y) <= P.R * 1.35){ bd = d; best = n; }
-  }
-  p.pressed[0] = true; p.press[0] = 1;
-  if(best) hitNote(p, best, 0, t, bd); else if(!onFlick) ghostTap(p, t);
-}
-function pulseRelease(p, t){ G.pulse.down = false; release(p, 0, t); }
-// ➤ flicks: swipe through the beacon in the arrow's direction (or press the arrow key that matches)
-function pulseFlick(p, t, dirAng, segA, segB){
-  const P = G.pulse, f = pulseField(), win = WIN.o * G.rate * 1.3;
+  const P = G.pulse, f = pulseField(), R = pulseR(f), win = WIN.o * G.rate;
+  P.down = true; p.pressed[0] = true; p.press[0] = 1;
   for(let i = p.next; i < p.notes.length; i++){
     const n = p.notes[i]; if(n.t > t + win) break;
-    if(n.j || n.kind !== 'flick' || Math.abs(n.t - t) > win) continue;
-    let dA = Math.abs(((dirAng - n.dir) % (Math.PI * 2) + Math.PI * 3) % (Math.PI * 2) - Math.PI);
-    if(dA > .9) continue;
-    if(segA){ const c = pulseXY(f, n), dx = segB.x - segA.x, dy = segB.y - segA.y, L2 = dx * dx + dy * dy || 1, k = clamp(((c.x - segA.x) * dx + (c.y - segA.y) * dy) / L2, 0, 1);
-      if(Math.hypot(segA.x + dx * k - c.x, segA.y + dy * k - c.y) > P.R * 1.6) continue; }
-    hitNote(p, n, 0, t, Math.abs(n.t - t) / 1.3); return true;
+    if(n.j || Math.abs(n.t - t) > win) continue;
+    const c = pulseXY(f, n);
+    if(Math.hypot(P.cx - c.x, P.cy - c.y) <= R * 1.35){ hitNote(p, n, 0, t, Math.abs(n.t - t)); return; }
   }
-  return false;
 }
-// judge the 💥 bursts when they end, and keep the cursor trail
+function pulseRelease(p, t){ G.pulse.down = false; release(p, 0, t); }
 function pulseTick(t){
-  const p = G.players[0];
-  // autoplay: the cursor glides to the next beacon by itself
-  if(G.auto){ const P = G.pulse; let n = null; for(let i = p.next; i < p.notes.length; i++){ const m = p.notes[i]; if(!m.j || m.hold === 1){ n = m; break; } } if(n){ const c = pulseXY(pulseField(), n), k = n.hold === 1 ? 1 : .18; P.cx += (c.x - P.cx) * k; P.cy += (c.y - P.cy) * k; } }
-  for(let i = p.next; i < p.notes.length; i++){
-    const n = p.notes[i]; if(n.kind !== 'burst'){ if(n.t > t + 5) break; continue; }
-    if(n.j || t < n.t) continue;
-    if(G.auto) n.clicks = n.need;
-    const k = n.clicks / n.need, w = WIN.o * G.rate;
-    if(k >= 1) hitNote(p, n, 0, n.t, 0); else if(k >= .6) hitNote(p, n, 0, n.t, WIN.g * G.rate * .95); else if(k >= .3) hitNote(p, n, 0, n.t, w * .95); else missNote(p, n);
+  const p = G.players[0], P = G.pulse;
+  // autoplay: the cursor glides to the next orb by itself
+  if(G.auto){ let n = null; for(let i = p.next; i < p.notes.length; i++){ const m = p.notes[i]; if(!m.j){ n = m; break; } } if(n){ const c = pulseXY(pulseField(), n); P.cx += (c.x - P.cx) * .2; P.cy += (c.y - P.cy) * .2; } }
+}
+// what the orb looks like (🛒 Pulse shop: orb skins)
+function drawOrb(x, cx, cy, R, col, skin, now){
+  x.save();
+  const ring = (w, s) => { x.lineWidth = w; x.strokeStyle = s; x.beginPath(); x.arc(cx, cy, R, 0, Math.PI * 2); x.stroke(); };
+  const disc = f => { x.fillStyle = f; x.beginPath(); x.arc(cx, cy, R, 0, Math.PI * 2); x.fill(); };
+  const grad = (a, b) => { const g = x.createRadialGradient(cx - R * .35, cy - R * .4, R * .1, cx, cy, R); g.addColorStop(0, a); g.addColorStop(1, b); return g; };
+  switch(skin){
+    case 'bubble': disc(grad('rgba(255,255,255,.55)', hexA(col, .35))); ring(3, '#fff'); x.fillStyle = 'rgba(255,255,255,.8)'; x.beginPath(); x.ellipse(cx - R * .38, cy - R * .42, R * .22, R * .12, -.6, 0, Math.PI * 2); x.fill(); break;
+    case 'gold': disc(grad('#fff6c8', '#b8860b')); ring(5, col); ring(2, '#fff3b0'); break;
+    case 'frost': disc(grad('#ffffff', '#7fd6ff')); x.strokeStyle = 'rgba(255,255,255,.9)'; x.lineWidth = 2; for(let i = 0; i < 6; i++){ const a = i * Math.PI / 3; x.beginPath(); x.moveTo(cx, cy); x.lineTo(cx + Math.cos(a) * R * .8, cy + Math.sin(a) * R * .8); x.stroke(); } ring(4, col); break;
+    case 'lava': { const fl = .5 + .5 * Math.sin(now / 90 + cx); disc(grad('#fff1a0', `rgb(${200 + fl * 55},${50 + fl * 40},20)`)); ring(4, '#ff3b1f'); break; }
+    case 'galaxy': { disc(grad('#7a4dff', '#12062e')); x.fillStyle = '#fff'; for(let i = 0; i < 7; i++){ const a = i * 2.4 + now / 1500, r = R * (.2 + (i % 3) * .22); x.fillRect(cx + Math.cos(a) * r - 1, cy + Math.sin(a) * r - 1, 2, 2); } ring(4, col); break; }
+    case 'pixel': { const s = R * .9; x.fillStyle = '#10101c'; x.fillRect(cx - s, cy - s, s * 2, s * 2); x.lineWidth = 5; x.strokeStyle = col; x.strokeRect(cx - s, cy - s, s * 2, s * 2); x.fillStyle = col; const q = s / 3; [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([a, b]) => x.fillRect(cx + a * (s - q / 2) - q / 2, cy + b * (s - q / 2) - q / 2, q, q)); break; }
+    case 'heart': { x.translate(cx, cy + R * .1); x.scale(R / 16, R / 16); x.beginPath(); x.moveTo(0, 12); x.bezierCurveTo(-26, -6, -12, -22, 0, -10); x.bezierCurveTo(12, -22, 26, -6, 0, 12); x.closePath(); x.fillStyle = '#ff4d8d'; x.fill(); x.lineWidth = 2.5; x.strokeStyle = '#fff'; x.stroke(); break; }
+    case 'disco': { disc(grad('#ffffff', '#8a8aa0')); x.save(); x.beginPath(); x.arc(cx, cy, R, 0, Math.PI * 2); x.clip(); const s = R / 3; for(let gx = -3; gx < 3; gx++) for(let gy = -3; gy < 3; gy++){ const lit = Math.sin(now / 120 + gx * 2 + gy * 3) > .6; x.fillStyle = lit ? PULSE_COLS[(gx + gy + 9) % 5] : 'rgba(40,40,60,.35)'; x.fillRect(cx + gx * s + 1, cy + gy * s + 1, s - 2, s - 2); } x.restore(); ring(3, col); break; }
+    default: disc('rgba(10,6,24,.9)'); ring(6, col); x.lineWidth = 2; x.strokeStyle = 'rgba(255,255,255,.9)'; x.beginPath(); x.arc(cx, cy, R - 6, 0, Math.PI * 2); x.stroke();
   }
+  x.restore();
+}
+// the cursor (🛒 Pulse shop: cursors) and its trail (🛒 Pulse shop: cursor trails)
+function drawCursor(x, cx, cy, skin, down, now){
+  const col = down ? '#ffd23f' : '#ffffff';
+  x.save(); x.lineCap = 'round';
+  const em = {flame:'🔥', ghost:'👻', star:'⭐', wand:'🪄'}[skin];
+  if(em){ x.font = '30px sans-serif'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText(em, cx, cy); x.fillStyle = col; x.fillRect(cx - 1.5, cy - 1.5, 3, 3); x.restore(); return; }
+  x.strokeStyle = col; x.lineWidth = 3; x.shadowColor = 'rgba(0,0,0,.8)'; x.shadowBlur = 4;
+  if(skin === 'cross'){ for(const [a, b] of [[1, 0], [-1, 0], [0, 1], [0, -1]]){ x.beginPath(); x.moveTo(cx + a * 5, cy + b * 5); x.lineTo(cx + a * 16, cy + b * 16); x.stroke(); } }
+  else if(skin === 'dot'){ x.fillStyle = col; x.beginPath(); x.arc(cx, cy, 9, 0, Math.PI * 2); x.fill(); x.strokeStyle = '#3ef0ff'; x.stroke(); }
+  else if(skin === 'diamond'){ x.beginPath(); x.moveTo(cx, cy - 15); x.lineTo(cx + 15, cy); x.lineTo(cx, cy + 15); x.lineTo(cx - 15, cy); x.closePath(); x.stroke(); }
+  else if(skin === 'double'){ x.beginPath(); x.arc(cx, cy, 15, 0, Math.PI * 2); x.stroke(); x.strokeStyle = '#ff5fa2'; x.beginPath(); x.arc(cx, cy, 8, now / 200, now / 200 + 4.5); x.stroke(); }
+  else { x.beginPath(); x.arc(cx, cy, 14, 0, Math.PI * 2); x.stroke(); }
+  x.shadowBlur = 0; x.fillStyle = col; x.fillRect(cx - 1.5, cy - 1.5, 3, 3);
+  x.restore();
+}
+function drawCursorTrail(x, pts, skin, now){
+  if(skin === 'none' || pts.length < 2) return;
+  x.save(); x.lineCap = 'round'; x.lineJoin = 'round';
+  if(skin === 'stars' || skin === 'hearts'){
+    x.textAlign = 'center'; x.textBaseline = 'middle';
+    pts.forEach(([px, py], i) => { if(i % 2) return; x.globalAlpha = i / pts.length; x.font = `${8 + i}px sans-serif`; x.fillText(skin === 'stars' ? '✦' : '♥', px, py); });
+  } else {
+    x.globalCompositeOperation = 'lighter';
+    for(let i = 1; i < pts.length; i++){
+      const k = i / pts.length;
+      x.strokeStyle = skin === 'rainbow' ? `hsla(${(now / 4 + i * 25) % 360},100%,60%,${k})` : skin === 'fire' ? `rgba(255,${Math.round(80 + k * 150)},40,${k})` : `rgba(62,240,255,${k * .8})`;
+      x.lineWidth = (skin === 'fire' ? 10 : 6) * k; x.beginPath(); x.moveTo(pts[i - 1][0], pts[i - 1][1]); x.lineTo(pts[i][0], pts[i][1]); x.stroke();
+    }
+  }
+  x.restore();
 }
 function drawPulse(p, t, now){
-  const P = G.pulse, f = pulseField(), R = P.R, app = P.app * G.rate, calm = S.lights !== 'full';
-  const invis = fxOn(p, 'invisible'), sudden = fxOn(p, 'sudden');
-  // the star map: a faint grid of tiny stars inside the field
-  ctx.fillStyle = 'rgba(5,3,14,.45)'; roundRect(f.x0 - 20, f.y0 - 20, f.w + 40, f.h + 40, 24); ctx.fill();
-  ctx.strokeStyle = 'rgba(160,140,255,.12)'; ctx.lineWidth = 1; roundRect(f.x0 - 20, f.y0 - 20, f.w + 40, f.h + 40, 24); ctx.stroke();
-  // which constellation is being drawn right now
-  let cur = -1; for(let i = p.next; i < p.notes.length; i++){ const n = p.notes[i]; if(n.t - app <= t){ cur = n.con; } break; }
-  if(cur >= 0 && cur !== P.con){ P.con = cur; P.conT = now; }
-  ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.lineCap = 'round';
-  // the constellation you have lit so far (older ones fade away)
-  const lit = P.lit;
-  for(let i = 0; i < lit.length; i++){
-    const s = lit[i], age = s.con === P.con ? 0 : (now - P.conT) / 1200; if(age >= 1) continue;
-    const a = (1 - age) * (.3 + .2 * Math.sin(now / 400 + i)) * (i >= lit.length - 3 ? 1.8 : 1); // dim, so the beacons stay easy to read (the newest stars shine brighter)
-    const prev = lit[i - 1]; if(prev && prev.con === s.con){ ctx.strokeStyle = `rgba(190,220,255,${(1 - age) * .3})`; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(prev.x, prev.y); ctx.lineTo(s.x, s.y); ctx.stroke(); }
-    const sz = R * .5; ctx.globalAlpha = a; ctx.drawImage(dotSprite(hexToRgb(LANE_COLORS[s.col % 5])), s.x - sz, s.y - sz, sz * 2, sz * 2); ctx.globalAlpha = 1;
-  }
-  compact(lit, s => s.con === P.con || now - P.conT < 1200);
-  if(lit.length > 40) lit.splice(0, lit.length - 40);
-  ctx.restore();
-  // beacons coming up: latest first, so the next one is drawn on top
+  const P = G.pulse, f = pulseField(), R = pulseR(f), app = P.app * G.rate;
+  const invis = fxOn(p, 'invisible'), sudden = fxOn(p, 'sudden'), skin = PROF.equip.orb || 'classic';
+  // a dark play area, so the orbs are always easy to see (even over the music video)
+  ctx.fillStyle = 'rgba(4,2,12,.72)'; roundRect(f.x0 - R * 1.4, f.y0 - R * 1.4, f.w + R * 2.8, f.h + R * 2.8, 26); ctx.fill();
+  ctx.strokeStyle = 'rgba(160,140,255,.18)'; ctx.lineWidth = 1.5; roundRect(f.x0 - R * 1.4, f.y0 - R * 1.4, f.w + R * 2.8, f.h + R * 2.8, 26); ctx.stroke();
+  // the orbs on screen right now
   const vis = [];
-  for(let i = Math.max(0, lowerBound(p.times, t - .5) - 2); i < p.notes.length; i++){
-    const n = p.notes[i], start = (n.kind === 'burst' ? n.t0 : n.t) - app;
-    if(start > t) { if(n.t - 6 > t) break; continue; }
-    if(n.j && n.j !== 'm' && !(n.hold === 1)) continue;
-    if(t > n.t + n.len + .35) continue;
+  for(let i = Math.max(0, p.next - 3); i < p.notes.length; i++){
+    const n = p.notes[i]; if(n.t - app > t) break;
+    if(n.j && n.hold !== 1) continue;
+    if(t > n.t + n.len + WIN.o * G.rate) { if(!n.j) vis.push(n); continue; }
     vis.push(n);
   }
+  // a faint line from each orb to the next one, so you know where to go
+  ctx.save(); ctx.setLineDash([4, 10]); ctx.lineWidth = 3; ctx.lineCap = 'round';
+  for(let i = 0; i + 1 < vis.length; i++){ const a = pulseXY(f, vis[i]), b = pulseXY(f, vis[i + 1]), d = Math.hypot(b.x - a.x, b.y - a.y); if(d < R * 2.2) continue;
+    ctx.strokeStyle = 'rgba(255,255,255,.22)'; const ux = (b.x - a.x) / d, uy = (b.y - a.y) / d; ctx.beginPath(); ctx.moveTo(a.x + ux * R * 1.1, a.y + uy * R * 1.1); ctx.lineTo(b.x - ux * R * 1.1, b.y - uy * R * 1.1); ctx.stroke(); }
+  ctx.restore();
+  // later orbs underneath, the next orb on top
   for(let v = vis.length - 1; v >= 0; v--){
-    const n = vis[v], c = pulseXY(f, n), k = clamp(1 - (n.t - t) / app, 0, 1), col = LANE_COLORS[n.col % 5] || '#3ef0ff';
-    let alpha = clamp((t - (n.t - app)) / .18, 0, 1);
-    if(n.j === 'm') alpha *= clamp(1 - (t - n.t) / .35, 0, 1);
-    if(invis) alpha *= clamp((.78 - k) / .2, 0, 1); // Hidden: the beacon fades out before the comet arrives
-    if(sudden) alpha *= clamp((k - .55) / .12, 0, 1);
+    const n = vis[v], c = pulseXY(f, n), col = PULSE_COLS[n.col], k = clamp(1 - (n.t - t) / app, 0, 1);
+    let alpha = clamp(k / .25, 0, 1);
+    if(invis) alpha *= clamp((.7 - k) / .15, 0, 1);  // Hidden: the orb fades out before its moment
+    if(sudden) alpha *= clamp((k - .5) / .1, 0, 1);   // Surprise: it shows up late
+    const held = n.hold === 1;
+    if(held) alpha = 1;
     if(alpha <= .01) continue;
     ctx.globalAlpha = alpha;
-    if(n.kind === 'burst'){
-      // 💥 a big core: tap it again and again until it ends
-      const live = t >= n.t0 && t <= n.t, fill = clamp(n.clicks / n.need, 0, 1), rr = R * (2.1 + (live ? .12 * Math.sin(now / 60) : 0));
-      ctx.globalCompositeOperation = 'lighter'; ctx.drawImage(glowSprite([255, 180, 60]), c.x - rr * 1.8, c.y - rr * 1.8, rr * 3.6, rr * 3.6); ctx.globalCompositeOperation = 'source-over';
-      ctx.fillStyle = 'rgba(30,12,4,.75)'; ctx.beginPath(); ctx.arc(c.x, c.y, rr, 0, Math.PI * 2); ctx.fill();
-      ctx.strokeStyle = '#ffd23f'; ctx.lineWidth = 5; ctx.beginPath(); ctx.arc(c.x, c.y, rr, -Math.PI / 2, -Math.PI / 2 + fill * Math.PI * 2); ctx.stroke();
-      ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#fff'; ctx.font = `900 ${Math.round(R * .55)}px Orbitron, sans-serif`;
-      ctx.fillText(live ? `💥 ${n.clicks}/${n.need}` : t < n.t0 ? 'GET READY' : '', c.x, c.y - R * .2);
-      ctx.font = `800 ${Math.round(R * .32)}px Orbitron, sans-serif`; ctx.fillStyle = '#ffd23f'; ctx.fillText(live ? 'TAP TAP TAP!' : '', c.x, c.y + R * .55);
-      ctx.globalAlpha = 1; continue;
+    if(n.kind === 'hold'){
+      // a hold orb: a thick outer band, filling up while you hold
+      ctx.lineWidth = 8; ctx.strokeStyle = 'rgba(255,255,255,.15)'; ctx.beginPath(); ctx.arc(c.x, c.y, R * 1.32, 0, Math.PI * 2); ctx.stroke();
+      if(held){ const hk = clamp((t - n.t) / n.len, 0, 1); ctx.strokeStyle = '#ffd23f'; ctx.beginPath(); ctx.arc(c.x, c.y, R * 1.32, -Math.PI / 2, -Math.PI / 2 + hk * Math.PI * 2); ctx.stroke(); }
     }
-    // the line of light from the previous beacon, with the comet flying along it
-    const prev = p.notes[p.notes.indexOf(n) - 1];
-    const from = prev && prev.con === n.con && prev.kind !== 'burst' ? pulseXY(f, prev) : {x:c.x, y:f.y0 - 30};
-    ctx.save(); ctx.globalCompositeOperation = 'lighter';
-    ctx.strokeStyle = hexA(col, .25); ctx.lineWidth = 2; ctx.setLineDash([6, 8]); ctx.beginPath(); ctx.moveTo(from.x, from.y); ctx.lineTo(c.x, c.y); ctx.stroke(); ctx.setLineDash([]);
-    if(!n.j){ const mx = from.x + (c.x - from.x) * k, my = from.y + (c.y - from.y) * k, cs = R * .55;
-      ctx.strokeStyle = hexA(col, .7); ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(from.x + (c.x - from.x) * Math.max(0, k - .25), from.y + (c.y - from.y) * Math.max(0, k - .25)); ctx.lineTo(mx, my); ctx.stroke();
-      ctx.drawImage(dotSprite([255, 255, 255]), mx - cs, my - cs, cs * 2, cs * 2); }
-    ctx.restore(); ctx.globalAlpha = alpha;
-    // the beacon: a hexagon that fills up like a clock until its moment
-    const hex = (r) => { ctx.beginPath(); for(let s = 0; s <= 6; s++){ const a = s * Math.PI / 3 - Math.PI / 2; const hx = c.x + Math.cos(a) * r, hy = c.y + Math.sin(a) * r; s ? ctx.lineTo(hx, hy) : ctx.moveTo(hx, hy); } };
-    if(k > .7 && !n.j){ ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = alpha * (k - .7) * 2.5; ctx.drawImage(glowSprite(hexToRgb(col)), c.x - R * 2, c.y - R * 2, R * 4, R * 4); ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = alpha; }
-    ctx.fillStyle = n.j === 'm' ? 'rgba(60,60,70,.6)' : 'rgba(10,6,24,.82)'; hex(R); ctx.fill();
-    ctx.strokeStyle = n.j === 'm' ? '#666' : col; ctx.lineWidth = n.kind === 'charge' ? 5 : 3; hex(R); ctx.stroke();
-    if(n.kind === 'charge'){ ctx.lineWidth = 2; hex(R * 1.22); ctx.stroke(); }
-    if(!n.j){ ctx.strokeStyle = '#fff'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(c.x, c.y, R * .62, -Math.PI / 2, -Math.PI / 2 + k * Math.PI * 2); ctx.stroke(); }
-    if(n.ph >= 0 && !p.phFail.has(n.ph) && !n.j){ ctx.strokeStyle = 'rgba(223,248,255,.8)'; ctx.lineWidth = 1.5; hex(R * 1.12); ctx.stroke(); } // part of an Overdrive phrase
-    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    if(n.kind === 'flick'){ ctx.save(); ctx.translate(c.x, c.y); ctx.rotate(n.dir); ctx.fillStyle = col; ctx.beginPath(); ctx.moveTo(R * .5, 0); ctx.lineTo(-R * .25, -R * .38); ctx.lineTo(-R * .1, 0); ctx.lineTo(-R * .25, R * .38); ctx.closePath(); ctx.fill(); ctx.restore(); }
-    else if(n.kind === 'charge'){
-      ctx.font = `900 ${Math.round(R * .6)}px sans-serif`; ctx.fillStyle = col; ctx.fillText('⚡', c.x, c.y + 1);
-      if(n.hold === 1){ const hk = clamp((t - n.t) / n.len, 0, 1); ctx.strokeStyle = '#ffd23f'; ctx.lineWidth = 6; ctx.beginPath(); ctx.arc(c.x, c.y, R * 1.45, -Math.PI / 2, -Math.PI / 2 + hk * Math.PI * 2); ctx.stroke(); ctx.font = `800 ${Math.round(R * .3)}px Orbitron, sans-serif`; ctx.fillStyle = '#ffd23f'; ctx.fillText('HOLD!', c.x, c.y + R * 1.8); }
-    } else { ctx.fillStyle = col; ctx.beginPath(); ctx.arc(c.x, c.y, R * .22, 0, Math.PI * 2); ctx.fill(); }
+    drawOrb(ctx, c.x, c.y, R, col, skin, now);
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = skin === 'frost' || skin === 'bubble' || skin === 'disco' ? '#10101c' : '#fff';
+    ctx.font = `900 ${Math.round(R * .78)}px Orbitron, sans-serif`;
+    ctx.fillText(n.kind === 'hold' ? '⚡' : n.num, c.x, c.y + 2);
+    if(held){ ctx.font = `800 ${Math.round(R * .34)}px Orbitron, sans-serif`; ctx.fillStyle = '#ffd23f'; ctx.fillText('HOLD!', c.x, c.y + R * 1.75); }
+    if(n.ph >= 0 && !p.phFail.has(n.ph) && !n.j){ ctx.strokeStyle = 'rgba(223,248,255,.85)'; ctx.lineWidth = 2; ctx.setLineDash([3, 5]); ctx.beginPath(); ctx.arc(c.x, c.y, R + 9, now / 400, now / 400 + Math.PI * 2); ctx.stroke(); ctx.setLineDash([]); } // part of an Overdrive phrase
+    // the pulse ring: closes in from far out and touches the orb right on the beat
+    if(!n.j && k < 1){
+      const rr = R * (1 + 2.4 * (1 - k));
+      ctx.lineWidth = 4; ctx.strokeStyle = col; ctx.globalAlpha = alpha * (.5 + .5 * k);
+      ctx.beginPath(); ctx.arc(c.x, c.y, rr, 0, Math.PI * 2); ctx.stroke();
+    }
     ctx.globalAlpha = 1;
   }
-  // flashlight modifier: only the area around the cursor
-  if(fxOn(p, 'flashlight')){ const g = ctx.createRadialGradient(P.cx, P.cy, R * 2, P.cx, P.cy, R * 5); g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(0,0,0,.94)'); ctx.fillStyle = g; ctx.fillRect(0, 0, CW, CH); }
-  // the cursor: a small reticle with a short light trail
-  if(!TOUCH.used){
-    P.trail.push([P.cx, P.cy]); if(P.trail.length > 10) P.trail.shift();
-    ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.strokeStyle = 'rgba(62,240,255,.35)'; ctx.lineWidth = 3; ctx.beginPath(); P.trail.forEach(([x, y], i) => i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); ctx.stroke(); ctx.restore();
-    ctx.strokeStyle = P.down ? '#ffd23f' : '#fff'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(P.cx, P.cy, 9, 0, Math.PI * 2); ctx.stroke();
-    ctx.fillStyle = '#fff'; ctx.fillRect(P.cx - 1, P.cy - 1, 2, 2);
+  // hit and miss bursts
+  compact(P.fx, e => now - e.at < 380);
+  for(const e of P.fx){
+    const a = 1 - (now - e.at) / 380;
+    ctx.globalAlpha = a;
+    if(e.miss){ ctx.strokeStyle = '#ff4d6d'; ctx.lineWidth = 5; const s = R * .5; ctx.beginPath(); ctx.moveTo(e.x - s, e.y - s); ctx.lineTo(e.x + s, e.y + s); ctx.moveTo(e.x + s, e.y - s); ctx.lineTo(e.x - s, e.y + s); ctx.stroke(); }
+    else { ctx.strokeStyle = e.col; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(e.x, e.y, R * (1 + (1 - a) * .8), 0, Math.PI * 2); ctx.stroke(); }
+    ctx.globalAlpha = 1;
+  }
+  // Flashlight modifier: only the area around the cursor
+  if(fxOn(p, 'flashlight')){ const g = ctx.createRadialGradient(P.cx, P.cy, R * 2.2, P.cx, P.cy, R * 5.5); g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(0,0,0,.94)'); ctx.fillStyle = g; ctx.fillRect(0, 0, CW, CH); }
+  // the cursor and its trail (not on touch screens: your finger is the cursor)
+  if(!TOUCH.used || G.auto){
+    P.trail.push([P.cx, P.cy]); if(P.trail.length > 14) P.trail.shift();
+    drawCursorTrail(ctx, P.trail, PROF.equip.ptrail || 'none', now);
+    drawCursor(ctx, P.cx, P.cy, PROF.equip.cursor || 'classic', P.down, now);
   }
 }
 // ---- 💃 DANCE: arrows rise up to the targets at the top, and a dancer copies your moves ----
 function danceField(g){ const w = Math.min((g ? g.wNear : CW * .5) / 4, 110); return {w, x0:CW / 2 - w * 2, top:CH * .24, bottom:CH * 1.02}; }
 const ARROW_ROT = [Math.PI, Math.PI / 2, -Math.PI / 2, 0]; // ← ↓ ↑ →
-function arrowSprite(col, kind){
-  return sprite('arr' + col + kind, 128, 128, (x, w) => {
+// the arrows (🛒 Dance shop: arrow skins)
+function arrowSprite(col, kind, skin){
+  skin = skin || PROF.equip.arrow || 'classic';
+  return sprite('arr' + col + kind + skin, 128, 128, (x, w) => {
     x.translate(64, 64); const s = 46;
-    x.beginPath(); x.moveTo(s, 0); x.lineTo(0, -s); x.lineTo(0, -s * .45); x.lineTo(-s, -s * .45); x.lineTo(-s, s * .45); x.lineTo(0, s * .45); x.lineTo(0, s); x.closePath();
+    const path = () => { x.beginPath(); x.moveTo(s, 0); x.lineTo(0, -s); x.lineTo(0, -s * .45); x.lineTo(-s, -s * .45); x.lineTo(-s, s * .45); x.lineTo(0, s * .45); x.lineTo(0, s); x.closePath(); };
+    path();
     if(kind === 'target'){ x.lineWidth = 7; x.strokeStyle = 'rgba(255,255,255,.55)'; x.stroke(); x.lineWidth = 3; x.strokeStyle = col; x.stroke(); return; }
-    const g = x.createLinearGradient(-s, -s, s, s); g.addColorStop(0, '#ffffff'); g.addColorStop(.35, col); g.addColorStop(1, mixHex(col, '#000000', .45));
-    x.fillStyle = kind === 'miss' ? '#555' : g; x.fill(); x.lineWidth = 5; x.strokeStyle = 'rgba(255,255,255,.9)'; x.stroke();
+    if(kind === 'miss'){ x.fillStyle = '#555'; x.fill(); x.lineWidth = 5; x.strokeStyle = 'rgba(255,255,255,.5)'; x.stroke(); return; }
+    const lin = stops => { const g = x.createLinearGradient(-s, -s, s, s); stops.forEach((c, i) => g.addColorStop(i / (stops.length - 1), c)); return g; };
+    switch(skin){
+      case 'flat': x.fillStyle = col; x.fill(); x.lineWidth = 7; x.strokeStyle = '#fff'; x.stroke(); break;
+      case 'candy': x.fillStyle = col; x.fill(); x.save(); x.clip(); x.strokeStyle = 'rgba(255,255,255,.55)'; x.lineWidth = 9; for(let i = -120; i < 120; i += 24){ x.beginPath(); x.moveTo(i, -60); x.lineTo(i + 60, 60); x.stroke(); } x.restore(); path(); x.lineWidth = 5; x.strokeStyle = '#fff'; x.stroke(); break;
+      case 'gold': x.fillStyle = lin(['#fff6c8', '#e0b020', '#7a5200']); x.fill(); x.lineWidth = 6; x.strokeStyle = col; x.stroke(); break;
+      case 'chrome': x.fillStyle = lin(['#ffffff', '#a8b0c0', '#454a5a', '#dde2ee']); x.fill(); x.lineWidth = 6; x.strokeStyle = col; x.stroke(); break;
+      case 'ice': x.fillStyle = 'rgba(200,240,255,.5)'; x.fill(); x.lineWidth = 5; x.strokeStyle = '#e8fbff'; x.stroke(); x.lineWidth = 2; x.strokeStyle = col; x.stroke(); break;
+      case 'neon': x.fillStyle = 'rgba(10,6,24,.75)'; x.fill(); x.shadowColor = col; x.shadowBlur = 16; x.lineWidth = 7; x.strokeStyle = col; x.stroke(); x.shadowBlur = 0; x.lineWidth = 2; x.strokeStyle = '#fff'; x.stroke(); break;
+      case 'pixel': { const q = 10; for(let gx = -5; gx < 5; gx++) for(let gy = -5; gy < 5; gy++){ const px = gx * q + q / 2, py = gy * q + q / 2; if(!x.isPointInPath(px + 64, py + 64)) continue; x.fillStyle = (gx + gy) % 3 ? col : mixHex(col, '#ffffff', .4); x.fillRect(gx * q, gy * q, q, q); x.strokeStyle = 'rgba(0,0,0,.35)'; x.lineWidth = 1; x.strokeRect(gx * q, gy * q, q, q); } break; }
+      default: x.fillStyle = lin(['#ffffff', col, mixHex(col, '#000000', .45)]); x.fill(); x.lineWidth = 5; x.strokeStyle = 'rgba(255,255,255,.9)'; x.stroke();
+    }
   });
+}
+// the floor behind the arrows (🛒 Dance shop: dance floors)
+function drawDanceFloor(x, f, H, t, pulse, skin){
+  const W = f.w * 4 + 20, x0 = f.x0 - 10;
+  x.save(); x.beginPath(); x.rect(x0, 0, W, H); x.clip();
+  switch(skin){
+    case 'disco': { x.fillStyle = 'rgba(8,4,18,.75)'; x.fillRect(x0, 0, W, H); const s = f.w / 2, beat = Math.floor(t * 2);
+      for(let gx = 0; gx < 8; gx++) for(let gy = 0; gy * s < H; gy++){ const lit = ((gx * 7 + gy * 13 + beat * 5) % 6) === 0; if(!lit) continue; x.fillStyle = hexA(LANE_COLORS[(gx + gy) % 5], .22 + pulse * .2); x.fillRect(f.x0 + gx * s + 2, gy * s + 2, s - 4, s - 4); } break; }
+    case 'laser': { x.fillStyle = 'rgba(4,2,14,.78)'; x.fillRect(x0, 0, W, H); x.strokeStyle = `rgba(255,61,139,${.25 + pulse * .3})`; x.lineWidth = 1.5; const off = (t * 120) % 40;
+      for(let y = -40 + off; y < H; y += 40){ x.beginPath(); x.moveTo(x0, y); x.lineTo(x0 + W, y); x.stroke(); }
+      for(let i = 0; i < 3; i++){ const a = Math.sin(t * 1.3 + i * 2) * .6; x.strokeStyle = hexA(LANE_COLORS[i + 1], .35); x.lineWidth = 3; x.beginPath(); x.moveTo(x0 + W / 2, H); x.lineTo(x0 + W / 2 + Math.sin(a) * H, H - Math.cos(a) * H); x.stroke(); } break; }
+    case 'stars': { x.fillStyle = 'rgba(2,2,10,.82)'; x.fillRect(x0, 0, W, H); for(let i = 0; i < 60; i++){ const sx = x0 + ((i * 97) % W), sy = ((i * 53 + t * (20 + i % 5 * 12)) % H); x.fillStyle = `rgba(255,255,255,${.3 + (i % 4) * .15})`; x.fillRect(sx, sy, 2, 2); } break; }
+    case 'sunset': { const g = x.createLinearGradient(0, 0, 0, H); g.addColorStop(0, 'rgba(40,10,60,.85)'); g.addColorStop(.6, 'rgba(160,40,90,.6)'); g.addColorStop(1, 'rgba(255,140,60,.55)'); x.fillStyle = g; x.fillRect(x0, 0, W, H);
+      x.fillStyle = `rgba(255,210,63,${.25 + pulse * .2})`; x.beginPath(); x.arc(x0 + W / 2, H * .92, W * .28, Math.PI, 0); x.fill(); break; }
+    default: x.fillStyle = 'rgba(5,3,14,.55)'; x.fillRect(x0, 0, W, H);
+  }
+  x.restore();
+  for(let l = 0; l < 4; l++){ x.fillStyle = l % 2 ? 'rgba(255,255,255,.025)' : 'rgba(255,255,255,.045)'; x.fillRect(f.x0 + l * f.w, 0, f.w, H); }
 }
 function drawDance(p, g, t, now){
   const f = danceField(g), look = lookFor(p), map = laneMap(p), span = f.bottom - f.top;
   const invis = fxOn(p, 'invisible'), sudden = fxOn(p, 'sudden'), {pulse} = beatInfo(t);
-  ctx.fillStyle = 'rgba(5,3,14,.55)'; ctx.fillRect(f.x0 - 10, 0, f.w * 4 + 20, CH);
-  for(let l = 0; l < 4; l++){ ctx.fillStyle = l % 2 ? 'rgba(255,255,255,.025)' : 'rgba(255,255,255,.045)'; ctx.fillRect(f.x0 + l * f.w, 0, f.w, CH); }
+  drawDanceFloor(ctx, f, CH, t, S.lights === 'off' ? 0 : pulse, PROF.equip.floor || 'classic');
   // the targets at the top: they light up when you press, and flash on a hit
   for(let l = 0; l < 4; l++){
     const x = f.x0 + (l + .5) * f.w, s = f.w * .86 * (1 + p.press[map.indexOf(l)] * .08 + (S.lights === 'off' ? 0 : pulse * .05));
@@ -4852,20 +5040,43 @@ function drawDancer(p, f, t, now, pulse){
   const D = G.dancer || (G.dancer = {pose:'idle', from:'idle', t0:0}), cx = room / 2, base = CH * .78;
   const k = clamp((now - D.t0) / 130, 0, 1), e = 1 - (1 - k) * (1 - k), A = POSES[D.from], B = POSES[now - D.t0 > 650 ? 'idle' : D.pose];
   if(now - D.t0 > 650 && D.pose !== 'idle'){ D.from = D.pose; D.pose = 'idle'; D.t0 = now; }
+  drawDancerFigure(ctx, cx, base, H, A, B, e, D.col || '#3ef0ff', S.lights === 'off' ? 0 : pulse, PROF.equip.dancer || 'neon', now);
+}
+// the dancer itself (🛒 Dance shop: dancers). A and B are poses, e blends from A to B.
+function drawDancerFigure(x, cx, base, H, A, B, e, col, bobK, skin, now){
   const mix = (a, b) => a + (b - a) * e, P = key => [mix(A[key][0], B[key][0]), mix(A[key][1], B[key][1])];
-  const bob = (S.lights === 'off' ? 0 : pulse) * H * .04, sq = mix(A.sq, B.sq) * H * .3, lean = mix(A.lean, B.lean);
+  const bob = bobK * H * .04, sq = mix(A.sq, B.sq) * H * .3, lean = mix(A.lean, B.lean);
   const s = H * .42, hip = {x:cx + lean * s, y:base - s * 1.05 + sq + bob}, neck = {x:hip.x + lean * s * .6, y:hip.y - s * 1.05}, head = {x:neck.x + lean * s * .2, y:neck.y - s * .32};
-  const col = D.col || '#3ef0ff';
-  ctx.save(); ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-  ctx.globalCompositeOperation = 'lighter'; ctx.drawImage(glowSprite(hexToRgb(col)), cx - s * 1.6, hip.y - s * 1.6, s * 3.2, s * 3.2); ctx.globalCompositeOperation = 'source-over';
-  const limb = (from, v, len) => { const x = from.x + v[0] * len, y = from.y + v[1] * len; ctx.moveTo(from.x, from.y); ctx.lineTo(x, y); };
-  ctx.strokeStyle = col; ctx.lineWidth = Math.max(4, s * .1); ctx.beginPath();
-  ctx.moveTo(hip.x, hip.y); ctx.lineTo(neck.x, neck.y);
+  // each dancer has its own colors and head
+  const look = {
+    neon:{body:col, line:'#fff', glow:col},
+    robot:{body:'#9aa6bf', line:col, glow:col, head:'box'},
+    cat:{body:'#ffb36b', line:'#fff', glow:'#ffb36b', head:'cat'},
+    ghost:{body:'rgba(235,240,255,.85)', line:'#ffffff', glow:'#c9d6ff', head:'ghost'},
+    skeleton:{body:'#f4f0e6', line:'#222', glow:'#ffffff', head:'skull'},
+    rainbow:{body:`hsl(${(now / 6) % 360},100%,60%)`, line:'#fff', glow:`hsl(${(now / 6 + 180) % 360},100%,60%)`},
+    gold:{body:'#ffd23f', line:'#fff6c8', glow:'#ffb000', head:'crown'},
+    shadow:{body:'#120a22', line:col, glow:col}
+  }[skin] || {body:col, line:'#fff', glow:col};
+  x.save(); x.lineCap = 'round'; x.lineJoin = look.head === 'box' ? 'miter' : 'round';
+  const gc = look.glow.startsWith('#') ? hexToRgb(look.glow) : hexToRgb(col);
+  x.globalCompositeOperation = 'lighter'; x.drawImage(glowSprite(gc), cx - s * 1.6, hip.y - s * 1.6, s * 3.2, s * 3.2); x.globalCompositeOperation = 'source-over';
+  const limb = (from, v, len) => { x.moveTo(from.x, from.y); x.lineTo(from.x + v[0] * len, from.y + v[1] * len); };
+  x.strokeStyle = look.body; x.lineWidth = Math.max(4, s * (look.head === 'box' ? .14 : .1)); x.beginPath();
+  x.moveTo(hip.x, hip.y); x.lineTo(neck.x, neck.y);
   limb(neck, P('la'), s * .8); limb(neck, P('ra'), s * .8); limb(hip, P('ll'), s * 1.05); limb(hip, P('rl'), s * 1.05);
-  ctx.stroke(); ctx.lineWidth = Math.max(1.5, s * .03); ctx.strokeStyle = '#fff'; ctx.stroke();
-  ctx.fillStyle = col; ctx.beginPath(); ctx.arc(head.x, head.y, s * .22, 0, Math.PI * 2); ctx.fill(); ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.stroke();
-  ctx.fillStyle = 'rgba(255,255,255,.12)'; ctx.beginPath(); ctx.ellipse(cx, base + 6, s * .9, s * .12, 0, 0, Math.PI * 2); ctx.fill();
-  ctx.restore();
+  x.stroke(); x.lineWidth = Math.max(1.5, s * .03); x.strokeStyle = look.line; x.stroke();
+  const hr = s * .22;
+  x.fillStyle = look.body; x.strokeStyle = look.line; x.lineWidth = 2;
+  if(look.head === 'box'){ x.fillRect(head.x - hr, head.y - hr, hr * 2, hr * 2); x.strokeRect(head.x - hr, head.y - hr, hr * 2, hr * 2); x.fillStyle = col; x.fillRect(head.x - hr * .6, head.y - hr * .2, hr * 1.2, hr * .35); x.beginPath(); x.moveTo(head.x, head.y - hr); x.lineTo(head.x, head.y - hr * 1.6); x.stroke(); }
+  else {
+    x.beginPath(); x.arc(head.x, head.y, hr, 0, Math.PI * 2); x.fill(); x.stroke();
+    if(look.head === 'cat'){ x.beginPath(); x.moveTo(head.x - hr * .9, head.y - hr * .3); x.lineTo(head.x - hr * .6, head.y - hr * 1.5); x.lineTo(head.x - hr * .1, head.y - hr * .9); x.moveTo(head.x + hr * .9, head.y - hr * .3); x.lineTo(head.x + hr * .6, head.y - hr * 1.5); x.lineTo(head.x + hr * .1, head.y - hr * .9); x.fill(); x.stroke(); }
+    if(look.head === 'skull' || look.head === 'ghost'){ x.fillStyle = '#111'; x.beginPath(); x.arc(head.x - hr * .38, head.y - hr * .1, hr * .22, 0, Math.PI * 2); x.arc(head.x + hr * .38, head.y - hr * .1, hr * .22, 0, Math.PI * 2); x.fill(); }
+    if(look.head === 'crown'){ x.fillStyle = '#ffd23f'; x.beginPath(); x.moveTo(head.x - hr, head.y - hr * .7); x.lineTo(head.x - hr, head.y - hr * 1.6); x.lineTo(head.x - hr * .5, head.y - hr * 1.1); x.lineTo(head.x, head.y - hr * 1.7); x.lineTo(head.x + hr * .5, head.y - hr * 1.1); x.lineTo(head.x + hr, head.y - hr * 1.6); x.lineTo(head.x + hr, head.y - hr * .7); x.closePath(); x.fill(); x.strokeStyle = '#fff6c8'; x.stroke(); }
+  }
+  x.fillStyle = 'rgba(255,255,255,.12)'; x.beginPath(); x.ellipse(cx, base + 6, s * .9, s * .12, 0, 0, Math.PI * 2); x.fill();
+  x.restore();
 }
 function dancerPose(pose, col){ const D = G.dancer || (G.dancer = {pose:'idle', from:'idle', t0:0}); D.from = D.pose; D.pose = pose; D.t0 = performance.now(); if(col) D.col = col; }
 // the burst of light when a note is hit in Dance or Pulse
@@ -4875,9 +5086,9 @@ function altHit(p, n, lane, grade){
     const f = danceField(p.geo), c = laneMap(p)[n.lane], x = f.x0 + (c + .5) * f.w;
     addParticles(x, f.top, LANE_COLORS[c], FXQ === 'high' ? 16 : 8, 300); dancerPose(c, LANE_COLORS[c]);
   } else {
-    const P = G.pulse, f = pulseField(), c = pulseXY(f, n);
-    addParticles(c.x, c.y, LANE_COLORS[n.col % 5] || col, FXQ === 'high' ? 22 : 10, 340);
-    if(n.kind !== 'burst') P.lit.push({x:c.x, y:c.y, col:n.col || 0, con:n.con});
+    const P = G.pulse, f = pulseField(), c = pulseXY(f, n), pc = PULSE_COLS[n.col] || col;
+    addParticles(c.x, c.y, pc, FXQ === 'high' ? 18 : 8, 300);
+    P.fx.push({x:c.x, y:c.y, col:pc, at:performance.now()});
   }
 }
 // =====================================================================
@@ -5217,7 +5428,7 @@ async function startGame(rec, mode, picks, practice, online, battle){
   const rp = REPLAY_PLAY; REPLAY_PLAY = null; // watching a saved replay
   const tut = TUTRUN; TUTRUN = null; // the tutorial for new players
   // Dance / Pulse mode: only for normal 1-player songs
-  const alt = !online && !practice && !bossRun && !ghost && !rp && !edTest && !tut && mode === 'solo' && (ALTRUN === 'dance' || ALTRUN === 'pulse') ? ALTRUN : null; ALTRUN = null;
+  const alt = !practice && !bossRun && !ghost && !rp && !edTest && !tut && (mode === 'solo' || mode === 'online') && (ALTRUN === 'dance' || ALTRUN === 'pulse') ? ALTRUN : null; ALTRUN = null;
   // modifiers only in normal Solo / 2 Players songs (never online, in bosses, the Tour, ghost races or Practice; Mirror/Hidden/Surprise/Flashlight/speed also work in Dance and Pulse)
   const mods = !online && !practice && !bossRun && !ghost && !rp && !edTest && !TOURRUN && !tut && modsOn() ? Object.assign({}, S.mods) : null;
   if(mods && alt === 'pulse') mods.mirror = false;
@@ -5257,9 +5468,8 @@ async function startGame(rec, mode, picks, practice, online, battle){
   G.players.forEach(p => {
     if(p.ghost) return; // the ghost is played by its replay, not by keys
     if(G.alt === 'pulse'){
-      // Pulse: Z, X and your lane keys "click" where the cursor is; the arrow keys flick
+      // Pulse: Z, X and your lane keys "click" where the cursor is
       for(const c of ['KeyZ', 'KeyX'].concat(p.keys.lanes)) if(!G.keymap[c]) G.keymap[c] = {p:p.i, pulse:true};
-      ['ArrowRight', 'ArrowDown', 'ArrowLeft', 'ArrowUp'].forEach((c, i) => G.keymap[c] = {p:p.i, flick:i * Math.PI / 2});
     } else {
       if(G.alt === 'dance') ['ArrowLeft', 'ArrowDown', 'ArrowUp', 'ArrowRight'].forEach((c, l) => G.keymap[c] = {p:p.i, lane:l}); // Dance: the arrow keys, plus your lane keys
       p.keys.lanes.slice(0, p.lanes).forEach((c, l) => { if(!G.keymap[c]) G.keymap[c] = {p:p.i, lane:l}; });
@@ -5444,6 +5654,7 @@ function missNote(p, n){
   petReact(p, 'sad');
   if(G.boss) bossHurt(p, 4);
   if(G.alt === 'dance') dancerPose('miss', '#8a8a9a');
+  if(G.alt === 'pulse' && G.pulse && n.kind){ const c = pulseXY(pulseField(), n); G.pulse.fx.push({x:c.x, y:c.y, miss:true, at:performance.now()}); }
   if(!G.alt) missFX(p, n); suddenDeath(p);
   if(p.combo >= 50 && p.geo){ for(const s of [-1, 1]){ const q = proj(p.geo, .1); addParticles(cxAt(p.geo, .1) + s * q.w / 2, q.y, '', 14, 0, 'smoke'); } sfx('fizz'); }
   n.j = 'm'; p.combo = 0; p.mult = 1; p.counts.m++;
@@ -5539,11 +5750,11 @@ addEventListener('keydown', e => {
     if(m){
       e.preventDefault(); if(e.repeat || G.state !== 'play' || G.replay) return;
       const p = G.players[m.p]; p.usePad = false; LAST_PAD[p.i] = false;
-      if(m.od) activateOD(p); else if(m.item) useItem(p); else if(m.pulse) pulsePress(p, songTimeAt(e.timeStamp)); else if(m.flick != null) pulseFlick(p, songTimeAt(e.timeStamp), m.flick); else press(p, m.lane, songTimeAt(e.timeStamp));
+      if(m.od) activateOD(p); else if(m.item) useItem(p); else if(m.pulse) pulsePress(p, songTimeAt(e.timeStamp)); else press(p, m.lane, songTimeAt(e.timeStamp));
     }
   }
 });
-addEventListener('keyup', e => { if(!G && edKeyUp(e)) return; if(!G || G.replay) return; const m = G.keymap[e.code]; if(!m || m.od || m.item || m.flick != null) return; if(m.pulse) pulseRelease(G.players[m.p], songTimeAt(e.timeStamp)); else release(G.players[m.p], m.lane, songTimeAt(e.timeStamp)); });
+addEventListener('keyup', e => { if(!G && edKeyUp(e)) return; if(!G || G.replay) return; const m = G.keymap[e.code]; if(!m || m.od || m.item) return; if(m.pulse) pulseRelease(G.players[m.p], songTimeAt(e.timeStamp)); else release(G.players[m.p], m.lane, songTimeAt(e.timeStamp)); });
 
 // ---- input: gamepads ----
 const padPrev = [];
@@ -6735,17 +6946,14 @@ cv.addEventListener('pointermove', e => {
 // ---- Pulse Mode: aim with the mouse (or tap with a finger), click to hit, swipe to flick ----
 cv.addEventListener('pointermove', e => {
   if(!G || G.alt !== 'pulse' || G.state !== 'play' || G.replay) return;
-  const P = G.pulse; if(!P) return;
-  const prev = {x:P.cx, y:P.cy}; P.cx = e.clientX; P.cy = e.clientY;
-  const now = e.timeStamp; P.hist.push({x:P.cx, y:P.cy, t:now}); while(P.hist.length > 1 && now - P.hist[0].t > 90) P.hist.shift();
-  const h0 = P.hist[0], dx = P.cx - h0.x, dy = P.cy - h0.y, dist = Math.hypot(dx, dy), dt = Math.max(1, now - h0.t);
-  if(dist > P.R * .9 && dist / dt > .45) pulseFlick(G.players[0], songTimeAt(now), Math.atan2(dy, dx), prev, {x:P.cx, y:P.cy});
+  const P = G.pulse; if(!P || G.auto) return;
+  P.cx = e.clientX; P.cy = e.clientY;
 });
 cv.addEventListener('pointerdown', e => {
   if(!G || G.alt !== 'pulse' || G.state !== 'play' || G.replay || e.button > 0) return;
   const x = e.clientX, y = e.clientY;
   if((G.touchBtns || []).some(b => x >= b.x && x <= b.x + b.w && y >= b.y && y <= b.y + b.h)) return; // the on-screen Overdrive / pause buttons
-  G.pulse.cx = x; G.pulse.cy = y; G.pulse.hist = [{x, y, t:e.timeStamp}];
+  G.pulse.cx = x; G.pulse.cy = y;
   pulsePress(G.players[0], songTimeAt(e.timeStamp));
 });
 const pulseUp = e => { if(G && G.alt === 'pulse' && G.pulse && G.pulse.down) pulseRelease(G.players[0], songTimeAt(e.timeStamp)); };
@@ -7120,7 +7328,7 @@ setInterval(() => { const now = performance.now(); if(now - lastFrame > 100) ste
 // =====================================================================
 const PEER_URL = 'https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js';
 const ROOM_PREFIX = 'beatstorm-v2-room-';
-const NET_V = 7; // bump when online messages change, so old and new versions don't mix
+const NET_V = 8; // bump when online messages change, so old and new versions don't mix
 let NET = null, onlineSize = 2, onlineTeams = false, onlineMsg = '', onlineBusy = false;
 const modeLabel = (size, teams) => teams ? '2V2' : ({2:'1V1', 3:'1V1V1', 4:'1V1V1V1'})[size] || '1V1';
 const TEAM_NAMES = ['TEAM PINK', 'TEAM CYAN'], TEAM_COLS = ['#ff7ab6', '#7ad9ff'];
@@ -7162,7 +7370,7 @@ function netErrText(e){
 const send = (c, msg) => { try{ if(c && c.open) c.send(msg); }catch(e){} };
 const broadcast = msg => { if(NET && NET.host) NET.conns.forEach(c => send(c, msg)); };
 const me = () => NET && NET.players.find(p => p.id === NET.myId);
-function lobbyMsg(){ return {type:'lobby', size:NET.size, stage:NET.stage, battle:!!NET.battle, ranked:!!NET.ranked, teams:!!NET.teams, boss:NET.boss || null, players:NET.players.map(p => ({id:p.id, name:p.name, ready:p.ready, has:p.has, diff:p.diff, inst:p.inst, host:p.host, card:p.card, team:p.team || 0}))}; }
+function lobbyMsg(){ return {type:'lobby', alt:NET.alt || null, size:NET.size, stage:NET.stage, battle:!!NET.battle, ranked:!!NET.ranked, teams:!!NET.teams, boss:NET.boss || null, players:NET.players.map(p => ({id:p.id, name:p.name, ready:p.ready, has:p.has, diff:p.diff, inst:p.inst, host:p.host, card:p.card, team:p.team || 0}))}; }
 // only keep the fields a profile card needs (never trust what comes over the network)
 const okAvatar = a => typeof a === 'string' && (AVATARS.includes(a) || (a.length <= 8 && /^\p{Extended_Pictographic}/u.test(a)));
 function cleanCard(c){ c = c && typeof c === 'object' ? c : {}; return {name:String(c.name || 'Player').slice(0, 16), avatar:okAvatar(c.avatar) ? c.avatar : '🎧', banner:BANNERS[c.banner] ? c.banner : 'midnight', title:String(c.title || 'Rookie').slice(0, 24), level:clamp(Math.floor(+c.level) || 1, 1, 1000), wins:clamp(+c.wins || 0, 0, 1e6), fcs:clamp(+c.fcs || 0, 0, 1e6), fav:String(c.fav || '').slice(0, 40), rating:clamp(Math.round(+c.rating || 1000), 0, 5000), rg:clamp(+c.rg || 0, 0, 1e6), frame:FRAMES[c.frame] ? c.frame : 'none', fid:/^[A-Z0-9]{6}$/.test(c.fid) ? c.fid : '', prestige:clamp(Math.floor(+c.prestige) || 0, 0, 99)}; }
@@ -7183,7 +7391,7 @@ async function hostRoom(){
     for(let i = 0; i < 4 && !peer; i++){ code = makeCode(); try{ peer = await openPeer(ROOM_PREFIX + code); }catch(e){ if(e.type !== 'unavailable-id') throw e; } }
     if(!peer) throw {type:'server-error'};
     NET = {peer, host:true, code, size:onlineTeams ? 4 : onlineSize, teams:onlineTeams, ranked:false, myId:'host', players:[{id:'host', name:myName(), ready:false, has:false, diff:S.pick[0], inst:S.inst[0] || 'lead', host:true, card:profileCard(), team:0}], battle:false,
-      conns:new Map(), song:null, recId:null, stage:'lobby', lives:{}, finals:{}, match:null, matchNo:0, reqs:new Map(), invited:new Set(), boss:null};
+      conns:new Map(), song:null, recId:null, stage:'lobby', lives:{}, finals:{}, match:null, matchNo:0, reqs:new Map(), invited:new Set(), boss:null, alt:playMode() === 'highway' ? null : playMode()};
     peer.on('connection', hostAccept);
     peer.on('disconnected', () => { try{ if(NET && NET.peer === peer && !peer.destroyed) peer.reconnect(); }catch(e){} });
     peer.on('error', e => console.warn('online:', e.type));
@@ -7312,9 +7520,9 @@ function hostStart(){
   const match = ps.map(p => ({id:p.id, name:p.name, diff:NET.ranked ? host.diff : p.diff, inst:(NET.ranked ? host.inst : p.inst) || 'lead', team:p.team || 0, rating:(p.card || {}).rating || 1000}));
   const at = performance.now() + 5000;
   NET.stage = 'playing';
-  const msg = {at, match, battle:!!NET.battle && !NET.ranked, ranked:!!NET.ranked, teams:!!NET.teams};
+  const msg = {at, match, battle:!!NET.battle && !NET.ranked && !NET.alt, ranked:!!NET.ranked, teams:!!NET.teams, alt:NET.alt || null};
   // boss co-op: the boss's health is worked out from everyone's chart, so it's the same for all
-  const bd = !NET.ranked && !NET.teams && bossDef(NET.boss);
+  const bd = !NET.ranked && !NET.teams && !NET.alt && bossDef(NET.boss);
   if(bd){
     const ideal = match.reduce((s, m) => s + idealScore(chartOf(NET.song.an, m.inst, m.diff).notes.map(n => ({len:n[2]}))), 0);
     msg.boss = {id:bd.id, max:Math.max(2000, Math.round(ideal * bd.tough))}; msg.battle = true;
@@ -7387,7 +7595,7 @@ function guestOnData(d){
       break;
     case 'lobby': {
       const mine = me();
-      NET.players = (d.players || []).map(p => Object.assign(p, {card:cleanCard(p.card), team:p.team === 1 ? 1 : 0})); NET.size = clamp(+d.size || 2, 2, 4); NET.stage = d.stage; NET.battle = !!d.battle; NET.ranked = !!d.ranked; NET.teams = !!d.teams; NET.boss = bossDef(d.boss) ? d.boss : null;
+      NET.players = (d.players || []).map(p => Object.assign(p, {card:cleanCard(p.card), team:p.team === 1 ? 1 : 0})); NET.size = clamp(+d.size || 2, 2, 4); NET.stage = d.stage; NET.battle = !!d.battle; NET.ranked = !!d.ranked; NET.teams = !!d.teams; NET.boss = bossDef(d.boss) ? d.boss : null; NET.alt = d.alt === 'dance' || d.alt === 'pulse' ? d.alt : null;
       if(mine && !NET.players.find(p => p.id === NET.myId)) break;
       // the host's song arrived before we were in the player list: tell the host now that we have it
       if(NET.pendingHas && me()){ NET.pendingHas = false; setMine({has:!!NET.recId, ready:false}); }
@@ -7458,6 +7666,7 @@ async function beginMatch(d){
   if(G && G.src) try{ G.src.stop(); }catch(e){}
   G = null;
   const localAt = NET.host ? d.at : d.at - NET.offset;
+  ALTRUN = !bd && (d.alt === 'dance' || d.alt === 'pulse') ? d.alt : null; // the room's game mode (Update 11)
   await startGame(rec, 'online', [{inst:INSTR.includes(mine.inst) ? mine.inst : 'lead', diff:mine.diff}], null, {an:NET.song.an, at:localAt}, !!d.battle);
 }
 function onlineTick(now){
@@ -7566,8 +7775,9 @@ onEl.addEventListener('dragover', e => { e.preventDefault(); });
 onEl.addEventListener('drop', e => { e.preventDefault(); if(e.dataTransfer && e.dataTransfer.files.length){ addFiles([...e.dataTransfer.files]); toast('Adding your song… the notes are being built.'); } });
 $('#onBack').onclick = () => {
   if(NET && !confirm('Leave the room?')) return;
-  closeNet(); onlineMsg = ''; sfx('back'); show('title');
+  closeNet(); onlineMsg = ''; sfx('back'); openModes('online');
 };
+$('#libBack').onclick = () => { sfx('back'); if(MODE === 'solo') openModes('solo'); else show('title'); };
 function renderOnline(){
   if(screen !== 'online') return;
   const b = $('#onBody');
@@ -7579,6 +7789,7 @@ function renderOnline(){
         <h3 style="margin-top:4px">MODE</h3><div class="seg" id="onSize">${[['2', '1V1'], ['3', '1V1V1'], ['4', '1V1V1V1'], ['t', '2V2 TEAMS']].map(([v, l]) => `<button data-v="${v}" class="${(v === 't' ? onlineTeams : !onlineTeams && +v === onlineSize) ? 'on' : ''}">${l}</button>`).join('')}</div>
         <div class="hint">${onlineTeams ? '2 teams of 2: your scores add up together against the other team.' : `${onlineSize} players, everyone for themselves.${onlineSize === 2 ? ' 1v1 can also be <b>Ranked</b>.' : ''}`}</div></div>
       <div class="panel sec"><h3>CREATE A ROOM</h3><p class="hint">You'll get a 5-letter code. Send it to your friends so they can join.</p>
+        <p class="hint">Game mode: <b style="color:${ALT_INFO[playMode()].col}">${ALT_INFO[playMode()].icon} ${ALT_INFO[playMode()].name}</b> (you can change it in your room). When you join someone's room, you play the mode they picked.</p>
         <button class="btn primary" id="onCreate" ${busy ? 'disabled' : ''}>＋ CREATE ${modeLabel(onlineTeams ? 4 : onlineSize, onlineTeams)} ROOM</button></div>
       <div class="panel sec"><h3>JOIN A ROOM</h3><input class="inp" id="onCode" maxlength="5" placeholder="CODE" autocomplete="off" style="text-transform:uppercase;font-family:var(--head);letter-spacing:8px;font-size:26px;text-align:center" ${busy ? 'disabled' : ''}>
         <button class="btn cyan" id="onJoin" ${busy ? 'disabled' : ''}>JOIN ROOM</button></div>
@@ -7679,11 +7890,15 @@ function renderOnline(){
   ${myRoomInfo() && (PROF.friends || []).length ? `<div class="panel sec"><h3 style="display:flex;align-items:center;gap:8px">📨 INVITE FRIENDS<span style="flex:1"></span><button class="btn sm" id="onFrRefresh">↻</button></h3><div style="display:flex;gap:8px;flex-wrap:wrap">
     ${PROF.friends.map(f => { const s = FR.status[f.fid] || {}; return `<button class="btn sm ${s.state === 'on' ? 'cyan' : ''}" data-oninv="${f.fid}" ${s.state === 'on' ? '' : 'disabled'}><span class="dot ${s.state === 'on' || s.state === 'room' ? 'on' : ''}"></span>${esc(f.name)}${s.state === 'checking' ? ' …' : s.state === 'room' ? ' (in a room)' : s.state === 'on' ? '' : ' (offline)'}</button>`; }).join('')}</div>
     <div class="hint">Online friends get a pop-up with a JOIN button.</div></div>` : ''}`;
+  const am = NET.alt || 'highway';
   $('#onC').innerHTML = `
+  <div class="panel sec"><h3>GAME MODE</h3>
+    <div class="seg" id="onAlt">${Object.entries(ALT_INFO).map(([k, m]) => `<button data-alt="${k}" class="${am === k ? 'on' : ''}" ${host && !playing ? '' : 'disabled'}>${m.icon} ${m.name}</button>`).join('')}</div>
+    <div class="hint">${ALT_INFO[am].icon} <b>${ALT_INFO[am].name}</b>: ${ALT_INFO[am].long} Everyone in the room plays this mode.${host ? '' : ' The host chooses.'}${NET.alt ? ' <i>Battle items and bosses are Highway only.</i>' : ''}</div></div>
   <div class="panel sec"><h3>MATCH TYPE</h3>
-    <div class="seg" id="onBattle"><button data-v="normal" class="${mtype === 'normal' ? 'on' : ''}" ${host ? '' : 'disabled'}>🎵 Normal</button><button data-v="battle" class="${mtype === 'battle' ? 'on' : ''}" ${host ? '' : 'disabled'}>⚔️ Battle</button>
+    <div class="seg" id="onBattle"><button data-v="normal" class="${mtype === 'normal' ? 'on' : ''}" ${host ? '' : 'disabled'}>🎵 Normal</button><button data-v="battle" class="${mtype === 'battle' ? 'on' : ''}" ${host && !NET.alt ? '' : 'disabled'}>⚔️ Battle</button>
       <button data-v="ranked" class="${mtype === 'ranked' ? 'on' : ''}" ${host && canRank ? '' : 'disabled'} title="${canRank ? '' : 'Ranked is 1v1 only'}">🏅 Ranked</button>
-      <button data-v="boss" class="${mtype === 'boss' ? 'on' : ''}" ${host && !NET.teams ? '' : 'disabled'} title="${NET.teams ? 'Not in 2v2 rooms' : ''}">👹 Boss</button></div>
+      <button data-v="boss" class="${mtype === 'boss' ? 'on' : ''}" ${host && !NET.teams && !NET.alt ? '' : 'disabled'} title="${NET.teams ? 'Not in 2v2 rooms' : ''}">👹 Boss</button></div>
     ${mtype === 'boss' && host ? `<select class="inp" id="onBoss">${BOSSES.map((b, i) => bossOpen(i) ? `<option value="${b.id}" ${b.id === NET.boss ? 'selected' : ''}>${b.emo} ${esc(b.name)}${bossWins(b.id) ? ' ✓' : ''}</option>` : '').join('')}</select>` : ''}
     <div class="hint">${mhint}${host ? (canRank ? '' : ' <i>Ranked is only for 1v1 rooms.</i>') : ' The host chooses.'}${host && mtype === 'boss' ? ' You can pick any boss you have unlocked.' : ''}</div></div>
   <div class="panel sec"><h3>${lock && !host ? 'INSTRUMENT & DIFFICULTY (SET BY THE HOST)' : 'YOUR INSTRUMENT & DIFFICULTY'}</h3>
@@ -7700,6 +7915,8 @@ function renderOnline(){
   document.querySelectorAll('#onBody .inst button').forEach(x => x.onclick = () => { sfx('hover'); S.inst[0] = x.dataset.i; saveSettings(); setMine({inst:x.dataset.i}); });
   if(host) document.querySelectorAll('#onBattle button').forEach(x => x.onclick = () => { if(NET.stage !== 'lobby') return; const v = x.dataset.v; NET.battle = v === 'battle'; NET.ranked = v === 'ranked' && NET.size === 2 && !NET.teams;
     NET.boss = v === 'boss' && !NET.teams ? (NET.boss || (BOSSES.find((b, i) => bossOpen(i) && !bossWins(b.id)) || BOSSES[0]).id) : null; NET.players.forEach(p => p.ready = false); sfx('click'); broadcastLobby(); });
+  if(host) document.querySelectorAll('#onAlt button').forEach(x => x.onclick = () => { if(NET.stage !== 'lobby') return; const v = x.dataset.alt; NET.alt = v === 'dance' || v === 'pulse' ? v : null; S.playMode = v; saveSettings();
+    if(NET.alt){ NET.battle = false; NET.boss = null; } NET.players.forEach(p => p.ready = false); sfx('click'); broadcastLobby(); });
   const ob = $('#onBoss'); if(ob) ob.onchange = e => { if(NET.stage !== 'lobby') return; NET.boss = bossDef(e.target.value) ? e.target.value : NET.boss; NET.players.forEach(p => p.ready = false); broadcastLobby(); };
   document.querySelectorAll('#onBody [data-addf]').forEach(x => x.onclick = () => { const p = NET.players.find(q => q.card && q.card.fid === x.dataset.addf); if(addFriend(x.dataset.addf, p && Object.assign(cleanCard(p.card), {name:p.name}))) renderOnline(); });
   document.querySelectorAll('#onBody [data-oninv]').forEach(x => x.onclick = () => { sfx('click'); inviteFriend(x.dataset.oninv); x.disabled = true; x.textContent = '📨 SENT'; });
